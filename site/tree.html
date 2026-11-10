@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>天赋树 · 破誓资料库</title>
+<meta name="description" content="《破誓》1242 节点天赋树：可缩放、可搜索、可查看每个基石与显著节点的完整词条。">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .tnode text{display:none}
+  .tnode.hit circle{stroke:#fff;stroke-width:5}
+  .tnode.dim{opacity:.14}
+  .tlabel{fill:#c9d2e0;opacity:0;pointer-events:none;font-family:var(--font-body);letter-spacing:.02em;
+    text-shadow:0 1px 3px rgba(0,0,0,.9)}
+  #treeSvg.zoomed .tlabel.l-Notable,#treeSvg.zoom2 .tlabel.l-Notable{opacity:.75}
+  #treeSvg.zoom2 .tlabel.l-Choice{opacity:.75}
+  #treeSvg .tlabel.l-Start{opacity:.9}
+  #treeSvg.zoomed .tlabel.l-Keystone{opacity:.95;fill:#e8c988;font-weight:600}
+  .tlink{stroke:rgba(255,255,255,.10)}
+  .tlink.start{stroke:rgba(224,118,58,.5)}
+  :root[data-theme="light"] .tlink{stroke:rgba(20,20,20,.13)}
+  .tree-search{height:34px;width:210px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);color:var(--fg);padding:0 10px;font-size:.85rem}
+  .tree-search:focus{outline:none;border-color:var(--acc)}
+  .tree-sel{height:34px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);color:var(--fg2);font-size:.85rem;padding:0 8px}
+  .tinfo{font-size:.8rem;color:var(--dim);line-height:1.6}
+  .tinfo b{color:var(--fg2)}
+</style>
+</head>
+<body>
+<header id="bo-top"></header>
+<div class="wrap">
+  <section class="hero" style="padding-bottom:14px">
+    <div class="hero-kicker">PASSIVE TREE · 1242 NODES</div>
+    <h1>天赋树</h1>
+    <p id="lede"></p>
+  </section>
+  <div class="tree-wrap" id="treeWrap">
+    <svg id="treeSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="tree-ui">
+      <input class="tree-search" id="tq" placeholder="搜索节点…">
+      <select class="tree-sel" id="tcls"></select>
+      <button class="bo-btn" id="zin" title="放大"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M11 8.5v5M8.5 11h5"/></svg></button>
+      <button class="bo-btn" id="zout" title="缩小"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M8.5 11h5"/></svg></button>
+      <button class="bo-btn" id="zres" title="重置视图"><svg viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1M3.5 4.5V9h4.5"/></svg></button>
+    </div>
+    <aside class="tree-panel" id="panel">
+      <button class="bo-btn close" id="pclose">✕</button>
+      <div id="pbody"></div>
+    </aside>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+<div id="bo-foot"></div>
+
+<script src="assets/site.js"></script>
+<script src="assets/data/tree.js"></script>
+<script>
+(function(){
+  const TR = window.BO_TREE, T = BO.T, esc = BO.esc;
+  BO.mountHeader('tree.html'); BO.mountFooter(); BO.setDocumentTitle('天赋树','Passive Tree');
+  const $ = id => document.getElementById(id);
+  const svg = $('treeSvg');
+  const NS = 'http://www.w3.org/2000/svg';
+  const byId = new Map(TR.nodes.map(n=>[n.i,n]));
+
+  // colours + radii (units are tree-space; the whole tree spans ~13000 units)
+  const KIND = {
+    Keystone: {r:44, fill:'#d8a657', stroke:'#f7e4bc', zh:'基石'},
+    Notable:  {r:30, fill:'#9fb4d8', stroke:'#dbe6f7', zh:'显著'},
+    Attribute:{r:24, fill:'#7ea6b8', stroke:'#c3dfe9', zh:'属性'},
+    Choice:   {r:30, fill:'#b07fd8', stroke:'#e5cef5', zh:'抉择'},
+    Socket:   {r:30, fill:'#7fbf9a', stroke:'#cbefdc', zh:'插槽'},
+    Small:    {r:17, fill:'#5d6675', stroke:'#8a94a5', zh:'小'},
+    Start:    {r:40, fill:'#e0763a', stroke:'#ffc79b', zh:'起始'},
+  };
+  const CLASS_COL = {Warrior:'#e0763a', Mage:'#5aa7d8', Ranger:'#6ecf8f', Samurai:'#d8c45a', Paladin:'#e8e0c8', Necromancer:'#a06fd8'};
+  // dim tints so the six class wedges read at a glance
+  const CLASS_DIM = {Warrior:'#6b4433', Mage:'#37566c', Ranger:'#3a6650', Samurai:'#6b6538', Paladin:'#6f6c5d', Necromancer:'#54406b'};
+  const CLASS_MID = {Warrior:'#8f5a3f', Mage:'#4a7191', Ranger:'#4d8468', Samurai:'#8a8249', Paladin:'#918d79', Necromancer:'#6f558c'};
+
+  // ---- bounds
+  let maxX=0, maxY=0, minX=0, minY=0;
+  TR.nodes.forEach(n=>{ maxX=Math.max(maxX,n.x); minX=Math.min(minX,n.x); maxY=Math.max(maxY,n.y); minY=Math.min(minY,n.y); });
+  const pad = 700;
+  const B = {x:minX-pad, y:minY-pad, w:(maxX-minX)+pad*2, h:(maxY-minY)+pad*2};
+  // start looking at the middle of the tree (where every class starts), not the whole wheel
+  let view = {x:B.x+B.w*0.30, y:B.y+B.h*0.30, w:B.w*0.40, h:B.h*0.40};
+  const applyView = ()=>{
+    svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
+    svg.classList.toggle('zoomed', view.w < B.w*0.32);
+    svg.classList.toggle('zoom2', view.w < B.w*0.16);
+  };
+  applyView();
+
+  // ---- draw
+  const pos = new Map(TR.nodes.map(n=>[n.i,[n.x,n.y]]));
+  const eSvg = TR.edges.map(([a,b])=>{
+    const pa = pos.get(a), pb = pos.get(b); if(!pa||!pb) return '';
+    const sa = (byId.get(a)||{}).k, sb = (byId.get(b)||{}).k;
+    const cls = (sa==='Start'||sb==='Start') ? 'tlink start' : 'tlink';
+    return `<line class="${cls}" data-a="${a}" data-b="${b}" x1="${pa[0]}" y1="${pa[1]}" x2="${pb[0]}" y2="${pb[1]}"/>`;
+  }).join('');
+  const nSvg = TR.nodes.map(n=>{
+    const k = KIND[n.k] || KIND.Small;
+    let fill = k.fill;
+    if (n.c && CLASS_COL[n.c]) fill = CLASS_COL[n.c];
+    else if (n.r && CLASS_DIM[n.r]) fill = (n.k==='Notable'||n.k==='Choice') ? CLASS_MID[n.r] : CLASS_DIM[n.r];
+    const stroke = n.r && CLASS_DIM[n.r] ? 'rgba(255,255,255,.28)' : k.stroke;
+    return `<g class="tnode k-${n.k}" data-i="${n.i}"><circle cx="${n.x}" cy="${n.y}" r="${k.r}" fill="${fill}" stroke="${stroke}" stroke-width="4"><title>${esc(T(n.n))} · ${esc(k.zh)}</title></circle></g>`;
+  }).join('');
+  const lblSvg = TR.nodes.filter(n=>n.k==='Keystone'||n.k==='Notable'||n.k==='Start'||n.k==='Choice').map(n=>{
+    const k = KIND[n.k] || KIND.Small;
+    const size = n.k==='Start'?96:(n.k==='Keystone'?64:44);
+    return `<text class="tlabel l-${n.k}" x="${n.x}" y="${n.y - k.r - 20}" text-anchor="middle" font-size="${size}">${esc(T(n.n))}</text>`;
+  }).join('');
+  svg.innerHTML = `<g id="gE">${eSvg}</g><g id="gL">${lblSvg}</g><g id="gN">${nSvg}</g>`;
+
+  $('lede').textContent = `共 ${TR.nodes.length} 个节点、${TR.edges.length} 条连线。滚轮缩放，拖拽平移，点击节点查看完整词条；数据版本 v${TR.version}。`;
+  $('legend').innerHTML = Object.entries(KIND).filter(([k])=>k!=='Small').map(([k,v])=>`<span><i style="background:${v.fill}"></i>${v.zh}</span>`).join('') + `<span><i style="background:#5d6675"></i>小节点</span>`;
+
+  // ---- class filter
+  $('tcls').innerHTML = `<option value="">全部区域</option>` + TR.classes.map(([zh,en])=>`<option value="${en}">${esc(T([zh,en]))}</option>`).join('');
+
+  // ---- interaction: pan / zoom
+  let drag = null;
+  svg.addEventListener('pointerdown', e=>{
+    if (e.target.closest('.tnode')) return;
+    drag = {x:e.clientX, y:e.clientY, vx:view.x, vy:view.y};
+    svg.classList.add('drag'); svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointermove', e=>{
+    if (!drag) return;
+    const r = svg.getBoundingClientRect();
+    view.x = drag.vx - (e.clientX-drag.x)*view.w/r.width;
+    view.y = drag.vy - (e.clientY-drag.y)*view.h/r.height;
+    applyView();
+  });
+  const endDrag = e=>{ drag=null; svg.classList.remove('drag'); };
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+
+  function zoomAt(f, cx, cy){
+    const r = svg.getBoundingClientRect();
+    const px = view.x + (cx - r.left)/r.width*view.w;
+    const py = view.y + (cy - r.top)/r.height*view.h;
+    const nw = Math.min(B.w*1.4, Math.max(B.w/10, view.w*f));
+    const nh = nw * (view.h/view.w);
+    view = {x:px-(px-view.x)*(nw/view.w), y:py-(py-view.y)*(nh/view.h), w:nw, h:nh};
+    applyView();
+  }
+  svg.addEventListener('wheel', e=>{ e.preventDefault(); zoomAt(e.deltaY>0?1.16:0.86, e.clientX, e.clientY); }, {passive:false});
+  $('zin').onclick = ()=>{ const r=svg.getBoundingClientRect(); zoomAt(.72, r.left+r.width/2, r.top+r.height/2); };
+  $('zout').onclick = ()=>{ const r=svg.getBoundingClientRect(); zoomAt(1.38, r.left+r.width/2, r.top+r.height/2); };
+  $('zres').onclick = ()=>{ view={...B}; applyView(); };
+
+  // ---- node panel
+  const panel = $('panel'), pbody = $('pbody');
+  function showNode(id){
+    const n = byId.get(id); if(!n) return;
+    const k = KIND[n.k] || KIND.Small;
+    document.querySelectorAll('.tnode.sel').forEach(x=>x.classList.remove('sel'));
+    const g = svg.querySelector(`.tnode[data-i="${id}"]`); if (g) g.classList.add('sel');
+    const mods = (n.m||[]).map(m=>`<li>${esc(T(m))}</li>`).join('');
+    pbody.innerHTML = `
+      <h3>${esc(T(n.n))}</h3>
+      <div class="k">${esc(k.zh)}${n.c?' · '+esc(T([(TR.classes.find(c=>c[1]===n.c)||[])[0]||n.c, n.c])):''}${n.r?' · 区域 '+esc(n.r):''}</div>
+      ${mods?`<ul class="mods imp">${mods}</ul>`:''}
+      ${n.t&&n.t[1]?`<div style="color:var(--fg2);font-size:.86rem;margin-top:8px">${esc(T(n.t))}</div>`:''}
+      ${n.p&&n.p[1]?`<div style="color:var(--ember);font-size:.84rem;margin-top:8px">代价：${esc(n.p[0]||n.p[1])}</div>`:''}
+      ${n.f&&n.f[1]?`<div class="flav" style="margin-top:10px">${esc(T(n.f))}</div>`:''}
+      ${n.sock?`<div class="tag" style="margin-top:8px">插槽：${esc(n.sock)}</div>`:''}
+      <div class="tinfo" style="margin-top:10px">
+        相连节点 ${(n.i&&(TR.edges.filter(e=>e.includes(n.i)).length))||0} 个 · 坐标 ${n.x}, ${n.y}
+      </div>`;
+    panel.classList.add('on');
+  }
+  $('pclose').onclick = ()=>{ panel.classList.remove('on'); document.querySelectorAll('.tnode.sel').forEach(x=>x.classList.remove('sel')); };
+  svg.addEventListener('click', e=>{
+    const g = e.target.closest('.tnode'); if(!g) return; showNode(g.dataset.i);
+  });
+
+  // ---- search
+  function highlight(){
+    const q = $('tq').value.trim().toLowerCase();
+    const cls = $('tcls').value;
+    let hits = 0;
+    document.querySelectorAll('.tnode').forEach(g=>{
+      const n = byId.get(g.dataset.i);
+      const nameZh = (n.n[0]||'').toLowerCase(), nameEn = (n.n[1]||'').toLowerCase();
+      const mods = (n.m||[]).map(m=>(m[0]+' '+m[1])).join(' ').toLowerCase();
+      const okQ = !q || nameZh.includes(q) || nameEn.includes(q) || mods.includes(q);
+      const okC = !cls || n.r === cls || n.c === cls;
+      g.classList.toggle('hit', !!q && okQ);
+      g.classList.toggle('dim', !(okQ && okC));
+      if (okQ && okC && q) hits++;
+    });
+    if (q){
+      const first = [...document.querySelectorAll('.tnode.hit')].find(g=>!g.classList.contains('dim'));
+      if (first){
+        const n = byId.get(first.dataset.i);
+        view = {x:n.x-view.w/2, y:n.y-view.h/2, w:view.w, h:view.h};
+        applyView();
+      }
+      $('lede').textContent = `匹配 ${hits} 个节点（名称或词条含 “${$('tq').value.trim()}”）`;
+    } else {
+      $('lede').textContent = `共 ${TR.nodes.length} 个节点、${TR.edges.length} 条连线。滚轮缩放，拖拽平移，点击节点查看完整词条；数据版本 v${TR.version}。`;
+    }
+  }
+  $('tq').addEventListener('input', BO.debounce(highlight, 160));
+  $('tcls').addEventListener('change', ()=>{
+    highlight();
+    const val = $('tcls').value;
+    if (!val) return;
+    const start = TR.nodes.find(n=>n.c===val && n.k==='Start');
+    if (start){
+      view = {x:start.x-B.w*0.11, y:start.y-B.w*0.11, w:B.w*0.22, h:B.w*0.22};
+      applyView();
+    }
+  });
+
+  // ---- suggested paths
+  if (TR.suggested && Object.keys(TR.suggested).length){
+    const first = Object.keys(TR.suggested)[0];
+    $('tcls').dataset.sugg = '1';
+  }
+})();
+</script>
+</body>
+</html>

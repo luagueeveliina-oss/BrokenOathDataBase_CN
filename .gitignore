@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# 本地 QA 产物
+shots/
+tools/dump_*.html
+tools/jscheck/
+
+# 发布产物
+*.zip
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/

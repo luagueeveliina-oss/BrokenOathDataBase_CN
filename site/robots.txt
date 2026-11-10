@@ -1,0 +1,6 @@
+# 若只想私下分享（不进入搜索引擎），把下面两行换成：
+# User-agent: *
+# Disallow: /
+
+User-agent: *
+Allow: /

@@ -1,0 +1,451 @@
+
+<script>
+const DB = JSON.parse(document.getElementById('db').textContent);
+const CATS = [
+  {k:'uniques',  t:'Uniques'}, {k:'runewords',t:'Runewords'}, {k:'affixes',t:'Item mods'}, {k:'bases',t:'Base items'},
+  {k:'runes',t:'Runes & jewels'}, {k:'skills',t:'Skill damage'}, {k:'vows',t:'Vows, Heralds & Woes'}, {k:'supports',t:'Support gems'}, {k:'potions',t:'Potions'}, {k:'crafting',t:'Crafting'}, {k:'other',t:'Other modifiers'},
+];
+const one = v => v ? [v] : [];
+const FACETS = {
+  uniques:  [{id:'tier',l:'Red tier',g:e=>one('Tier '+['','I','II','III','IV'][e.tier])}, {id:'slot',l:'Slot',g:e=>one(e.slot)}, {id:'wt',l:'Weapon',g:e=>one(e.wtype)}, {id:'def',l:'Defence',g:e=>e.defs||[]}],
+  bases:    [{id:'slot',l:'Slot',g:e=>one(e.slot)}, {id:'wt',l:'Weapon',g:e=>one(e.wtype)}, {id:'def',l:'Defence',g:e=>e.defs||[]}],
+  runewords:[{id:'base',l:'Goes in',g:e=>e.bases,grp:1}, {id:'soc',l:'Sockets',g:e=>one(e.sockets+' sockets')}],
+  affixes:  [{id:'type',l:'Type',g:e=>one(e.type)}, {id:'on',l:'Rolls on',g:e=>e.kinds||e.on,grp:1}, {id:'def',l:'Defence type',g:e=>e.defs||[]}],
+  runes:    [{id:'kind',l:'Kind',g:e=>one(e.kind)}, {id:'tier',l:'Tier',g:e=>one('Tier '+e.tier)}],
+  skills:   [{id:'type',l:'Type',g:e=>one(e.type)}, {id:'dmg',l:'Damage',g:e=>one(e.dmg)}, {id:'kind',l:'Kind',g:e=>one(e.kind)}],
+  vows:     [{id:'kind',l:'Kind',g:e=>one(e.kind)}, {id:'attr',l:'Attribute',g:e=>one(e.attr)}, {id:'dmg',l:'Element',g:e=>one(e.dmg)}],
+  supports: [{id:'attr',l:'Attribute',g:e=>one(e.attr)}, {id:'req',l:'Works with',g:e=>e.req}],
+  crafting: [{id:'src',l:'Station',g:e=>one(e.src)}, {id:'kind',l:'Kind',g:e=>one(e.kind)}],
+  other:    [{id:'cat',l:'Kind',g:e=>one(e.cat)}],
+  potions:  [{id:'kind',l:'Kind',g:e=>one(e.kind)}, {id:'role',l:'Potion',g:e=>e.roles||one(e.role)}],
+};
+// item kinds in a fixed, game-like order, grouped under small headings, with short labels for the long weapon names
+const KGROUPS=[['Weapons',['Bow','Claw','Dagger','Fist','Fist Weapon','Wand','Staff','Scythe','One-Handed Axe','One Hand Axe','One-Handed Mace','One Hand Mace','One-Handed Sword','One Hand Sword','Two-Handed Axe','Two-Handed Mace','Two-Handed Sword','Two Hand','Weapon','Main Hand']],
+  ['Off hand',['Off Hand','Quiver','Shield','Tome']],['Armour',['Helm','Chest','Gloves','Boots']],['Jewellery',['Amulet','Ring','Belt']],['Other',['Idol','Dwarven Rune']]];
+const KORDER={}; KGROUPS.forEach(([g,l],gi)=>l.forEach((v,i)=>KORDER[v]=[gi,i]));
+const kshort=v=>v.replace(/^One[- ]Hand(ed)? /,'1H ').replace(/^Two[- ]Hand(ed)? /,'2H ').replace(/^Two Hand$/,'Any 2H').replace(/^Fist Weapon$/,'Fist').replace(/^Weapon$/,'Any weapon');
+const kord=v=>KORDER[v]||[KGROUPS.length,0];
+// which classes an entry belongs to (null = not class-specific)
+const CLASSOF = {
+  uniques: e=>e.classes, bases: e=>e.classes,
+  runewords: e=>e.cls ? [e.cls] : null,
+  skills: e=>['Any class','Vows & Woes'].includes(e.cls) ? null : [e.cls],
+};
+const S = {cat:'uniques', q:'', cls:'', newOnly:false, f:{}, sort:'lvl', limit:120, pin:''};
+const LINKABLE = new Set(['uniques','bases','runewords','runes','skills','vows','supports','potions']);
+function readHash(){ const h=decodeURIComponent(location.hash.slice(1)); const [c,id]=h.split('/'); if(CATS.some(x=>x.k===c)){ S.cat=c; S.pin=id&&DB[c].some(e=>e.id===id)?id:''; return true; } return false; }
+try{ S.cls = localStorage.getItem('bdb_cls')||''; }catch(e){}
+try{ readHash(); }catch(e){}
+
+// search index
+for (const c of CATS) DB[c.k].forEach((e,i)=>{ e._i=i; e._s = JSON.stringify(e).toLowerCase(); });
+
+// ---------- weapon DPS and defence, worked out from the base and the unique's best rolls
+const BASEBY = {}; DB.bases.forEach(b=>BASEBY[b.name]=b);
+const rollMax = s => s.replace(/\((-?[\d.]+)-(-?[\d.]+)\)/g,'$2');
+function baseNums(b){ const o={pA:0,pB:0,aps:0,ar:0,ev:0,es:0};
+  for(const st of b.stats||[]){ let m;
+    if(m=st.match(/^([\d.]+)-([\d.]+) Physical Damage/)){o.pA=+m[1];o.pB=+m[2];}
+    else if(m=st.match(/^([\d.]+) Attacks per Second/)) o.aps=+m[1];
+    else if(m=st.match(/^([\d.]+) Armour/)) o.ar=+m[1];
+    else if(m=st.match(/^([\d.]+) Evasion/)) o.ev=+m[1];
+    else if(m=st.match(/^([\d.]+) Energy Shield/)) o.es=+m[1]; }
+  return o; }
+function rate(e, b, mods){
+  const n=baseNums(b); let physInc=0, as=0, add=0, defInc={ar:0,ev:0,es:0}, flat={ar:0,ev:0,es:0};
+  for(const raw of mods||[]){ const t=rollMax(raw); let m; const neg=/ reduced /.test(t)?-1:1;
+    if(m=t.match(/^([\d.]+)% (?:increased|reduced) Physical Damage$/)) physInc+=neg*m[1];
+    else if(m=t.match(/^([\d.]+)% (?:increased|reduced) Attack (?:Attack )?Speed$/)) as+=neg*m[1];
+    else if(m=t.match(/^Adds ([\d.]+) to ([\d.]+) (Physical|Fire|Cold|Lightning|Poison|Holy) Damage$/)) add+=(+m[1]+ +m[2])/2;
+    else if(m=t.match(/^([\d.]+)% (?:increased|reduced) (Armour|Evasion Rating|Energy Shield|Defences)$/)){ const v=neg*m[1]; const k={Armour:['ar'],'Evasion Rating':['ev'],'Energy Shield':['es'],Defences:['ar','ev','es']}[m[2]]; k.forEach(x=>defInc[x]+=v); }
+    else if(m=t.match(/^\+([\d.]+) to (Armour|Evasion Rating|maximum Energy Shield)$/)) flat[{Armour:'ar','Evasion Rating':'ev','maximum Energy Shield':'es'}[m[2]]]+=+m[1];
+  }
+  const dps = n.aps ? (((n.pA+n.pB)/2)*(1+physInc/100)+add)*n.aps*(1+as/100) : 0;
+  const def = ['ar','ev','es'].reduce((a,k)=>a+(n[k]+flat[k])*(1+defInc[k]/100),0);
+  return {dps:Math.round(dps*10)/10, def:Math.round(def)};
+}
+DB.bases.forEach(b=>Object.assign(b,{_r:rate(b,b,[])}));
+DB.uniques.forEach(u=>{ const b=BASEBY[u.base]; u._r = b ? rate(u,b,u.mods) : {dps:0,def:0}; });
+const SORTABLE = new Set(['bases','uniques']);
+const rateTag = e => { if(!e._r) return ''; const out=[];
+  if(e._r.dps) out.push(`<span class="tag rate" title="${e.mods?'Weapon DPS at the best rolls of its mods':'Base weapon DPS: average hit × attacks per second'}"><b>${e._r.dps.toLocaleString('en-US')}</b> DPS</span>`);
+  if(e._r.def) out.push(`<span class="tag rate" title="${e.mods?'Armour + evasion + energy shield at the best rolls of its mods':'Base armour + evasion + energy shield'}"><b>${e._r.def.toLocaleString('en-US')}</b> defence</span>`);
+  return out.join(''); };
+const total = CATS.reduce((a,c)=>a+DB[c.k].length,0);
+document.getElementById('sub').textContent = `${total.toLocaleString()} Broken Oath playtest entries`;
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let terms = [];
+function hl(s){
+  let out = esc(s);
+  if(!terms.length) return out;
+  for(const t of terms){ if(t.length<2) continue;
+    const re = new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+    out = out.replace(/(<[^>]*>)|([^<]+)/g,(m,tag,txt)=> tag ? tag : txt.replace(re,'<mark>$1</mark>'));
+  }
+  return out;
+}
+const li = (arr, cls='') => arr && arr.length ? `<ul class="mods ${cls}">${arr.map(m=>`<li>${hl(m)}</li>`).join('')}</ul>` : '';
+const tags = (arr, cls='') => (arr||[]).map(x=>`<span class="tag ${cls}">${esc(x)}</span>`).join('');
+
+function dmgOf(e,r){ return e.type==='Attack' ? r[2]+'%' : r[2]+'-'+r[3]; }
+function skillCard(e){
+  const pick=[1,10,20,30,40].map(l=>e.rows[l-1]);
+  return `<article class="card">${head(e)}${pills([NEW(e)])}
+    <div class="meta"><b>${esc(e.cls)}</b> · ${e.type==='Attack'?'Attack, % of weapon damage':'Spell, base damage'} · ${hl(e.dmg)} · ${esc(e.delivery)}${e.kind==='Weapon'?' · Weapon skill':''}</div>
+    ${e.desc?`<div class="meta">${hl(e.desc)}</div>`:''}
+    <div class="sk">${pick.map(r=>`<div><span class="lbl">Lv ${r[0]}</span><span class="mono">${dmgOf(e,r)}</span></div>`).join('')}</div>
+    ${li(e.notes,'imp')}
+    <details class="lvls"><summary>All levels 1-40</summary><div class="tiers" style="padding:0">
+    <table><thead><tr><th>Gem level</th><th>Hero level</th><th>${e.type==='Attack'?'% of weapon':'Base damage'}</th></tr></thead><tbody>
+    ${e.rows.map(r=>`<tr${r[0]===21?' class="bonus"':''}><td class="mono">${r[0]}${r[0]>20?' (+'+(r[0]-20)+')':''}</td><td class="mono">${r[1]??'gear / passives'}</td><td class="mono">${dmgOf(e,r)}</td></tr>`).join('')}
+    </tbody></table></div></details></article>`;
+}
+let IC=null; try{ fetch('ic/icons.json').then(r=>r.ok?r.json():null).then(j=>{ if(j){ IC=j; render(); } }).catch(()=>{}); }catch(e){}
+const ICAT={uniques:'uniq',bases:'base',runes:'rune',supports:'sup',skills:'skill',vows:'skill',potions:'pot'};
+const icon = e => { if(!IC) return ''; const c=ICAT[S.cat]; const f=c&&IC[c]&&(IC[c][e.id]||IC[c][String(e.id).toLowerCase()]); if(!f) return ''; return `<img class="ico${c==='sup'?' gem':c==='skill'?' sq':''}" src="ic/${f}"${f.startsWith('jewel/')?' title="Drawn from the game\'s jewel shape and colour data"':''} alt="" loading="lazy" width="52" height="52">`; };
+const NEW = e => e.isnew?'<span class="tag new">New</span>':'';
+const head = (e, right) => { const ic=icon(e); return `<div class="ch${ic?' hi':''}">${ic}<h3>${e.id&&LINKABLE.has(S.cat)?`<a class="plink" href="#${S.cat}/${encodeURIComponent(e.id)}" title="Link to this item">${hl(e.name)}</a>`:hl(e.name)}</h3>${right?`<span class="lvl">${right}</span>`:''}</div>`; };
+const pills = arr => `<div class="pills">${arr.filter(Boolean).join('')}</div>`;
+const facetTags = e => { const out=[]; if(e.defs&&e.defs.length) out.push(`<span class="tag">${esc(e.defs.join(' + '))}</span>`); if(e.classes && e.classes.length<6) out.push(`<span class="tag">${esc(e.classes.join(' / '))}</span>`); return out.join(''); };
+const facetLine = e => { const bits=[]; if(e.classes && e.classes.length<6) bits.push(e.classes.join(' / ')); if(e.defs&&e.defs.length) bits.push(e.defs.join(' + ')); return bits.length?`<div>${bits.map(b=>`<span class="tag">${esc(b)}</span>`).join('')}</div>`:''; };
+const R = {
+  potions: e => `<article class="card">${head(e,e.role||'')}${pills([NEW(e),`<span class="tag">${esc(e.kind)}</span>`,e.base?`<span class="tag">${esc(e.base)}</span>`:'',e.src?`<span class="tag">Drops: ${esc(e.src)}</span>`:'',e.later?'<span class="tag">Not in the game yet</span>':'',...(e.roles||[]).map(r=>`<span class="tag">${esc(r)}</span>`)])}
+    ${li(e.lines)}${e.tiers?`<div class="tiers"><table><thead><tr><th>Tier</th><th>Roll</th><th>Rupture</th></tr></thead><tbody>${e.tiers.map(t=>`<tr><td class="mono">${t[0]}</td><td>${esc(t[1])}</td><td class="mono">${t[2]}+</td></tr>`).join('')}</tbody></table></div>`:''}</article>`,
+  vows: e => `<article class="card">${head(e)}${pills([NEW(e)])}
+    <div class="meta"><b>${esc(e.kind)} gem</b> · ${esc(e.attr)}${e.dmg&&e.dmg!=='Physical'?' · '+esc(e.dmg):''}</div>
+    <div>${hl(e.desc)}</div>${e.notes.length?li(e.notes,'imp'):''}<div>${(e.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></article>`,
+  skills: skillCard,
+  uniques: e => `<article class="card u">${head(e,'Lv '+e.lvl)}
+    <div class="meta"><b>${hl(e.base)}</b> · ${esc(e.cls)}${e.flags.length?' · '+e.flags.map(esc).join(', '):''}</div>
+    ${pills([NEW(e), rateTag(e), `<span class="tag" title="Red Tier: level 1-19 = I, 20-39 = II, 40-59 = III, 60+ = IV">Red Tier ${['','I','II','III','IV'][e.tier]}</span>`, facetTags(e)])}<hr class="sep">${e.fmods?`<div class="fg" role="group" aria-label="Version"><button type="button" class="fgb" data-ef="0" aria-pressed="true">Normal</button><button type="button" class="fgb ef" data-ef="1" aria-pressed="false">Emberforged</button></div>`:''}<div class="umods">${li(e.mods)}</div>${e.fmods?`<div class="umods ef" hidden><ul class="mods">${e.fmods.map((m,i)=>`<li${e.flift.includes(i)?' class="lift"':''}>${hl(m)}</li>`).join('')}</ul><div class="meta">Emberforged ${esc(e.name)}: ${e.flift.length} line${e.flift.length===1?'':'s'} lifted to the Core's measure. Drops from Rupture 100+.</div></div>`:''}${e.flavour?`<div class="flav">${hl(e.flavour)}</div>`:''}<div class="meta"><a href="crafting.html#vow/${encodeURIComponent(e.id)}">Every Vow this can take</a></div></article>`,
+  runewords: e => `<article class="card rw">${head(e,'Lv '+e.lvl)}
+    <div class="runes">${e.runes.map(hl).join(' · ')}</div>
+    <div class="meta">${e.sockets} sockets · ${esc(e.cls)}${e.build?' · '+hl(e.build):''}</div>
+    ${pills([NEW(e), tags(e.bases)])}<hr class="sep">${li(e.mods)}
+    ${e.power.length?`<div class="lbl">Power bonus</div>${li(e.power,'pow')}`:''}
+    ${e.flavour?`<div class="flav">${hl(e.flavour)}</div>`:''}</article>`,
+  bases: e => `<article class="card">${head(e,'Lv '+e.lvl)}
+    <div class="meta"><b>${esc(e.cls)}</b>${e.cls!==e.slot?' · '+esc(e.slot):''}${e.twoh?' · Two-handed':''} · <span class="mono">${esc(e.size)}</span></div>
+    ${pills([NEW(e), rateTag(e), facetTags(e)])}${e.stats.length?li(e.stats,'imp'):''}
+    ${e.implicits.length?`<hr class="sep"><div class="lbl">Implicit</div>${li(e.implicits)}`:''}
+    ${e.req?`<div class="meta">Requires ${esc(e.req)}</div>`:''}</article>`,
+  runes: e => `<article class="card"><div class="ch${icon(e)?' hi':''}">${icon(e)}<h3><span class="sw" style="background:${esc(e.color||'transparent')}"></span>${hl(e.name)}</h3><span class="lvl">Lv ${e.lvl}</span></div>
+    <div class="meta">${esc(e.kind)} · Tier ${e.tier}${e.lore?' · '+hl(e.lore):''}</div>${pills([NEW(e)])}<hr class="sep">
+    <div class="lbl">In a weapon</div>${li(e.weapon)}<div class="lbl">In armour</div>${li(e.armour)}
+    ${e.next?`<div class="meta">Upgrades to <b>${hl(e.next)}</b></div>`:''}${e.kind!=='Jewel'?`<div class="meta">Full value in white items only: half in magic, rare and red items${e.id==='othala'?' (Othala keeps the exact half, +0.5 levels)':''}.</div>`:''}</article>`,
+  supports: e => `<article class="card">${head(e,'Lv '+e.lvl)}
+    <div class="meta">${esc(e.attr)} · Mana ×<span class="mono">${e.mana}</span></div>${pills([NEW(e)])}
+    <div>${hl(e.desc)}</div>${li(e.mods)}
+    ${e.req.length?`<div class="meta">Works with: ${e.req.map(hl).join(', ')}</div>`:''}
+    ${e.excl.length?`<div class="meta">Not with: ${e.excl.map(hl).join(', ')}</div>`:''}</article>`,
+  crafting: e => `<article class="card">${head(e)}${pills([NEW(e)])}
+    <div class="meta"><b>${esc(e.src)}</b> · ${esc(e.kind)}${e.cost?' · Uses '+hl(e.cost):''}</div>
+    <div>${hl(e.text)}</div>${li(e.detail)}
+    ${e.line?`<div class="${e.src==='Forge'?'flav':'meta'}">${e.src==='Cube'?'Makes: ':''}${hl(e.line)}</div>`:''}
+    ${e.unlock?`<div class="meta">${hl(e.unlock)}</div>`:''}${/^Vowbinding/.test(e.name)?`<div class="meta"><a href="crafting.html#vow">Open the Vowbinding planner</a></div>`:''}</article>`,
+  other: e => `<article class="card">${head(e)}${pills([NEW(e)])}
+    <div class="meta"><b>${esc(e.cat)}</b>${e.sub?' · '+esc(e.sub):''}</div>
+    <div class="${/upside|Blessing|boon/i.test(e.cat)?'':''}">${hl(e.text)}</div>${li(e.notes,'imp')}</article>`,
+};
+function affixRow(e){
+  return `<details class="arow"><summary>
+    <span><span class="tag ${e.type==='Prefix'?'pre':'suf'}">${esc(e.type)}</span></span>
+    <span style="min-width:0"><span class="txt">${hl(e.text)}</span><br><span class="on">${esc(e.group)} · on ${e.on.map(hl).join(', ')}${e.notOn.length?' · not on '+e.notOn.map(esc).join(', '):''}</span></span>
+    <span class="lv">${e.tiers.length} tier${e.tiers.length>1?'s':''} · ilvl ${e.minIlvl}+</span></summary>
+    <div class="tiers"><table><thead><tr><th>Tier</th><th>Name</th><th>Item level</th><th>Roll</th><th>Weight</th></tr></thead><tbody>
+    ${e.tiers.map(t=>`<tr><td class="mono">${t.t}</td><td>${hl(t.name)}</td><td class="mono">${t.ilvl}</td><td>${hl(t.text)}</td><td class="mono">${t.w??''}</td></tr>`).join('')}
+    </tbody></table></div></details>`;
+}
+
+const $ = id => document.getElementById(id);
+function sel(k){ return S.f[k] || (S.f[k]={}); }
+function filtered(k, skipFacet=null, useFacets=true){
+  let arr = DB[k];
+  if(S.pin && k===S.cat) return arr.filter(e=>e.id===S.pin);
+  if(terms.length) arr = arr.filter(e=>terms.every(t=>e._s.includes(t)));
+  if(S.cls && CLASSOF[k]) arr = arr.filter(e=>{ const c=CLASSOF[k](e); return !c || c.includes(S.cls); });
+  if(S.newOnly) arr = arr.filter(e=>e.isnew);
+  if(useFacets) for(const F of (FACETS[k]||[])){ if(F.id===skipFacet) continue; const set=sel(k)[F.id]; if(set&&set.size) arr=arr.filter(e=>F.g(e).some(v=>set.has(v))); }
+  return arr;
+}
+function render(){
+  terms = S.q.toLowerCase().split(/\s+/).filter(Boolean);
+  $('tabs').innerHTML = CATS.map(c=>`<button role="tab" aria-selected="${c.k===S.cat}" data-k="${c.k}">${c.t}<span class="n">${filtered(c.k,null,c.k===S.cat).length}</span></button>`).join('');
+  const c = CATS.find(x=>x.k===S.cat);
+  const anyNew = DB[S.cat].some(e=>e.isnew);
+  const active = Object.values(sel(S.cat)).some(x=>x.size) || S.newOnly;
+  let html = '';
+  for(const F of (FACETS[S.cat]||[])){
+    const pool = filtered(S.cat, F.id); const counts={};
+    pool.forEach(e=>F.g(e).forEach(v=>counts[v]=(counts[v]||0)+1));
+    const set = sel(S.cat)[F.id] || new Set();
+    const all = new Set(); DB[S.cat].forEach(e=>F.g(e).forEach(v=>all.add(v)));
+    if(all.size<2) continue;
+    const isK=[...all].some(v=>KORDER[v]);
+    const keys=[...all].sort(isK?(a,b)=>kord(a)[0]-kord(b)[0]||kord(a)[1]-kord(b)[1]||a.localeCompare(b):(a,b)=>(counts[b]?1:0)-(counts[a]?1:0)||a.localeCompare(b,undefined,{numeric:true}));
+    const chip=v=>`<button class="chip" data-f="${F.id}" data-v="${esc(v)}" aria-pressed="${set.has(v)}"${!counts[v]&&!set.has(v)?' disabled':''}${isK&&kshort(v)!==v?` title="${esc(v)}"`:''}>${esc(isK?kshort(v):v)} <span class="mono">${counts[v]||0}</span></button>`;
+    let body;
+    if(F.grp&&isK){ const by={}; keys.forEach(v=>{ const g=(KGROUPS[kord(v)[0]]||['Other'])[0]; (by[g]=by[g]||[]).push(v); });
+      body=Object.entries(by).map(([g,vs])=>`<div class="fsub"><span class="fsl">${g}</span><div class="chips">${vs.map(chip).join('')}</div></div>`).join(''); }
+    else body=`<div class="chips">${keys.map(chip).join('')}</div>`;
+    const on=set.size?`<button class="fclr" data-fclear="${F.id}" type="button">Clear</button>`:'';
+    html += `<div class="facet"><div class="fh"><span class="fl">${F.l}</span>${on}</div>${body}</div>`;
+  }
+  html += `<div class="facet"><div class="chips">${anyNew?`<button class="chip" data-new="1" aria-pressed="${S.newOnly}">New this patch</button>`:''}${active?'<button class="chip clear" data-clear="1">Clear filters</button>':''}</div></div>`;
+  $('chips').innerHTML = html;
+  const nPicked = Object.values(sel(S.cat)).reduce((a,x)=>a+x.size,0)+(S.newOnly?1:0);
+  $('fsum').textContent = nPicked?`Filters (${nPicked} on)`:'Filters';
+  let arr = filtered(S.cat).slice();
+  const lv=e=>e.lvl??e.minIlvl??0; let sortNote='';
+  const rated=(k)=>{ if(!SORTABLE.has(S.cat)) return false; const have=arr.filter(e=>e._r&&e._r[k]>0); const rest=arr.filter(e=>!(e._r&&e._r[k]>0));
+    have.sort((a,b)=>b._r[k]-a._r[k]||a._i-b._i); rest.sort((a,b)=>lv(a)-lv(b)||a._i-b._i); arr=have.concat(rest);
+    if(rest.length&&have.length) sortNote=` · ${have.length} ${k==='dps'?'weapons':'with defences'} first`; return true; };
+  if(S.sort==='name') arr.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(S.sort==='dmg'&&rated('dps')) {}
+  else if(S.sort==='def'&&rated('def')) {}
+  else if(S.sort==='lvlDesc') arr.sort((a,b)=>lv(b)-lv(a) || a._i-b._i);
+  else if(S.sort==='file') arr.sort((a,b)=>a._i-b._i);
+  else arr.sort((a,b)=>lv(a)-lv(b) || a._i-b._i);
+  $('note').hidden = S.cat!=='skills';
+  const picked = Object.values(sel(S.cat)).flatMap(x=>[...x]);
+  $('count').textContent = `${arr.length} ${c.t.toLowerCase()}${S.cls&&CLASSOF[S.cat]?` for ${S.cls}`:''}${S.q?` matching “${S.q}”`:''}${picked.length?` · ${picked.join(', ')}`:''}${sortNote}${['dmg','def'].includes(S.sort)&&!SORTABLE.has(S.cat)?' · damage and defence sorting works on Uniques and Base items':''}`;
+  if(S.pin&&arr.length){ $('count').innerHTML = `Showing one ${esc(c.t.toLowerCase().replace(/s$/,''))}: <b>${esc(arr[0].name)}</b> · <a href="#${S.cat}" class="plink" id="unpin">Show all ${esc(c.t.toLowerCase())}</a>`; }
+  if(!arr.length){ $('list').innerHTML = `<div class="empty">Nothing here matches. Try fewer words, or check the other tabs: the counts show where your search has hits.</div>`; return; }
+  const shown = arr.slice(0,S.limit);
+  const body = S.cat==='affixes' ? `<div class="alist">${shown.map(affixRow).join('')}</div>` : `<div class="grid">${shown.map(R[S.cat]).join('')}</div>`;
+  $('list').innerHTML = body + (arr.length>S.limit?`<div style="display:grid;margin-top:14px"><button class="more" id="more">Show all ${arr.length}</button></div>`:'');
+}
+$('tabs').addEventListener('click',ev=>{const b=ev.target.closest('button'); if(!b) return; S.cat=b.dataset.k; S.pin=''; S.limit=120; try{history.replaceState(null,'','#'+S.cat)}catch(e){} render(); window.scrollTo({top:0});});
+$('chips').addEventListener('click',ev=>{const b=ev.target.closest('.chip,.fclr'); if(!b||b.disabled) return;
+  if(b.dataset.clear){ S.f[S.cat]={}; S.newOnly=false; }
+  else if(b.dataset.fclear){ delete sel(S.cat)[b.dataset.fclear]; }
+  else if(b.dataset.new){ S.newOnly=!S.newOnly; }
+  else { const m=sel(S.cat); const set=m[b.dataset.f]||(m[b.dataset.f]=new Set()); set.has(b.dataset.v)?set.delete(b.dataset.v):set.add(b.dataset.v); }
+  S.limit=120; render();});
+$('cls').value=S.cls;
+$('cls').addEventListener('change',ev=>{S.cls=ev.target.value; try{localStorage.setItem('bdb_cls',S.cls)}catch(e){} S.limit=120; render();});
+$('list').addEventListener('click',ev=>{ if(ev.target.id==='more'){ S.limit=1e9; render(); }});
+// Normal / Emberforged switch on a unique card
+$('list').addEventListener('click',ev=>{ const b=ev.target.closest('.fgb'); if(!b) return; const card=b.closest('article'); const ef=b.dataset.ef==='1';
+  card.querySelectorAll('.fgb').forEach(x=>x.setAttribute('aria-pressed',x===b)); card.querySelector('.umods:not(.ef)').hidden=ef; card.querySelector('.umods.ef').hidden=!ef; });
+let tm; $('q').addEventListener('input',ev=>{clearTimeout(tm); tm=setTimeout(()=>{S.q=ev.target.value.trim(); if(S.pin){S.pin=''; try{history.replaceState(null,'','#'+S.cat)}catch(e){}} S.limit=120; render();},120);});
+try{ const sv=localStorage.getItem('bdb_sort'); if(sv&&[...$('sort').options].some(o=>o.value===sv)) S.sort=sv; }catch(e){}
+$('sort').value=S.sort;
+$('sort').addEventListener('change',ev=>{S.sort=ev.target.value; try{localStorage.setItem('bdb_sort',S.sort)}catch(e){} S.limit=120; render();});
+document.addEventListener('keydown',ev=>{ if(ev.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ev.preventDefault();$('q').focus();} else if(ev.key==='Escape'&&document.activeElement===$('q')&&$('q').value){ $('q').value=''; S.q=''; render(); } });
+window.addEventListener('hashchange',()=>{ const c=S.cat,p=S.pin; if(readHash()&&(c!==S.cat||p!==S.pin)){ S.limit=120; render(); window.scrollTo({top:0}); } });
+const setHH=()=>document.documentElement.style.setProperty('--hh',(document.querySelector('header').offsetHeight+16)+'px');
+window.addEventListener('resize',setHH);
+try{ if(matchMedia('(max-width:900px)').matches) $('fbox').open=false; }catch(e){}
+render(); setHH();
+</script>
+<footer class="bofoot" style="max-width:1200px;margin:28px auto 0;padding:18px 16px 26px;border-top:1px solid color-mix(in srgb,currentColor 15%,transparent);font-size:.8rem;line-height:1.5;text-align:center"><img src="brand/wordmark.svg" alt="Broken Oath Compendium" width="300" height="64" loading="lazy" style="display:block;width:300px;max-width:72%;height:auto;margin:0 auto 12px"><p style="margin:0;opacity:.75">Broken Oath Compendium is an unofficial fan site. It is not affiliated with or endorsed by the makers of Broken Oath; game names, art and data belong to their owners. Numbers are estimates. <a href="legal.html#privacy" style="color:inherit">Privacy</a> · <a href="legal.html#terms" style="color:inherit">Terms</a> · <a href="legal.html#disclaimer" style="color:inherit">Disclaimer</a> · <a href="legal.html#contact" style="color:inherit">Contact</a> · <a href="https://ko-fi.com/foldedtiger" target="_blank" rel="noopener" style="color:inherit">Support the site on Ko-fi</a></p></footer><script id="site-layout-js">/* Broked DB site layer: small helpers for the Style 6 look, shared by every page except the planner.
+   Adds html.sk6p and html.sk6p-<page>, then exposes window.SK6 for the page's own layout_<page>.js.
+   Helpers only build sk-* elements and move the page's existing elements; they never change what a page computes.
+   Docs and examples: ui/SITE_LAYER.md */
+(function(){
+'use strict';
+const D=document, root=D.documentElement;
+// page id from the file name: index.html, faq.html, faq_new.html (preview) and "/" all work
+const file=(location.pathname.split('/').pop()||'index.html').replace(/\.html?$/,'').replace(/_(new|old)$/,'')||'index';
+root.classList.add('sk6p','sk6p-'+file);
+
+const q=(s,r)=>(r||D).querySelector(s), qa=(s,r)=>[...(r||D).querySelectorAll(s)];
+// el('div',{class:'x'},'<b>html</b>') or el('div',{},[child, child])
+const el=(tag,attrs,kids)=>{ const e=D.createElement(tag); for(const k in attrs||{}){ const v=attrs[k]; if(v==null||v===false) continue; if(k==='text') e.textContent=v; else e.setAttribute(k,v===true?'':v); }
+  if(kids!=null){ if(typeof kids==='string') e.innerHTML=kids; else (Array.isArray(kids)?kids:[kids]).forEach(c=>c&&e.append(c)); } return e; };
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const svg=p=>`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="sk-svg">${p}</svg>`;
+// UI icons (game things should use the page's own game icons)
+const I={
+  info:svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>'),
+  close:svg('<path d="M6 6l12 12M18 6 6 18"/>'),
+  chevR:svg('<path d="m9 6 6 6-6 6"/>'), chevD:svg('<path d="m6 9 6 6 6-6"/>'),
+  arrow:svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  search:svg('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
+  filter:svg('<path d="M4 5h16l-6 7.5V19l-4 2v-8.5Z"/>'),
+  more:svg('<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>'),
+  dots:svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
+  link:svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  copy:svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>'),
+  download:svg('<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>'),
+  list:svg('<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'),
+  bars:svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  book:svg('<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z"/><path d="M4 19V5M8 7h7"/>'),
+  db:svg('<ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-6"/><path d="M4.5 11.5v6c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-6"/>'),
+  help:svg('<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4M12 16.8h.01"/>'),
+  shield:svg('<path d="M12 3 20 6v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6Z"/>'),
+  bolt:svg('<path d="M13 3 5 13h6l-1 8 8-10h-6Z"/>')
+};
+const phone=()=>window.matchMedia('(max-width:700px)').matches;
+// run a function after a global page function, e.g. wrapFn('render',()=>sync())
+function wrapFn(n,after){ const o=window[n]; if(typeof o!=='function') return false; window[n]=function(){ const r=o.apply(this,arguments); try{ after.apply(this,arguments); }catch(e){ console.warn('SK6 '+n,e); } return r; }; return true; }
+// keep an element's height in a CSS variable on <html> (for sticky offsets)
+function heightVar(e,name,extra){ if(!e) return; const set=()=>root.style.setProperty(name,(e.offsetHeight+(extra||0))+'px'); if(window.ResizeObserver) new ResizeObserver(set).observe(e); window.addEventListener('resize',set); set(); }
+
+/* ---- page header card: SK6.header({title, sub, icon, stats:[{label,value,key}], actions:[el or {label,icon,primary,onClick,href,id}], body:[el]}) ---- */
+function button(a){ if(a instanceof Element) return a; const b=el(a.href?'a':'button',{class:'sk-btn'+(a.primary?' sk-primary':''),type:a.href?null:'button',href:a.href||null,id:a.id||null,title:a.title||null});
+  b.innerHTML=(a.icon?(I[a.icon]||a.icon):'')+`<span>${esc(a.label)}</span>`; if(a.onClick) b.addEventListener('click',a.onClick); return b; }
+function header(o){ o=o||{}; const h=el('div',{class:'sk-head',id:o.id||null});
+  const id=el('div',{class:'sk-hid'}); if(o.icon) id.appendChild(el('span',{class:'sk-hic'},I[o.icon]||o.icon));
+  const tx=el('div',{class:'sk-htx'}); const t=el(o.tag||'h1',{class:'sk-htt'}); t.textContent=o.title||''; tx.appendChild(t);
+  const sub=el('span',{class:'sk-hsub'}); sub.textContent=o.sub||''; if(o.sub) tx.appendChild(sub); id.appendChild(tx);
+  const main=el('div',{class:'sk-hmain'}), stats=el('div',{class:'sk-hstats'}), act=el('div',{class:'sk-hact'});
+  (o.body||[]).forEach(x=>x&&main.appendChild(x)); (o.actions||[]).forEach(a=>a&&act.appendChild(button(a)));
+  h.append(id,main,stats,act);
+  const api={el:h,main,stats,actions:act,titleEl:t,
+    setSub(s){ sub.textContent=s||''; if(s&&!sub.parentNode) tx.appendChild(sub); },
+    setStats(list){ stats.innerHTML=(list||[]).map(s=>`<div class="sk-hs${s.key?' sk-key':''}"${s.title?` title="${esc(s.title)}"`:''}><span class="sk-hl">${esc(s.label)}</span><b>${esc(s.value)}</b></div>`).join(''); }};
+  api.setStats(o.stats); return api; }
+// stack a header and a tab bar into one card; sticky:true keeps it at the top on wide screens
+function top(parts,opts){ const t=el('div',{class:'sk-top'+(opts&&opts.sticky?' sk-sticky':''),id:(opts&&opts.id)||null}); parts.forEach(p=>p&&t.appendChild(p.el||p)); return t; }
+
+/* ---- panel with a tinted header strip: SK6.panel({title, help, actions, wrap:[existing elements], id, tag}) ----
+   With wrap, the panel takes the place of the first wrapped element and the elements move into its body. */
+function panel(o){ o=o||{}; const p=el(o.tag||'section',{class:'sk-panel'+(o.cls?' '+o.cls:''),id:o.id||null});
+  const ph=el('div',{class:'sk-ph'}), ttl=el('span',{class:'sk-ttl'}), h=el(o.htag||'h2'); h.textContent=o.title||''; ttl.appendChild(h); ph.appendChild(ttl);
+  (o.actions||[]).forEach(a=>a&&ph.appendChild(button(a)));
+  const pb=el('div',{class:'sk-pb'}); p.append(ph,pb);
+  const w=(o.wrap||[]).filter(Boolean); if(w.length&&w[0].parentNode) w[0].parentNode.insertBefore(p,w[0]); w.forEach(x=>pb.appendChild(x));
+  const api={el:p,head:ph,title:ttl,body:pb};
+  if(o.help) api.info=help(o.help,ttl);
+  if(o.fold!=null) api.fold=fold(p,o.fold===true);
+  return api; }
+// turn an existing element into a panel: adds .sk-panel and puts a header strip first (keeps its own children)
+function strip(e,o){ if(!e) return null; o=o||{}; e.classList.add('sk-panel'); const ph=el('div',{class:'sk-ph'}), ttl=el('span',{class:'sk-ttl'}), h=el(o.htag||'h2'); h.textContent=o.title||''; ttl.appendChild(h); ph.appendChild(ttl);
+  (o.actions||[]).forEach(a=>a&&ph.appendChild(button(a))); e.insertBefore(ph,e.firstChild); const api={el:e,head:ph,title:ttl}; if(o.help) api.info=help(o.help,ttl); return api; }
+// a fold button on a panel's strip; returns set(folded)
+function fold(p,startFolded){ const ph=q(':scope > .sk-ph',p); if(!ph) return null; const b=el('button',{type:'button',class:'sk-info','aria-label':'Show or hide this panel'},I.chevD);
+  ph.appendChild(b); const set=f=>{ p.classList.toggle('sk-folded',f); b.setAttribute('aria-expanded',String(!f)); b.firstChild.style.transform=f?'rotate(-90deg)':''; };
+  b.addEventListener('click',()=>set(!p.classList.contains('sk-folded'))); set(!!startFolded); return set; }
+
+/* ---- (i) help toggle: SK6.help(noteEl or [notes], anchorEl, {label, open}) hides the note(s) behind a small (i) button placed in anchorEl ---- */
+function help(notes,anchor,o){ o=o||{}; notes=(Array.isArray(notes)?notes:[notes]).filter(Boolean); if(!notes.length||!anchor) return null;
+  const b=el('button',{type:'button',class:'sk-info','aria-expanded':'false','aria-label':o.label||'Show help',title:o.title||'How this works'},I.info);
+  anchor.appendChild(b); notes.forEach(n=>n.classList.add('sk-help'));
+  const set=on=>{ b.setAttribute('aria-expanded',String(on)); notes.forEach(n=>n.classList.toggle('sk-show',on)); };
+  b.addEventListener('click',e=>{ e.stopPropagation(); set(b.getAttribute('aria-expanded')!=='true'); }); set(!!o.open); b.skSet=set; return b; }
+
+/* ---- sheet: SK6.sheet({title, id}) -> {el, body, open(opener), close(), isOpen()}; a side drawer, or a bottom sheet on phones ---- */
+let scrim=null; const sheets=[];
+function sheet(o){ o=o||{}; if(!scrim){ scrim=el('div',{class:'sk-scrim'}); D.body.appendChild(scrim); scrim.addEventListener('click',()=>sheets.forEach(s=>s.close())); }
+  const s=el('aside',{class:'sk-sheet',id:o.id||null,role:'dialog','aria-label':o.title||'Panel',tabindex:'-1'});
+  s.innerHTML=`<div class="sk-shh"><span class="sk-grab" aria-hidden="true"></span><h2></h2><button type="button" class="sk-x" aria-label="Close" title="Close (Esc)">${I.close}</button></div><div class="sk-shb"></div>`;
+  q('h2',s).textContent=o.title||''; s.inert=true; D.body.appendChild(s);
+  let opener=null; const api={el:s,body:q('.sk-shb',s),isOpen:()=>s.classList.contains('sk-on'),
+    open(by){ opener=by||D.activeElement; sheets.forEach(x=>x!==api&&x.close()); s.classList.add('sk-on'); s.inert=false; scrim.classList.add('sk-on'); root.classList.toggle('sk6p-lock',phone()); if(o.onOpen) o.onOpen(); const x=q('.sk-x',s); x.focus({preventScroll:true}); },
+    close(){ if(!api.isOpen()) return; s.classList.remove('sk-on'); s.inert=true; if(!sheets.some(x=>x.isOpen())){ scrim.classList.remove('sk-on'); root.classList.remove('sk6p-lock'); }
+      if(opener&&opener.isConnected&&opener.getClientRects().length) opener.focus({preventScroll:true}); opener=null; if(o.onClose) o.onClose(); },
+    setTitle(t){ q('h2',s).textContent=t; }};
+  q('.sk-x',s).addEventListener('click',()=>api.close()); sheets.push(api); return api; }
+D.addEventListener('keydown',e=>{ if(e.key==='Escape') sheets.forEach(s=>s.isOpen()&&s.close()); });
+
+/* ---- tab bar: SK6.tabs({label, items:[{id,label,short,icon,badge,title}], selected, onSelect(id), bar:true, barMax:5}) ----
+   Returns {el, set(items, selected), select(id)}. bar:true turns it into the phone bottom bar; tabs past barMax-1 go into a "More" sheet. */
+function tabs(o){ o=o||{}; const t=el('div',{class:'sk-tabs'+(o.bar?' sk-bar':''),role:'tablist','aria-label':o.label||'Sections',id:o.id||null});
+  let items=[], sel=o.selected, more=null, moreSheet=null, grid=null;
+  const max=o.barMax||5;
+  if(o.bar){ root.classList.add('sk6p-hasbar');
+    more=el('button',{type:'button',class:'sk-tab sk-tabmore','aria-haspopup':'dialog'},I.more+'<span class="sk-ts">More</span>');
+    moreSheet=sheet({title:o.moreTitle||'More'}); grid=el('div',{class:'sk-tgrid'}); moreSheet.body.appendChild(grid);
+    more.addEventListener('click',()=>moreSheet.open(more));
+    grid.addEventListener('click',e=>{ const b=e.target.closest('[data-sk-id]'); if(!b) return; moreSheet.close(); choose(b.dataset.skId); }); }
+  function paint(){ const fid=t.contains(D.activeElement)&&D.activeElement.dataset.skId; t.textContent='';
+    items.forEach((it,i)=>{ const b=el('button',{type:'button',role:'tab',class:'sk-tab'+(o.bar&&items.length>max&&i>=max-1?' sk-over':''),'data-sk-id':it.id,'aria-selected':String(it.id===sel),tabindex:it.id===sel?'0':'-1',title:it.title||null});
+      b.innerHTML=(it.icon?(I[it.icon]||it.icon):'')+`<span class="sk-tl">${esc(it.label)}</span><span class="sk-ts">${esc(it.short||it.label)}</span><i>${esc(it.badge??'')}</i>`; t.appendChild(b); });
+    if(more&&items.length>max){ const cur=items.findIndex(x=>x.id===sel)>=max-1?items.find(x=>x.id===sel):null;
+      more.dataset.on=String(!!cur); more.innerHTML=(cur&&cur.icon?(I[cur.icon]||cur.icon):I.more)+`<span class="sk-ts">${esc(cur?(cur.short||cur.label):'More')}</span>`;
+      more.setAttribute('aria-label',cur?`More sections, showing ${cur.label}`:'More sections'); t.appendChild(more);
+      grid.innerHTML=items.map(it=>`<button type="button" data-sk-id="${esc(it.id)}" aria-current="${it.id===sel}">${it.icon?(I[it.icon]||it.icon):''}<span>${esc(it.label)}</span><i>${esc(it.badge??'')}</i></button>`).join(''); }
+    // keep keyboard focus on the same tab when the bar is rebuilt
+    if(fid){ const f=q(`[data-sk-id="${CSS.escape(fid)}"]`,t); if(f) f.focus({preventScroll:true}); } }
+  // scroll a long tab bar sideways so the chosen tab is in view (never scrolls the page)
+  function reveal(){ const b=q('[aria-selected="true"]',t); if(!b||!b.offsetParent||t.scrollWidth<=t.clientWidth) return; const l=b.offsetLeft, r=l+b.offsetWidth;
+    if(l<t.scrollLeft) t.scrollLeft=l-24; else if(r>t.scrollLeft+t.clientWidth) t.scrollLeft=r-t.clientWidth+24; }
+  function choose(id){ if(o.onSelect) o.onSelect(id); else api.select(id); }
+  t.addEventListener('click',e=>{ const b=e.target.closest('[data-sk-id]'); if(b&&t.contains(b)) choose(b.dataset.skId); });
+  // arrow keys move between tabs, Home and End jump to the ends
+  t.addEventListener('keydown',e=>{ const bs=qa('[role=tab]',t).filter(b=>b.offsetParent); const i=bs.indexOf(D.activeElement); if(i<0) return;
+    let n=null; if(e.key==='ArrowRight') n=bs[(i+1)%bs.length]; else if(e.key==='ArrowLeft') n=bs[(i-1+bs.length)%bs.length]; else if(e.key==='Home') n=bs[0]; else if(e.key==='End') n=bs[bs.length-1];
+    if(n){ e.preventDefault(); choose(n.dataset.skId); const f=q(`[data-sk-id="${CSS.escape(n.dataset.skId)}"]`,t); if(f) f.focus(); } });
+  const api={el:t,sheet:moreSheet,
+    set(list,s){ if(list) items=list; if(s!==undefined) sel=s; paint(); reveal(); },
+    select(id){ sel=id; paint(); reveal(); },
+    get selected(){ return sel; }};
+  api.set(o.items||[],sel); return api; }
+
+/* ---- mirror a page's own tab buttons: SK6.mirrorTabs(sourceContainer, {itemSel, key(b), text(b), badge(b), selected(b), icons:{key:svg}, labels:{key:text}, short:{key:text}, ...tabs options}) ----
+   Builds an SK6.tabs bar that follows the source (even when the page re-renders it) and clicks the source button when a tab is chosen. */
+function mirrorTabs(src,o){ if(!src) return null; o=o||{}; const sels=o.itemSel||'button';
+  const idOf=o.key||(b=>b.dataset.tab||b.dataset.k||b.id||b.textContent.trim());
+  const labelOf=o.text||(b=>{ const n=[...b.childNodes].find(x=>x.nodeType===3&&x.textContent.trim()); return (n?n.textContent:b.textContent).trim(); });
+  const badgeOf=o.badge||(()=>'');
+  const selOf=o.selected||(b=>b.getAttribute('aria-selected')==='true'||b.getAttribute('aria-pressed')==='true'||b.classList.contains('on'));
+  const T=tabs(Object.assign({},o,{onSelect:id=>{ const b=qa(sels,src).find(x=>idOf(x)===id); if(b) b.click(); }}));
+  let busy=false;
+  const sync=()=>{ busy=false; const bs=qa(sels,src); if(!bs.length) return; const s=bs.find(selOf);
+    T.set(bs.map(b=>{ const id=idOf(b); return {id,label:(o.labels&&o.labels[id])||labelOf(b),short:o.short&&o.short[id],icon:o.icons&&o.icons[id],badge:badgeOf(b),title:o.titles?o.titles[id]:labelOf(b)}; }),s?idOf(s):null); };
+  new MutationObserver(()=>{ if(busy) return; busy=true; queueMicrotask(sync); }).observe(src,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-selected','aria-pressed','class'],characterData:true});
+  sync(); if(o.hideSource!==false) src.classList.add('sk-hide'); T.sync=sync; return T; }
+
+window.SK6={page:file,q,qa,el,esc,svg,I,phone,wrapFn,heightVar,button,header,top,panel,strip,fold,help,sheet,tabs,mirrorTabs};
+})();
+
+/* Database page (index) in the Style 6 look: a header card with the search, class and sort,
+   categories as a tab bar (the phone bottom bar on phones), filters as a panel, and a results bar with the count.
+   Moves and restyles the page's own elements only; the page's render() still does all the work. */
+(function(){
+'use strict';
+if(!window.SK6) return;
+const {q,el,svg,help,header,top,mirrorTabs,heightVar,wrapFn}=SK6;
+const hdr=q('body > header'), hwrap=hdr&&q(':scope > .wrap',hdr), search=hwrap&&q('.search',hwrap), src=document.getElementById('tabs');
+const input=document.getElementById('q');
+if(!hdr||!hwrap||!search||!src||!input) return;
+const root=document.documentElement;
+root.classList.add('sk6p-db');
+
+/* 1. header card: title, entry count and patch, then the search row */
+const subTxt=(document.getElementById('sub')||{}).textContent||'';
+const total=(subTxt.match(/[\d,]+/)||[''])[0];
+const foot=q('main footer'); const patch=foot&&(foot.textContent.match(/updated ([^.]*?) patch/)||[])[1];
+const H=header({title:'Database',icon:'db',sub:[total?total+' playtest entries':'',patch?patch+' patch':''].filter(Boolean).join(' · ')});
+const sw=el('span',{class:'sk-search'},SK6.I.search); search.insertBefore(sw,input); sw.appendChild(input);
+// a shorter placeholder on narrow screens (phones have no / shortcut)
+const ph=()=>{ input.placeholder=matchMedia('(max-width:1000px)').matches?'Search names, mods, flavour text':'Search names, mods, flavour text (press / to jump here)'; };
+ph(); window.addEventListener('resize',ph);
+H.main.appendChild(search);
+
+/* 2. categories as a tab bar that follows the page's own #tabs (which stays in the page, hidden) */
+const IC={
+  uniques:svg('<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z"/>'),
+  runewords:svg('<path d="M7 3h10l2 9-7 9-7-9Z"/><path d="M12 7v9M9.5 9.5 12 12l2.5-2.5"/>'),
+  affixes:svg('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'),
+  bases:svg('<path d="M8 3 4 6v5h3v10h10V11h3V6l-4-3c-.5 1.7-2 3-4 3S8.5 4.7 8 3Z"/>'),
+  runes:svg('<path d="M6 4h12l3 5-9 11L3 9Z"/><path d="M3 9h18M12 20 8.5 9 10 4M12 20l3.5-11L14 4"/>'),
+  skills:SK6.I.bolt,
+  vows:svg('<path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.6 1 2.6 2 3 0-3-.5-5.5.5-8Z"/>'),
+  supports:svg('<circle cx="7" cy="12" r="3"/><circle cx="17" cy="12" r="3"/><path d="M10 12h4"/>'),
+  potions:svg('<path d="M9 3h6M10 3v5L5 18a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3L14 8V3"/><path d="M7.5 14h9"/>'),
+  crafting:svg('<path d="M15 4l5 5-3 3-5-5Z"/><path d="M13.5 8.5 4 18l2 2 9.5-9.5"/>'),
+  other:svg('<path d="M12 4v4M12 16v4M4 12h4M16 12h4M6.5 6.5l2 2M15.5 15.5l2 2M6.5 17.5l2-2M15.5 8.5l2-2"/>')};
+const LABEL={skills:'Skills',vows:'Vows & Woes',supports:'Supports',other:'Other'};
+const SHORT={affixes:'Mods',bases:'Bases',runes:'Runes',skills:'Skills',vows:'Vows',supports:'Supports'};
+const T=mirrorTabs(src,{label:'Categories',id:'sk-cats',bar:true,barMax:5,moreTitle:'Categories',
+  key:b=>b.dataset.k, badge:b=>{ const n=q('.n',b); return n?n.textContent:''; }, icons:IC, labels:LABEL, short:SHORT});
+const TOP=top([H,T],{id:'sk-dbtop'});
+hwrap.appendChild(TOP);
+// keep the filter column's sticky offset in step with the header (same sum the page uses)
+heightVar(hdr,'--hh',16);
+
+/* 3. results bar: the count, plus an (i) for the skill damage note */
+const res=q('main .results'), count=document.getElementById('count'), note=document.getElementById('note');
+if(res&&count){ const bar=el('div',{class:'sk-rbar'}); res.insertBefore(bar,count); bar.appendChild(count);
+  if(note){ res.insertBefore(note,bar.nextSibling); const b=help(note,bar,{label:'How to read the skill damage numbers',title:'How to read these numbers'});
+    const sync=()=>{ if(b) b.hidden=note.hidden; }; sync(); wrapFn('render',sync); } }
+
+/* 4. filters: the page's own folding box, as a panel whose header strip is its summary */
+const fbox=document.getElementById('fbox'); if(fbox) fbox.classList.add('sk-fpanel');
+})();
+
+</script></body></html>

@@ -1,0 +1,534 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="icon" href="brand/seal.svg" type="image/svg+xml"><link rel="icon" href="brand/seal-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="brand/seal-180.png"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Every unique, runeword, item mod, base item, rune, skill and support gem from the Broken Oath playtest, filterable by class, weapon and defence."><meta property="og:title" content="Broken Oath Database"><meta property="og:description" content="Every unique, runeword, item mod, base item, rune, skill and support gem from the Broken Oath playtest, filterable by class, weapon and defence."><script>(function(){try{var m=localStorage.getItem("bo_theme");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m)}catch(e){}})()</script><script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script><script defer src="/_vercel/insights/script.js"></script><style id="site-layout">/* Broked DB site layer: the planner's Style 6 look, shared by every page except the planner.
+   site.js adds html.sk6p (and html.sk6p-<page>), so nothing here applies if the script fails.
+   Part 1 is a gentle, safe restyle of common page elements (low specificity, colours and radii only).
+   Part 2 is the opt-in sk-* component kit that page layout files build with (see ui/SITE_LAYER.md). */
+:root{
+  --sk-r:14px; --sk-r2:10px;
+  --sk-shadow:0 1px 2px rgb(20 30 45 / .05),0 6px 20px rgb(20 30 45 / .06); --sk-shadow-h:0 2px 4px rgb(20 30 45 / .07),0 10px 28px rgb(20 30 45 / .10);
+  --sk-pop:0 10px 34px rgb(15 20 30 / .20); --sk-float:0 4px 18px rgb(20 30 45 / .13),0 1px 3px rgb(20 30 45 / .08);
+  --sk-tint:color-mix(in srgb,var(--accent) 10%,var(--panel)); --sk-tint2:color-mix(in srgb,var(--accent) 16%,var(--panel));
+  --sk-head:color-mix(in srgb,var(--panel2) 55%,var(--panel)); --sk-hover:color-mix(in srgb,var(--accent) 7%,var(--panel));
+  --sk-zebra:color-mix(in srgb,var(--panel2) 30%,var(--panel));
+  --sk-glass:color-mix(in srgb,var(--panel) 90%,transparent); --sk-pill:color-mix(in srgb,var(--fg) 9%,var(--panel)); --sk-pill2:color-mix(in srgb,var(--fg) 12%,var(--sk-tint2));
+  --sk-fire:#d4552f; --sk-cold:#3f8fd6; --sk-light:#b08f12; --sk-pois:#4f9a37; --sk-life:#c8473b; --sk-es:#2b9bb4; --sk-track:color-mix(in srgb,var(--line) 70%,var(--panel2));
+  --sk-bar:64px; --sk-top-h:0px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sk-shadow:0 1px 2px rgb(0 0 0 / .35),0 8px 24px rgb(0 0 0 / .22); --sk-shadow-h:0 2px 4px rgb(0 0 0 / .4),0 12px 30px rgb(0 0 0 / .32);
+  --sk-pop:0 10px 34px rgb(0 0 0 / .6); --sk-float:0 6px 22px rgb(0 0 0 / .5),0 1px 3px rgb(0 0 0 / .4);
+  --sk-glass:color-mix(in srgb,var(--panel) 86%,transparent); --sk-pill:color-mix(in srgb,var(--bg) 75%,var(--panel)); --sk-pill2:color-mix(in srgb,var(--bg) 60%,var(--sk-tint2));
+  --sk-fire:#f08a5d; --sk-cold:#7dbcf2; --sk-light:#e3c84e; --sk-pois:#8fcf6e; --sk-life:#ef7d72; --sk-es:#5fc6db; --sk-track:#252c36;}}
+:root[data-theme="dark"]{
+  --sk-shadow:0 1px 2px rgb(0 0 0 / .35),0 8px 24px rgb(0 0 0 / .22); --sk-shadow-h:0 2px 4px rgb(0 0 0 / .4),0 12px 30px rgb(0 0 0 / .32);
+  --sk-pop:0 10px 34px rgb(0 0 0 / .6); --sk-float:0 6px 22px rgb(0 0 0 / .5),0 1px 3px rgb(0 0 0 / .4);
+  --sk-glass:color-mix(in srgb,var(--panel) 86%,transparent); --sk-pill:color-mix(in srgb,var(--bg) 75%,var(--panel)); --sk-pill2:color-mix(in srgb,var(--bg) 60%,var(--sk-tint2));
+  --sk-fire:#f08a5d; --sk-cold:#7dbcf2; --sk-light:#e3c84e; --sk-pois:#8fcf6e; --sk-life:#ef7d72; --sk-es:#5fc6db; --sk-track:#252c36;}
+
+/* ============ 1. safe global restyle (specificity of a bare element or one class, so page rules with more context still win) ============ */
+:where(html.sk6p) .btn{border-radius:8px;transition:border-color .12s,background-color .12s,box-shadow .12s}
+:where(html.sk6p) .panel,:where(html.sk6p) .card{border-radius:var(--sk-r);box-shadow:var(--sk-shadow)}
+:where(html.sk6p) select,:where(html.sk6p) textarea,:where(html.sk6p) input:where([type=search],[type=text],[type=number],[type=url],[type=email],:not([type])){border-radius:8px}
+:where(html.sk6p) th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:600}
+:where(html.sk6p) td{font-variant-numeric:tabular-nums}
+:where(html.sk6p) :is(button,a,summary,select,input,textarea,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:where(html.sk6p) ::selection{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+
+/* ============ 2. component kit (opt-in, everything starts with sk-) ============ */
+html.sk6p .sk-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html.sk6p .sk-hide,html.sk6p [class*="sk-"][hidden]{display:none!important}
+html.sk6p .sk-svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* --- page top: header card with an optional tab bar joined underneath; add .sk-sticky to keep it in view --- */
+html.sk6p .sk-top{display:grid;min-width:0}
+html.sk6p .sk-top.sk-sticky{position:sticky;top:0;z-index:20;padding:10px 0 8px;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}
+html.sk6p .sk-head{display:flex;align-items:center;gap:10px 18px;padding:10px 14px 10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--sk-r);box-shadow:var(--sk-shadow);min-width:0}
+html.sk6p .sk-top>.sk-head:not(:last-child){border-bottom:0;border-radius:var(--sk-r) var(--sk-r) 0 0;box-shadow:none}
+html.sk6p .sk-hid{display:flex;align-items:center;gap:11px;min-width:0;flex:0 1 auto}
+html.sk6p .sk-hic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--sk-tint);color:var(--accent);flex:none}
+html.sk6p .sk-hic .sk-svg{width:20px;height:20px}
+html.sk6p .sk-htx{display:grid;gap:1px;min-width:0}
+html.sk6p .sk-htt{margin:0;font-family:var(--f-body);font-weight:700;font-size:1.18rem;line-height:1.15;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+html.sk6p .sk-hsub{font-size:.8rem;color:var(--mute);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.sk6p .sk-hmain{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px}
+html.sk6p .sk-hmain:empty{display:none}
+html.sk6p .sk-hstats{display:flex;align-items:center;flex-wrap:nowrap;margin-left:auto;min-width:0}
+html.sk6p .sk-hstats:empty{display:none}
+html.sk6p .sk-hs{display:grid;gap:1px;padding:1px 14px;border-left:1px solid var(--line);min-width:0}
+html.sk6p .sk-hs:first-child{border-left:0;padding-left:0}
+html.sk6p .sk-hl{font-size:.7rem;color:var(--mute);white-space:nowrap}
+html.sk6p .sk-hs b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500;font-size:1rem;white-space:nowrap}
+html.sk6p .sk-hs.sk-key b{font-size:1.24rem;color:var(--accent);font-weight:600;line-height:1.15}
+html.sk6p .sk-hact{display:flex;align-items:center;gap:8px;flex:none}
+html.sk6p .sk-hact:empty{display:none}
+
+/* --- tab bar (role=tablist); joined under a header inside .sk-top, or on its own --- */
+html.sk6p .sk-tabs{position:relative;display:flex;gap:2px;margin:0;padding:0 8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--sk-r);box-shadow:var(--sk-shadow);overflow-x:auto;scrollbar-width:none;min-width:0}
+html.sk6p .sk-top>.sk-tabs:not(:first-child){border-radius:0 0 var(--sk-r) var(--sk-r)}
+html.sk6p .sk-tabs::-webkit-scrollbar{display:none}
+/* tabs never hide off the edge: when they don't fit on one line they wrap onto a second (the phone bottom bar keeps its own layout) */
+@media (min-width:701px){ html.sk6p .sk-tabs{flex-wrap:wrap;overflow:visible;row-gap:0} }
+html.sk6p .sk-tab{font:inherit;display:inline-flex;align-items:center;gap:7px;padding:9px 12px 7px;margin:0;border:0;border-bottom:3px solid transparent;border-radius:0;background:none;color:var(--mute);font-size:.93rem;white-space:nowrap;flex:none;cursor:pointer}
+html.sk6p .sk-tab .sk-svg{width:17px;height:17px}
+html.sk6p .sk-tab:hover{color:var(--fg);border-bottom-color:var(--line)}
+html.sk6p .sk-tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent);font-weight:600}
+html.sk6p .sk-tab[aria-selected="true"] .sk-svg{color:var(--accent)}
+html.sk6p .sk-tab i{font-style:normal;font-family:var(--f-mono);font-size:.7rem;color:var(--mute);background:var(--panel2);border-radius:99px;padding:1px 7px;font-weight:400}
+html.sk6p .sk-tab[aria-selected="true"] i{background:var(--sk-tint2);color:var(--fg)}
+html.sk6p .sk-tab i:empty{display:none}
+html.sk6p .sk-tab .sk-ts{display:none}
+html.sk6p .sk-tab:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;border-radius:6px}
+html.sk6p .sk-tabmore{display:none}
+/* --- folder tabs on wide screens (the same on every page and the planner): each tab is its own rounded box,
+   the open one lighter with an accent top edge; counts sit in dark pills. Phones keep the bottom bar. --- */
+@media (min-width:701px){
+  html.sk6p .sk-tabs{gap:6px;padding:8px 10px 0;align-items:flex-end;row-gap:6px}
+  html.sk6p .sk-tab{gap:8px;padding:8px 14px 9px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;
+    background:color-mix(in srgb,var(--panel2) 40%,var(--panel));color:color-mix(in srgb,var(--fg) 82%,var(--panel));font-size:.93rem;font-weight:500;box-shadow:none}
+  html.sk6p .sk-tab:hover:hover{background:var(--sk-hover);color:var(--fg);border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+  html.sk6p .sk-tab[aria-selected="true"][aria-selected="true"]{background:var(--sk-tint2);color:var(--fg);font-weight:600;
+    border-color:color-mix(in srgb,var(--accent) 40%,var(--line));box-shadow:inset 0 2px 0 var(--accent)}
+  html.sk6p .sk-tab .sk-svg svg{width:18px;height:18px;color:color-mix(in srgb,var(--fg) 70%,var(--panel))}
+  html.sk6p .sk-tab[aria-selected="true"] .sk-svg[aria-selected="true"] svg{color:var(--accent)}
+  html.sk6p .sk-tab i i{background:var(--sk-pill);color:color-mix(in srgb,var(--fg) 80%,var(--panel));border-radius:99px;padding:1px 8px;font-size:.72rem}
+  html.sk6p .sk-tab[aria-selected="true"] i[aria-selected="true"] i{background:var(--sk-pill2);color:var(--fg)}
+  html.sk6p .sk-tab:focus-visible:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;border-radius:10px 10px 0 0}
+}
+
+
+/* --- panel card with a tinted header strip --- */
+html.sk6p .sk-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--sk-r);box-shadow:var(--sk-shadow);min-width:0;display:flex;flex-direction:column}
+html.sk6p .sk-ph{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;min-height:46px;padding:7px 16px;background:var(--sk-head);border-bottom:1px solid var(--line);border-radius:var(--sk-r) var(--sk-r) 0 0}
+html.sk6p .sk-ph h2,html.sk6p .sk-ph h3{margin:0;font-family:var(--f-body);font-weight:700;font-size:1.06rem;letter-spacing:0;line-height:1.25;color:var(--fg)}
+html.sk6p .sk-ttl{display:inline-flex;align-items:center;gap:6px;margin-right:auto;min-width:0}
+html.sk6p .sk-ph>.sk-help.sk-show{flex:1 0 100%;order:9;margin-bottom:6px!important}
+html.sk6p .sk-pb{padding:14px 16px;display:grid;gap:12px;min-width:0}
+html.sk6p .sk-pb:empty{display:none}
+html.sk6p .sk-panel.sk-folded>:not(.sk-ph){display:none!important}
+html.sk6p .sk-panel.sk-folded>.sk-ph{border-bottom:0;border-radius:var(--sk-r)}
+
+/* --- (i) help toggle: the note stays hidden until its button is pressed --- */
+html.sk6p .sk-info{width:24px;height:24px;display:inline-grid;place-items:center;border:1px solid transparent;border-radius:50%;background:none;color:var(--mute);cursor:pointer;padding:0;flex:none;vertical-align:middle}
+html.sk6p .sk-info .sk-svg{width:17px;height:17px}
+html.sk6p .sk-info:hover{color:var(--accent);background:var(--sk-tint)}
+html.sk6p .sk-info[aria-expanded="true"]{color:var(--accent-ink);background:var(--accent)}
+html.sk6p .sk-help:not(.sk-show){display:none!important}
+html.sk6p .sk-help.sk-show{display:block;font-size:.86rem;line-height:1.5;color:var(--mute);background:var(--panel2);border:0;border-radius:var(--sk-r2);padding:9px 12px;margin:2px 0;max-width:none;box-shadow:none}
+html.sk6p .sk-help.sk-show b{color:var(--fg)}
+
+/* --- buttons, chips, inputs --- */
+html.sk6p .sk-btn{font:inherit;font-size:.88rem;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 13px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--fg);cursor:pointer;white-space:nowrap;text-decoration:none;line-height:1.2}
+html.sk6p .sk-btn .sk-svg{width:16px;height:16px;color:var(--accent)}
+html.sk6p .sk-btn:hover,html.sk6p .sk-btn[aria-expanded="true"],html.sk6p .sk-btn[aria-pressed="true"]{border-color:var(--accent);background:var(--sk-tint)}
+html.sk6p .sk-btn.sk-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+html.sk6p .sk-btn.sk-primary .sk-svg{color:inherit}
+html.sk6p .sk-btn.sk-primary:hover{filter:brightness(1.08)}
+html.sk6p .sk-btn.sk-round{border-radius:99px}
+html.sk6p .sk-btn:disabled{opacity:.5;cursor:default}
+html.sk6p .sk-chips{display:flex;flex-wrap:wrap;gap:6px}
+html.sk6p .sk-chip{font:inherit;display:inline-flex;align-items:center;gap:6px;font-size:.84rem;padding:4px 11px;border-radius:99px;background:var(--panel2);color:var(--fg);border:1px solid transparent;line-height:1.3}
+html.sk6p button.sk-chip{cursor:pointer;background:var(--panel);border-color:var(--line)}
+html.sk6p button.sk-chip:hover{border-color:var(--accent)}
+html.sk6p button.sk-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+html.sk6p .sk-input{font:inherit;font-size:.92rem;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0;height:38px}
+html.sk6p .sk-input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+html.sk6p .sk-search{position:relative;display:flex;align-items:center;min-width:0}
+html.sk6p .sk-search>.sk-svg{position:absolute;left:11px;width:17px;height:17px;color:var(--mute);pointer-events:none}
+html.sk6p .sk-search>input{width:100%;padding-left:36px!important}
+html.sk6p .sk-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);font-weight:600}
+html.sk6p .sk-empty{color:var(--mute);font-size:.9rem;margin:0}
+
+/* --- stat tiles --- */
+html.sk6p .sk-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+html.sk6p .sk-kv>div{display:grid;gap:2px;padding:9px 12px;border-radius:var(--sk-r2);background:var(--panel2);min-width:0}
+html.sk6p .sk-kv span{font-size:.78rem;color:var(--mute)}
+html.sk6p .sk-kv b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500;font-size:1rem;overflow-wrap:anywhere}
+
+/* --- compact table in a rounded frame: wrap a <table> in .sk-table --- */
+html.sk6p .sk-table{border:1px solid var(--line);border-radius:12px;overflow:auto;background:var(--panel);max-width:100%}
+html.sk6p .sk-table table{border-collapse:collapse;width:100%;margin:0}
+html.sk6p .sk-table th{background:var(--sk-head);border-top:0;padding:7px 10px;text-align:left;white-space:nowrap}
+html.sk6p .sk-table td{padding:6px 10px;border-top:1px solid var(--line)}
+html.sk6p .sk-table tbody tr:nth-child(even)>td{background:var(--sk-zebra)}
+html.sk6p .sk-table tbody tr:hover>td{background:var(--sk-hover)}
+
+/* --- sheet: a side drawer on wide screens, a bottom sheet on phones --- */
+html.sk6p .sk-sheet{position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:60;display:flex;flex-direction:column;background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--sk-pop);transform:translateX(105%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s}
+html.sk6p .sk-sheet.sk-on{transform:none;visibility:visible;transition:transform .2s ease}
+html.sk6p .sk-sheet:focus{outline:none}
+html.sk6p .sk-shh{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line);background:var(--sk-head);flex:none;position:relative}
+html.sk6p .sk-shh h2{flex:1;margin:0;font-family:var(--f-body);font-weight:700;font-size:1.1rem;letter-spacing:0}
+html.sk6p .sk-shb{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px;display:grid;gap:12px;align-content:start}
+html.sk6p .sk-grab{display:none}
+html.sk6p .sk-x{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--mute);cursor:pointer;padding:0;flex:none}
+html.sk6p .sk-x:hover{color:var(--fg);border-color:var(--accent)}
+html.sk6p .sk-scrim{position:fixed;inset:0;z-index:59;background:rgb(0 0 0 / .35);opacity:0;pointer-events:none;transition:opacity .2s}
+html.sk6p .sk-scrim.sk-on{opacity:1;pointer-events:auto}
+html.sk6p.sk6p-lock body{overflow:hidden}
+/* the "More" tab list inside a sheet */
+html.sk6p .sk-tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html.sk6p .sk-tgrid button{font:inherit;display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);cursor:pointer;text-align:left;min-width:0;font-size:.92rem}
+html.sk6p .sk-tgrid button .sk-svg{color:var(--mute)}
+html.sk6p .sk-tgrid button span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.sk6p .sk-tgrid button i{font-style:normal;font-family:var(--f-mono);font-size:.72rem;color:var(--mute)}
+html.sk6p .sk-tgrid button[aria-current="true"]{border-color:var(--accent);background:var(--sk-tint);font-weight:600}
+html.sk6p .sk-tgrid button[aria-current="true"] .sk-svg{color:var(--accent)}
+
+/* ============ phones ============ */
+@media (max-width:700px){
+  html.sk6p .sk-head{flex-wrap:wrap;padding:12px 14px;gap:10px}
+  html.sk6p .sk-hid{flex:1 1 auto}
+  html.sk6p .sk-hmain{flex:1 1 100%;flex-wrap:wrap}
+  html.sk6p .sk-hstats{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin:0}
+  html.sk6p .sk-hs,html.sk6p .sk-hs:first-child{border:0;padding:6px 9px;border-radius:var(--sk-r2);background:var(--panel2)}
+  html.sk6p .sk-hs.sk-key{background:var(--sk-tint)}
+  html.sk6p .sk-top.sk-sticky{position:static;clip-path:none;box-shadow:none;padding:10px 0 4px}
+  html.sk6p .sk-ph{padding:7px 14px;min-height:44px}
+  html.sk6p .sk-pb{padding:12px 14px}
+  /* bottom tab bar: SK6.tabs({bar:true}) */
+  html.sk6p.sk6p-hasbar body{padding-bottom:calc(var(--sk-bar) + env(safe-area-inset-bottom,0px))}
+  html.sk6p .sk-tabs.sk-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:0;margin:0;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px));border:0;border-top:1px solid var(--line);border-radius:0;background:var(--panel);box-shadow:0 -4px 18px rgb(0 0 0 / .10);overflow:visible}
+  html.sk6p .sk-tabs.sk-bar .sk-tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 2px 6px;border:0;border-radius:10px;font-size:.7rem;min-width:0}
+  html.sk6p .sk-tabs.sk-bar .sk-tab .sk-tl,html.sk6p .sk-tabs.sk-bar .sk-tab i{display:none}
+  html.sk6p .sk-tabs.sk-bar .sk-tab .sk-ts{display:block;font-size:.7rem;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  html.sk6p .sk-tabs.sk-bar .sk-tab .sk-svg{width:21px;height:21px}
+  html.sk6p .sk-tabs.sk-bar .sk-tab[aria-selected="true"]{background:var(--sk-tint);color:var(--accent);border:0}
+  html.sk6p .sk-tabs.sk-bar .sk-tab:hover{border:0}
+  html.sk6p .sk-tabs.sk-bar .sk-tab.sk-over{display:none}
+  html.sk6p .sk-tabs.sk-bar .sk-tabmore{display:flex}
+  html.sk6p .sk-tabmore[data-on="true"]{background:var(--sk-tint);color:var(--accent)}
+  html.sk6p .sk-tabmore[data-on="true"]::after{content:"";position:absolute;top:6px;right:calc(50% - 16px);width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  html.sk6p .sk-sheet{left:0;right:0;top:auto;width:auto;max-height:82vh;max-height:82dvh;border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;transform:translateY(105%);padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -10px 30px rgb(0 0 0 / .25)}
+  html.sk6p .sk-sheet.sk-on{transform:none}
+  html.sk6p .sk-shh{padding:16px 12px 10px 16px;border-radius:16px 16px 0 0}
+  html.sk6p .sk-grab{display:block;position:absolute;top:6px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:99px;background:var(--line)}
+}
+@media (prefers-reduced-motion:reduce){html.sk6p .sk-sheet,html.sk6p .sk-scrim{transition:none!important}}
+
+/* Database page (index): header card with search, category tab bar, filter panel, results bar and tidy item cards. All rules under html.sk6p-db (added by layout_index.js). */
+
+/* ---- header: the page's sticky <header> now just holds the Style 6 card ---- */
+html.sk6p-db body>header{background:var(--bg);border-bottom:0;padding:10px 0 8px;box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax);z-index:20}
+html.sk6p-db body>header>.wrap{padding-block:0;display:block}
+html.sk6p-db #sk-dbtop .sk-hid{flex:none;max-width:300px}
+html.sk6p-db #sk-dbtop .sk-hmain{flex:1 1 auto}
+html.sk6p-db .search{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,auto) minmax(150px,auto);gap:8px;flex:1 1 auto;min-width:0}
+html.sk6p-db .search :is(input,select){font:inherit;font-size:.92rem;height:38px;padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
+html.sk6p-db .search select{padding-right:28px;cursor:pointer}
+html.sk6p-db .search :is(input,select):hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+html.sk6p-db .search :is(input,select):focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+html.sk6p-db .search input::placeholder{color:var(--mute);opacity:.85}
+html.sk6p-db #sk-cats{padding:0 4px}
+@media (min-width:701px){ html.sk6p-db #sk-cats{padding:8px 6px 0;gap:3px} }
+@media (min-width:701px){ html.sk6p-db #sk-cats .sk-tab{padding:8px 7px 9px;font-size:.85rem;gap:4px} html.sk6p-db #sk-cats .sk-tab .sk-svg{width:15px;height:15px} html.sk6p-db #sk-cats .sk-tab i{padding:1px 5px;font-size:.68rem} }
+
+/* ---- layout below the header ---- */
+html.sk6p-db main .wrap{padding-block:12px 40px;grid-template-columns:250px minmax(0,1fr);gap:18px}
+html.sk6p-db aside{top:calc(env(safe-area-inset-top,0px) + var(--hh,150px));max-height:calc(100vh - var(--hh,150px) - 12px);border-radius:var(--sk-r);scrollbar-width:thin}
+
+/* ---- filters panel: the page's details box; its summary is the header strip ---- */
+html.sk6p-db #fbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--sk-r);box-shadow:var(--sk-shadow);overflow:hidden}
+html.sk6p-db #fbox>summary{display:flex;align-items:center;gap:8px;min-height:46px;padding:7px 14px 7px 16px;background:var(--sk-head);font-weight:700;font-size:1.02rem;cursor:pointer;list-style:none;user-select:none}
+html.sk6p-db #fbox[open]>summary{border-bottom:1px solid var(--line)}
+html.sk6p-db #fbox>summary::-webkit-details-marker{display:none}
+html.sk6p-db #fbox>summary::before{content:"";width:17px;height:17px;flex:none;background:var(--accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16l-6 7.5V19l-4 2v-8.5Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16l-6 7.5V19l-4 2v-8.5Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html.sk6p-db #fbox>summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:rotate(-45deg);transition:transform .15s;flex:none}
+html.sk6p-db #fbox[open]>summary::after{transform:rotate(45deg) translate(-2px,-2px)}
+html.sk6p-db #fbox>summary:hover::after{border-color:var(--accent)}
+html.sk6p-db #fbox>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+html.sk6p-db #fbox .facets{padding:2px 14px 8px;gap:0;display:flex;flex-direction:column}
+html.sk6p-db .facet{gap:7px;padding:11px 0;border-top:1px solid var(--line)}
+html.sk6p-db .facet:first-child{border-top:0}
+/* "New this patch" and "Clear filters" sit first, above the groups */
+html.sk6p-db .facet:last-child{order:-1;border-top:0;border-bottom:1px solid var(--line);padding:10px 0}
+html.sk6p-db .facet:last-child:only-child{border-bottom:0}
+html.sk6p-db .facet:last-child:has(>.chips:empty){display:none}
+html.sk6p-db .facet:last-child:has(>.chips:empty)+*{border-top:0}
+html.sk6p-db .fl{font-size:.7rem;font-weight:600;letter-spacing:.08em}
+html.sk6p-db .fclr{font-size:.76rem;font-weight:600;padding:1px 6px;border-radius:6px}
+html.sk6p-db .fclr:hover{background:var(--sk-tint)}
+html.sk6p-db .fsl{font-size:.72rem;font-weight:600}
+html.sk6p-db .facets .chips{gap:5px}
+html.sk6p-db .facets .chip{font-size:.82rem;padding:3px 10px;align-items:center;line-height:1.35;transition:border-color .12s,background-color .12s}
+html.sk6p-db .facets .chip:not([disabled]):not([aria-pressed="true"]):hover{background:var(--sk-tint)}
+html.sk6p-db .facets .chip .mono{font-size:.68rem}
+html.sk6p-db .facets .chip.clear{border-style:dashed;color:var(--accent);font-weight:600}
+html.sk6p-db .facets .chip[data-new]{font-weight:600}
+
+/* ---- results bar and note ---- */
+html.sk6p-db .results{gap:12px}
+html.sk6p-db .sk-rbar{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 2px}
+html.sk6p-db #count{font-size:.92rem;color:var(--fg);min-width:0}
+html.sk6p-db #count b{color:var(--fg)}
+html.sk6p-db #count .plink{color:var(--accent);font-weight:600}
+html.sk6p-db #note.sk-show{max-width:90ch}
+
+/* ---- item cards ---- */
+html.sk6p-db .grid{grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+html.sk6p-db #list .card{padding:14px 16px 15px;gap:8px;border-color:var(--line);transition:border-color .12s,box-shadow .12s}
+html.sk6p-db #list .card:hover{box-shadow:var(--sk-shadow-h);border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+html.sk6p-db .card .ch.hi{gap:12px}
+html.sk6p-db .card .lvl{font-size:.7rem;background:var(--panel2);border-radius:99px;padding:2px 8px;align-self:center}
+html.sk6p-db .card .sep{border-top-color:color-mix(in srgb,var(--line) 75%,transparent)}
+html.sk6p-db .card .tag{border-radius:6px;padding:2px 7px}
+html.sk6p-db .card .tag.rate{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--sk-tint)}
+html.sk6p-db .fg{gap:4px;margin:0 0 2px}
+html.sk6p-db .fgb{font-size:.78rem;padding:3px 11px}
+html.sk6p-db .fgb[aria-pressed="true"]:not(.ef){background:var(--sk-tint2);border-color:var(--accent);color:var(--fg)}
+html.sk6p-db .sk{border-radius:10px;padding:8px 10px;gap:6px}
+html.sk6p-db .lvls summary{font-weight:600;font-size:.84rem;padding:2px 0}
+html.sk6p-db .card .tiers table,html.sk6p-db .arow .tiers table{font-size:.84rem}
+html.sk6p-db .card .tiers th,html.sk6p-db .arow .tiers th{font-size:.64rem}
+
+/* ---- item mods: one framed list, a row per mod ---- */
+html.sk6p-db .alist{gap:0;border:1px solid var(--line);border-radius:var(--sk-r);background:var(--panel);box-shadow:var(--sk-shadow);overflow:hidden}
+html.sk6p-db .arow{border:0;border-top:1px solid var(--line);border-radius:0;background:var(--panel)}
+html.sk6p-db .arow:first-child{border-top:0}
+html.sk6p-db .arow:nth-child(even){background:var(--sk-zebra)}
+html.sk6p-db .arow summary{padding:9px 14px;align-items:center;grid-template-columns:70px minmax(0,1fr) auto}
+html.sk6p-db .arow summary:hover{background:var(--sk-hover)}
+html.sk6p-db .arow summary:focus-visible{outline-offset:-2px}
+html.sk6p-db .arow[open]{background:var(--sk-hover)}
+html.sk6p-db .arow[open]>summary{border-bottom:1px dashed var(--line)}
+html.sk6p-db .arow .tiers{padding:6px 14px 12px 98px}
+html.sk6p-db .arow .tag{border-radius:6px;padding:2px 7px}
+html.sk6p-db .arow .lv{background:var(--panel2);border-radius:99px;padding:2px 9px;font-size:.72rem}
+
+/* ---- show all, empty state and the data footnote ---- */
+html.sk6p-db .more{border-radius:99px;padding:8px 20px;font-weight:600;color:var(--accent);box-shadow:var(--sk-shadow)}
+html.sk6p-db .more:hover{background:var(--sk-tint);border-color:var(--accent)}
+html.sk6p-db #list .empty{background:var(--panel);border:1px dashed var(--line);border-radius:var(--sk-r);padding:36px 20px}
+html.sk6p-db main footer{font-size:.8rem;line-height:1.55;padding-top:14px;border-top:1px solid var(--line);max-width:none}
+
+/* ---- narrower screens ---- */
+@media (max-width:1439px) and (min-width:701px){ /* eleven tabs: below 1440 px only the open one keeps its icon so they stay on one line */
+  html.sk6p-db #sk-cats .sk-tab:not([aria-selected="true"]) .sk-svg{display:none}
+}
+@media (max-width:1180px) and (min-width:701px){
+  html.sk6p-db #sk-dbtop .sk-hsub{display:none}
+  html.sk6p-db #sk-dbtop .sk-head{gap:10px 14px}
+  html.sk6p-db #sk-cats{gap:3px;padding-inline:4px}
+  html.sk6p-db #sk-cats .sk-tab{padding-inline:6px}
+  html.sk6p-db #sk-cats .sk-tab i{background:none;padding:0}
+}
+@media (max-width:1000px) and (min-width:701px){
+  /* the site bar already says Database, so the search gets the room */
+  html.sk6p-db #sk-dbtop .sk-htx{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  html.sk6p-db .search{grid-template-columns:minmax(0,1fr) minmax(120px,auto) minmax(140px,auto)}
+}
+@media (max-width:900px){
+  html.sk6p-db main .wrap{grid-template-columns:minmax(0,1fr);gap:12px}
+  html.sk6p-db aside{max-height:none;overflow:visible}
+  html.sk6p-db #fbox>summary{font-size:1rem}
+  html.sk6p-db #fbox:not([open])>summary{border-radius:var(--sk-r)}
+}
+@media (max-width:700px){
+  html.sk6p-db body>header{position:static;padding:10px 0 2px;clip-path:none;box-shadow:none}
+  html.sk6p-db #sk-dbtop .sk-head{border-radius:var(--sk-r);border-bottom:1px solid var(--line);box-shadow:var(--sk-shadow)}
+  html.sk6p-db #sk-dbtop .sk-hsub{display:block}
+  html.sk6p-db .search{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+  html.sk6p-db .search select{padding:6px 22px 6px 9px}
+  html.sk6p-db .search .sk-search{grid-column:1/-1}
+  html.sk6p-db .search :is(input,select){height:42px;font-size:16px}
+  html.sk6p-db main .wrap{padding-block:8px 28px}
+  html.sk6p-db .grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  html.sk6p-db .arow summary{grid-template-columns:auto minmax(0,1fr);gap:4px 10px;padding:10px 12px;align-items:start}
+  html.sk6p-db .arow .lv{grid-column:2;justify-self:start}
+  html.sk6p-db .arow .tiers{padding:6px 12px 12px}
+  html.sk6p-db .sk-rbar{min-height:24px}
+}
+
+</style></head><body style="margin:0"><title>Broken Oath Database</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral+SC:wght@500;600&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky header (brand, search row, category tabs), then a filter sidebar beside a grid of item tooltips; filters fold into a drawer on phones */
+:root{
+  --bg:#eceff3; --panel:#fbfcfd; --panel2:#e3e8ee; --line:#cdd4dd; --fg:#1a1f27; --mute:#5b6473; --accent:#2c5d8f; --accent-ink:#ffffff;
+  --unique:#a4521a; --rune:#86660f; --magic:#2d55a6; --flav:#7d5a33; --good:#2c7a43; --bad:#a3322b;
+  --f-display:"Spectral SC", "Palatino Linotype", Georgia, serif;
+  --f-body:"Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1216; --panel:#161a20; --panel2:#1e242c; --line:#2b333e; --fg:#e2e6eb; --mute:#8d97a5; --accent:#7eaedd; --accent-ink:#0f1216;
+  --unique:#ec9550; --rune:#d8b24c; --magic:#8eaaf7; --flav:#c49a68; --good:#7fcf8c; --bad:#ef7d72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1216; --panel:#161a20; --panel2:#1e242c; --line:#2b333e; --fg:#e2e6eb; --mute:#8d97a5; --accent:#7eaedd; --accent-ink:#0f1216;
+  --unique:#ec9550; --rune:#d8b24c; --magic:#8eaaf7; --flav:#c49a68; --good:#7fcf8c; --bad:#ef7d72; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+a{color:var(--accent)}
+.wrap{max-width:1360px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+header .wrap{padding-block:12px 0;display:grid;gap:10px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px}
+h1{font-family:var(--f-display);font-weight:600;font-size:1.55rem;margin:0;letter-spacing:.03em;line-height:1}
+.sub{color:var(--mute);font-size:.85rem}
+.links{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.extlink{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--fg);border:1px solid var(--line);background:var(--bg);padding:5px 10px;border-radius:var(--r);text-decoration:none;white-space:nowrap}
+.extlink:hover{border-color:var(--accent);color:var(--accent)}
+.search{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}
+@media (max-width:640px){.search{grid-template-columns:1fr 1fr}.search input{grid-column:1/-1}header{position:static}}
+.search input,.search select{font:inherit;font-size:.95rem;padding:8px 11px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:var(--r);min-width:0}
+.search input:focus,.search select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px}
+nav::-webkit-scrollbar{display:none}
+nav button{font:inherit;font-size:.9rem;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:7px 10px 9px;cursor:pointer;white-space:nowrap}
+nav button:hover{color:var(--fg)}
+nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent);font-weight:500}
+nav .n{font-family:var(--f-mono);font-size:.7rem;margin-left:5px;color:var(--mute);font-weight:400}
+/* body layout */
+main .wrap{padding-block:16px 48px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){main .wrap{grid-template-columns:minmax(0,1fr)}}
+aside{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hh,150px));max-height:calc(100vh - var(--hh,150px) - 16px);overflow:auto;scrollbar-width:thin}
+@media (max-width:900px){aside{position:static;max-height:none;overflow:visible}}
+.fbox>summary{display:none}
+@media (max-width:900px){.fbox{border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+  .fbox>summary{display:flex;justify-content:space-between;cursor:pointer;padding:9px 12px;font-weight:500;list-style:none}
+  .fbox>summary::-webkit-details-marker{display:none}
+  .fbox>summary::after{content:"Show";color:var(--accent);font-size:.85rem}
+  .fbox[open]>summary::after{content:"Hide"}
+  .fbox .facets{padding:4px 12px 12px}}
+.facets{display:grid;gap:14px}
+.facet{display:grid;gap:6px}
+.fh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.fclr{font:inherit;font-size:.72rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:0}
+.fclr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fsub{display:grid;gap:4px}
+.fsub+.fsub{margin-top:4px}
+.fsl{font-size:.72rem;color:var(--mute)}
+.fl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font:inherit;font-size:.8rem;padding:3px 9px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;display:inline-flex;gap:5px;align-items:baseline}
+.chip .mono{color:var(--mute);font-size:.68rem}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip[aria-pressed="true"] .mono{color:inherit;opacity:.8}
+.chip[disabled]{opacity:.35;cursor:default}
+.chip.clear{border-style:dashed;color:var(--mute)}
+.chip:focus-visible,nav button:focus-visible,.more:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.results{display:grid;gap:12px;min-width:0}
+.count{color:var(--mute);font-size:.85rem}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:7px;min-width:0}
+.ch{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ch.hi{align-items:center}.ch.hi h3{flex:1;min-width:0}
+.ico{width:52px;height:52px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.ico.gem{width:44px;height:44px}.ico.sq{border-radius:8px}
+.card h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:1.12rem;line-height:1.2;text-wrap:balance;min-width:0}
+.lvl{font-family:var(--f-mono);font-size:.72rem;color:var(--mute);white-space:nowrap}
+.meta{color:var(--mute);font-size:.84rem}
+.meta b{color:var(--fg);font-weight:500}
+.pills{display:flex;flex-wrap:wrap;gap:4px}
+.pills:empty{display:none}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.68rem;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--mute);line-height:1.4}
+.tag.rate{background:transparent;border:1px solid var(--line);color:var(--fg);font-variant-numeric:tabular-nums}
+.tag.rate b{font-weight:500;color:var(--accent)}
+.tag.pre{color:var(--magic)} .tag.suf{color:var(--good)} .tag.new{background:var(--accent);color:var(--accent-ink)}
+.sep{border:0;border-top:1px solid var(--line);margin:1px 0}
+ul.mods{list-style:none;margin:0;padding:0;display:grid;gap:2px;font-size:.93rem}
+ul.mods li{color:var(--magic)}
+ul.mods.imp li{color:var(--fg)}
+ul.mods.pow li{color:var(--rune)}
+.flav{color:var(--flav);font-style:italic;font-size:.88rem}
+.lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);font-weight:500}
+.u h3{color:var(--unique)} .rw h3{color:var(--rune)}
+.runes{font-family:var(--f-display);font-size:1rem;color:var(--rune);letter-spacing:.04em}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+/* affix list */
+.alist{display:grid;gap:6px}
+.arow{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.arow summary{list-style:none;cursor:pointer;padding:9px 12px;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:10px;align-items:baseline}
+.arow summary::-webkit-details-marker{display:none}
+.arow summary:focus-visible{outline:2px solid var(--accent)}
+.arow .txt{color:var(--magic)}
+.arow .on{color:var(--mute);font-size:.8rem}
+.arow .lv{color:var(--mute);font-size:.76rem;white-space:nowrap;font-family:var(--f-mono)}
+.tiers{overflow-x:auto;padding:0 12px 10px}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{text-align:left;padding:4px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--mute);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
+td.mono{white-space:nowrap}
+.sk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:var(--panel2);border-radius:4px;padding:6px}
+.sk div{display:grid;gap:1px;min-width:0}.sk .mono{font-size:.8rem;color:var(--rune);overflow-wrap:anywhere}
+.lvls summary{cursor:pointer;color:var(--accent);font-size:.84rem}
+tr.bonus td{border-top:2px solid var(--rune)}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;font-size:.88rem;color:var(--mute);max-width:80ch}
+.note b{color:var(--fg)}
+.empty{color:var(--mute);padding:40px 0;text-align:center}
+.more{justify-self:center;font:inherit;padding:8px 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);color:var(--fg);cursor:pointer}
+.more:hover{border-color:var(--accent)}
+mark{background:color-mix(in srgb,var(--rune) 35%,transparent);color:inherit;border-radius:2px}
+footer{color:var(--mute);font-size:.8rem;grid-column:1/-1;max-width:90ch}
+@media (max-width:520px){.arow summary{grid-template-columns:1fr}.arow .lv{justify-self:start}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.plink{color:inherit;text-decoration:none}.plink:hover{text-decoration:underline}#count .plink{color:var(--acc,inherit);text-decoration:underline}
+.fg{display:flex;gap:4px;margin:2px 0 6px}.fgb{font:inherit;font-size:.8rem;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--mute);cursor:pointer}
+.fgb[aria-pressed="true"]{color:var(--fg);border-color:var(--fg)}.fgb.ef[aria-pressed="true"]{color:#e0762b;border-color:#e0762b;box-shadow:0 0 8px #e0762b55}
+.umods.ef li.lift{color:#e0762b;font-weight:600}
+</style>
+
+<style>
+/* shared site bar: same markup and position on every Broken Oath tool */
+.bo-bar{background:var(--panel);border-bottom:1px solid var(--line)}
+.bo-in{max-width:1360px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;min-height:56px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}
+.bo-brand{font-family:"Spectral SC","Palatino Linotype",Georgia,serif;font-weight:600;font-size:1.3rem;letter-spacing:.03em;line-height:1.1;color:var(--fg);text-decoration:none;white-space:nowrap}
+.bo-brand{display:inline-flex;align-items:center;gap:10px}
+.bo-mark{width:38px;height:38px;flex:none;display:block}
+.bo-brand .bo-tool{color:var(--accent)}
+.bo-nav{margin:0 0 0 auto;overflow:visible;display:flex;flex-wrap:wrap;gap:2px;font-family:"Alegreya Sans","Segoe UI",system-ui,sans-serif}
+.bo-nav a{color:var(--mute);text-decoration:none;padding:6px 11px;border-radius:6px;font-size:.92rem;white-space:nowrap}
+.bo-nav a:hover{color:var(--fg);background:var(--panel2)}
+.bo-nav a[aria-current="page"]{color:var(--fg);background:var(--panel2);box-shadow:inset 0 -2px 0 var(--accent)}
+.bo-nav a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bo-nav .ext{border:1px solid var(--line);margin-left:6px}
+.bo-nav .kofi{border-color:color-mix(in srgb,#ff5e5b 55%,var(--line));white-space:nowrap}.bo-nav .kofi span{color:#ff5e5b}
+.bo-theme{margin-left:6px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:32px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--mute);cursor:pointer;padding:0}
+.bo-theme:hover{color:var(--fg);background:var(--panel2)}
+.bo-theme:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bo-theme svg{width:18px;height:18px}
+@media (max-width:480px){.bo-brand{font-size:1.08rem;gap:8px;white-space:normal}.bo-mark{width:32px;height:32px}}
+@media (max-width:760px){.bo-nav{margin:0 0 0 -11px;width:calc(100% + 11px)}.bo-nav .ext{margin-left:0}}
+</style>
+<div class="bo-bar"><div class="bo-in"><a class="bo-brand" href="index.html"><img class="bo-mark" src="brand/seal.svg" width="38" height="38" alt=""><span class="bo-name">Broken Oath <span class="bo-tool">Database</span></span></a>
+<nav class="bo-nav" aria-label="Broken Oath tools"><a href="index.html" aria-current="page">Database</a><a href="planner.html">Build Planner</a><a href="guides.html">Build Guides</a><a href="crafting.html">Crafting</a><a href="filter.html">Loot Filter</a><a href="ladder.html">Builds Ladder</a><a href="sim.html">Damage Sim</a><a href="faq.html">FAQ</a><a class="ext" href="https://lilshrimper.github.io/broken-oath-damage-sim/" target="_blank" rel="noopener">lilshrimper's Sim ↗</a><a class="ext kofi" href="https://ko-fi.com/foldedtiger" target="_blank" rel="noopener" title="Support the Broken Oath Compendium on Ko-fi"><span aria-hidden="true">♥</span> Support</a><button type="button" class="bo-theme" id="boTheme" aria-label="Switch between light and dark mode" title="Light or dark mode"></button></nav></div></div>
+<script>
+/* light / dark switch: remembered per browser; with no choice saved the page follows the system setting */
+(function(){ var K='bo_theme', root=document.documentElement, btn=document.getElementById('boTheme');
+  var SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+      MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var saved=null; try{ saved=localStorage.getItem(K); }catch(e){}
+  if(saved==='light'||saved==='dark') root.setAttribute('data-theme',saved);
+  function isDark(){ var t=root.getAttribute('data-theme'); return t?t==='dark':!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches); }
+  function paint(){ var d=isDark(); btn.innerHTML=d?SUN:MOON; btn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode'); btn.title=d?'Light mode':'Dark mode'; }
+  btn.addEventListener('click',function(){ var next=isDark()?'light':'dark'; root.setAttribute('data-theme',next); try{ localStorage.setItem(K,next); }catch(e){} paint();
+    try{ if(typeof drawTree==='function') drawTree(); }catch(e){} try{ window.dispatchEvent(new Event('bo-theme')); }catch(e){} });
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',paint); }catch(e){}
+  paint(); })();
+</script>
+
+<header><div class="wrap">
+  <span class="sub" id="sub" hidden></span>
+  <div class="search">
+    <input id="q" type="search" placeholder="Search names, mods, flavour text…  press / to jump here" autocomplete="off" aria-label="Search the database">
+    <select id="cls" aria-label="Class"><option value="">All classes</option><option>Warrior</option><option>Mage</option><option>Ranger</option><option>Necromancer</option><option>Paladin</option><option>Samurai</option></select>
+    <select id="sort" aria-label="Sort"><option value="lvl">Level, low to high</option><option value="lvlDesc">Level, high to low</option><option value="dmg">Highest damage (DPS)</option><option value="def">Highest defence</option><option value="name">Name</option><option value="file">Game order</option></select>
+  </div>
+  <nav id="tabs" role="tablist" aria-label="Categories"></nav>
+</div></header>
+<main><div class="wrap">
+  <aside><details class="fbox" id="fbox" open><summary id="fsum">Filters</summary><div class="facets" id="chips"></div></details></aside>
+  <div class="results">
+    <div class="note" id="note" hidden><b>How to read this:</b> attacks show damage as a % of your weapon's damage, spells show their base damage roll, before gear, attributes and passives. Each row is the gem's own level. Levels from gear and passives ("Plays at level X") work differently: spells grow 19% per level either way, attacks get 6% more damage per gear level instead of their normal per-level gain. Gems max at 20, so rows 21-40 assume a level 20 gem plus gear levels. Worked out from the game's own damage code and checked against an in-game tooltip.</div>
+    <div class="count" id="count"></div>
+    <div id="list"></div>
+  </div>
+  <footer>Pulled from the Broken Oath Playtest data files, updated 9 November 2026 patch (build 65). Playtest numbers will change between builds. Ranges like (30-45) are the roll range; affix ranges span every tier. DPS on weapons is physical damage × attacks per second at the best rolls, before crit, gems and passives. Try the <a href="sim.html">Damage Sim</a> for a skill's real DPS and best supports, or the fan-made <a href="https://lilshrimper.github.io/broken-oath-damage-sim/" target="_blank" rel="noopener">Broken Oath Damage Sim</a> by lilshrimper, which can load your save file. Fan-made, not affiliated with the developers. Game icons and art © Crater Studios, used with permission.</footer>
+</div></main>
+

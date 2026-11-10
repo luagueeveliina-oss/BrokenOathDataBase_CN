@@ -1,0 +1,291 @@
+Life.Flat	+{v} to maximum Life	-{abs} to maximum Life
+Life.Inc	{v}% increased maximum Life	{abs}% reduced maximum Life
+Life.More	{v}% more maximum Life	{abs}% less maximum Life
+Mana.Flat	+{v} to maximum Mana	-{abs} to maximum Mana
+Mana.Inc	{v}% increased maximum Mana	{abs}% reduced maximum Mana
+EnergyShield.Flat	+{v} to maximum Energy Shield	-{abs} to maximum Energy Shield
+EnergyShield.Inc	{v}% increased maximum Energy Shield	{abs}% reduced maximum Energy Shield
+Armour.Flat	+{v} to Armour	-{abs} to Armour
+Armour.Inc	{v}% increased Armour	{abs}% reduced Armour
+Evasion.Flat	+{v} to Evasion Rating	-{abs} to Evasion Rating
+Evasion.Inc	{v}% increased Evasion Rating	{abs}% reduced Evasion Rating
+Defences.Inc	{v}% increased Defences	{abs}% reduced Defences
+Block.Flat	+{v}% Chance to Block	-{abs}% Chance to Block
+Resist.Flat+	+{v}% to {tags} Resistance	-{abs}% to {tags} Resistance
+Resist.Flat+Elemental	+{v}% to all Elemental Resistances	-{abs}% to all Elemental Resistances
+MaxResist.Flat+	+{v}% to maximum {tags} Resistance	-{abs}% to maximum {tags} Resistance
+MaxResist.Flat+Elemental	+{v}% to all maximum Elemental Resistances	-{abs}% to all maximum Elemental Resistances
+Str.Flat	+{v} to Strength	-{abs} to Strength
+Dex.Flat	+{v} to Dexterity	-{abs} to Dexterity
+Int.Flat	+{v} to Intelligence	-{abs} to Intelligence
+Attributes.Flat	+{v} to all Attributes	-{abs} to all Attributes
+Str.Inc	{v}% increased Strength	{abs}% reduced Strength
+Dex.Inc	{v}% increased Dexterity	{abs}% reduced Dexterity
+Int.Inc	{v}% increased Intelligence	{abs}% reduced Intelligence
+Attributes.Inc	{v}% increased all Attributes	{abs}% reduced all Attributes
+Damage.Inc	{v}% increased {tags} Damage	{abs}% reduced {tags} Damage
+Damage.Inc+Slam	{v}% increased {tags} Damage with Slam Skills	{abs}% reduced {tags} Damage with Slam Skills
+Damage.Inc+Nova	{v}% increased {tags} Damage with Nova Skills	{abs}% reduced {tags} Damage with Nova Skills
+Damage.Inc+Chain	{v}% increased {tags} Damage with Chain Skills	{abs}% reduced {tags} Damage with Chain Skills
+Damage.More	{v}% more {tags} Damage	{abs}% less {tags} Damage
+Damage.More+Slam	{v}% more {tags} Damage with Slam Skills	{abs}% less {tags} Damage with Slam Skills
+Damage.More+Nova	{v}% more {tags} Damage with Nova Skills	{abs}% less {tags} Damage with Nova Skills
+Damage.More+Chain	{v}% more {tags} Damage with Chain Skills	{abs}% less {tags} Damage with Chain Skills
+Damage.More+FirstTarget	{v}% more Damage to the first target hit	{abs}% less Damage to the first target hit
+AddedDamage.Flat	Adds {v} to {v2} {tags} Damage	
+AddedDamage.Flat+Spell	Adds {v} to {v2} {tags} Damage to Spells	
+AddedDamage.Flat+Attack	Adds {v} to {v2} {tags} Damage to Attacks	
+AddedDamage.Flat+GemScaled	Adds {v} to {v2} {tags} Damage, scaled by the skill's gem level	
+DamageAsExtra.Flat	Gain {v}% of {tag0} Damage as Extra {tag1} Damage	
+AttackSpeed.Inc	{v}% increased {tags} Attack Speed	{abs}% reduced {tags} Attack Speed
+AttackSpeed.More	{v}% more Attack Speed	{abs}% less Attack Speed
+CastSpeed.Inc	{v}% increased Cast Speed	{abs}% reduced Cast Speed
+CastSpeed.More	{v}% more Cast Speed	{abs}% less Cast Speed
+CritChance.Inc	{v}% increased Critical Strike Chance	{abs}% reduced Critical Strike Chance
+CritChance.Inc+Spell	{v}% increased Critical Strike Chance for Spells	{abs}% reduced Critical Strike Chance for Spells
+CritChance.Flat	+{v}% to base Critical Strike Chance	-{abs}% to base Critical Strike Chance
+CritChance.Flat+Spell	+{v}% to base Critical Strike Chance for Spells	-{abs}% to base Critical Strike Chance for Spells
+CritChance.More	{v}% more Critical Strike Chance	{abs}% less Critical Strike Chance
+CritMulti.Flat	+{v}% to Critical Strike Multiplier	-{abs}% to Critical Strike Multiplier
+CritMulti.Flat+Spell	+{v}% to Critical Strike Multiplier for Spells	-{abs}% to Critical Strike Multiplier for Spells
+MoveSpeed.Inc	{v}% increased Movement Speed	{abs}% reduced Movement Speed
+LifeRegen.Flat	Regenerate {v} Life per second	Lose {abs} Life per second
+ManaRegen.Inc	{v}% increased Mana Regeneration Rate	{abs}% reduced Mana Regeneration Rate
+LifeOnKill.Flat	Gain {v} Life per Enemy Killed	Lose {abs} Life per Enemy Killed
+ManaOnKill.Flat	Gain {v} Mana per Enemy Killed	Lose {abs} Mana per Enemy Killed
+LifeLeech.Flat	{v}% of Damage Leeched as Life	
+Area.Inc	{v}% increased Area of Effect	{abs}% reduced Area of Effect
+Area.Inc+	{skills} have {v}% increased Area of Effect	{skills} have {abs}% reduced Area of Effect
+Area.More	{v}% more Area of Effect	{abs}% less Area of Effect
+Chains.Flat	Chains {v} additional {n}|plural(one=time,other=times)	
+Chains.Flat+	{skills} chain {v} additional {n}|plural(one=time,other=times)	
+Projectiles.Flat	Fires {v} additional {n}|plural(one=Projectile,other=Projectiles)	
+Projectiles.Flat+	{skills} fire {v} additional {n}|plural(one=Projectile,other=Projectiles)	
+Pierce.Flat	Projectiles Pierce {v} additional {n}|plural(one=Target,other=Targets)	
+Penetration.Flat+	Damage Penetrates {v}% {tags} Resistance	
+Penetration.Flat+Elemental	Damage Penetrates {v}% Elemental Resistances	
+SkillLevel.Flat	+{v} to Level of all Skill Gems	-{abs} to Level of all Skill Gems
+SkillLevel.Flat+	+{v} to Level of all {tags} Skill Gems	-{abs} to Level of all {tags} Skill Gems
+ManaCost.Inc	{v}% increased Mana Cost of Skills	{abs}% reduced Mana Cost of Skills
+WaveCount.Flat	Ground Slam, Earthshatter and Rending Slam: their spike lines run {v} {n}|plural(one=step,other=steps) further	
+WaveCount.Flat+	{skills}: their spike lines run {v} {n}|plural(one=step,other=steps) further	
+Repeats.Flat	Spells Repeat {v} additional {n}|plural(one=time,other=times) (stacks with the repeats of a support gem, but the smaller of the two deals 50% less damage)	
+Repeats.Flat+Melee	Melee Attacks Repeat {v} additional {n}|plural(one=time,other=times) (stacks with the repeats of a support gem, but the smaller of the two deals 50% less damage)	
+Repeats.Flat+Movement	Movement Skills strike {v} additional {n}|plural(one=time,other=times)	
+Repeats.Flat+Dash	Dashes strike {v} additional {n}|plural(one=time,other=times)	
+Afterimages.Flat	+{v} {n}|plural(one=Afterimage,other=Afterimages) on Melee Attacks (each repeats the blow for 40% of its damage; past 3, each adds half as much)	-{abs} {n}|plural(one=Afterimage,other=Afterimages) on Melee Attacks
+Afterimages.Flat+Melee	+{v} {n}|plural(one=Afterimage,other=Afterimages) on Melee Attacks (each repeats the blow for 40% of its damage; past 3, each adds half as much)	-{abs} {n}|plural(one=Afterimage,other=Afterimages) on Melee Attacks
+Damage.More+Movement	{v}% more Damage with Movement Skills	{abs}% less Damage with Movement Skills
+Cooldown.Inc+Movement	{v}% increased Cooldown of Movement Skills	{abs}% reduced Cooldown of Movement Skills
+OrbitMax.Flat	+{v} to maximum number of orbiting projectiles (Blade Vortex, Orbiting Hammers and the Orbit support)	-{abs} to maximum number of orbiting projectiles (Blade Vortex, Orbiting Hammers and the Orbit support)
+OrbitCount.Flat	+{v} orbiting {n}|plural(one=projectile,other=projectiles) per cast (Blade Vortex, Orbiting Hammers and the Orbit support; a Blade Vortex ring holds at least 8)	-{abs} orbiting {n}|plural(one=projectile,other=projectiles) per cast (Blade Vortex, Orbiting Hammers and the Orbit support; a Blade Vortex ring holds at least 8)
+OrbitRate.Inc	Orbiting blades and hammers turn {v}% faster	Orbiting blades and hammers turn {abs}% slower
+OrbitMovingDamage.Flat	Orbiting projectiles (Blade Vortex, Orbiting Hammers and the Orbit support) deal {v}% more Damage while you move	
+Convert.Flat+	{v}% of other Damage Converted to {tags} Damage	
+ItemRarity.Inc	{v}% increased Rarity of Items found	{abs}% reduced Rarity of Items found
+GoldFind.Inc	{v}% increased Gold found	{abs}% reduced Gold found
+Damage.Inc+Holy	{v}% increased Holy Damage	{abs}% reduced Holy Damage
+MinionDamage.Inc	Minions deal {v}% increased Damage	Minions deal {abs}% reduced Damage
+MinionLife.Inc	Minions have {v}% increased maximum Life	Minions have {abs}% reduced maximum Life
+MinionSpeed.Inc	Minions have {v}% increased Attack and Movement Speed	Minions have {abs}% reduced Attack and Movement Speed
+MinionLife.More	Minions have {v}% more maximum Life	Minions have {abs}% less maximum Life
+MinionDamage.More	Minions deal {v}% more Damage	Minions deal {abs}% less Damage
+MinionSpeed.More	Minions have {v}% more Attack and Movement Speed	Minions have {abs}% less Attack and Movement Speed
+MinionCap.Flat	+{v} to the maximum number of each kind of Minion (army max 40; past 27 each adds half damage)	-{abs} to the maximum number of each kind of Minion
+MinionCap.Flat+skeleton_warrior	+{v} to maximum Skeleton Warriors (Summon Skeletons, Gravereap) (army max 40; past 27 each adds half damage)	-{abs} to the maximum number of Skeleton Warriors (Summon Skeletons, Gravereap)
+MinionCap.Flat+skeleton_wizard	+{v} to the maximum number of Skeletal Mages (army max 40; past 27 each adds half damage)	-{abs} to the maximum number of Skeletal Mages
+MinionCap.Flat+holy_elemental	+{v} to the maximum number of Holy Elementals (army max 40; past 27 each adds half damage)	-{abs} to the maximum number of Holy Elementals
+Reservation.Inc	{v}% increased Reservation Efficiency of Vows	{abs}% reduced Reservation Efficiency of Vows
+Reservation.More	Vows reserve {v}% more Mana	Vows reserve {abs}% less Mana
+CurseEffect.Inc	{v}% increased effect of your Curses	{abs}% reduced effect of your Curses
+AilmentDuration.Inc	{v}% increased Duration of Ailments you inflict	{abs}% reduced Duration of Ailments you inflict
+IgniteChance.Flat	+{v}% chance to Ignite with Fire hits	-{abs}% chance to Ignite with Fire hits
+ShockChance.Flat	+{v}% chance to Shock with Lightning hits	-{abs}% chance to Shock with Lightning hits
+PoisonChance.Flat	+{v}% chance to Poison on Hit	-{abs}% chance to Poison on Hit
+IgniteDamage.Inc	{v}% increased Burning damage	{abs}% reduced Burning damage
+ShockEffect.Inc	{v}% increased effect of Shock	{abs}% reduced effect of Shock
+PoisonDamage.Inc	{v}% increased Poison damage over time	{abs}% reduced Poison damage over time
+FreezeDuration.Inc	{v}% increased Freeze duration	{abs}% reduced Freeze duration
+StunKnockback.Inc	{v}% increased Stun and Knockback	{abs}% reduced Stun and Knockback
+Cooldown.Inc+	{v}% increased Cooldown of {skills}	{abs}% reduced Cooldown of {skills}
+Cooldown.Inc	{v}% increased Skill Cooldowns	{abs}% reduced Skill Cooldowns
+CooldownRecovery.Inc	{v}% increased Cooldown Recovery Rate	{abs}% reduced Cooldown Recovery Rate
+Damage.Inc+Duration	{v}% increased {tags} Damage with Duration Skills	{abs}% reduced {tags} Damage with Duration Skills
+TotemCount.Flat	+{v} to the maximum number of Ballistas and Totems (at most 6 Ballistas, 10 Totems; each extra adds 80% damage, past 6 of a skill 20%)	-{abs} to the maximum number of Ballistas and Totems
+MinionGuard.Flat	Minions from the supported skill guard you	Minions from the supported skill guard you
+MinionHunt.Flat	Minions from the supported skill hunt ahead of you	Minions from the supported skill hunt ahead of you
+TotemSpeed.Inc	Ballistas and Totems fire {v}% faster	Ballistas and Totems fire {abs}% slower
+TrapCount.Flat	+{v} to the maximum number of Traps (each extra Trap adds 90% damage, past 6 adds 40%)	-{abs} to the maximum number of Traps
+TrapRearm.Inc	Traps re-arm {v}% faster (past 100% in all, each 1% counts half)	Traps re-arm {abs}% slower
+TrapChainRadius.Inc	Traps set each other off at {v}% increased distance	Traps set each other off at {abs}% reduced distance
+TrapSeed76.Flat	When a chain reaction sets off one of your Traps, it throws a fresh Trap of its kind that goes off once, at half damage	
+TrapChainLink.Flat	Each Trap further down a chain reaction deals {v}% more damage	Each Trap further down a chain reaction deals {abs}% less damage
+TotemLife.Inc	Ballistas and Totems have {v}% increased Life	Ballistas and Totems have {abs}% reduced Life
+Fork.Flat	Projectiles Fork {v} {n}|plural(one=time,other=times)	
+OrbCount.Flat	+{v} to the maximum number of Winter Orbs	-{abs} to the maximum number of Winter Orbs
+TickRate.Inc	Auras and consecrated ground tick {v}% faster	Auras and consecrated ground tick {abs}% slower
+OrbRate.Inc	Winter Orbs throw icicles {v}% faster	Winter Orbs throw icicles {abs}% slower
+BrandCount.Flat	+{v} to the maximum number of Sparks (at most 27 Sparks in all)	-{abs} to the maximum number of Sparks
+SparkRate.Inc	Sparks strike {v}% faster	Sparks strike {abs}% slower
+SparkBurst.Flat	Recasting while all your Sparks are up makes them all strike at once	Recasting while all your Sparks are up makes them all strike at once
+SkillDuration.Inc	Orbs, Sparks, Totems and Traps last {v}% longer	Orbs, Sparks, Totems and Traps last {abs}% shorter
+SkillDuration.Inc+Orb	Winter Orbs last {v}% longer	Winter Orbs last {abs}% shorter
+SkillDuration.Inc+Brand	Sparks last {v}% longer	Sparks last {abs}% shorter
+SkillDuration.Inc+Totem	Ballistas and Totems last {v}% longer	Ballistas and Totems last {abs}% shorter
+SkillDuration.Inc+Trap	Traps last {v}% longer	Traps last {abs}% shorter
+SkillDuration.More+Orb	Winter Orbs have {v}% more Duration	Winter Orbs have {abs}% less Duration
+SkillDuration.More+Brand	Sparks have {v}% more Duration	Sparks have {abs}% less Duration
+Damage.Inc+Brand	{v}% increased Damage with Sparks	{abs}% reduced Damage with Sparks
+SkillDuration.More+Totem	Ballistas and Totems have {v}% more Duration	Ballistas and Totems have {abs}% less Duration
+ChannelRamp.Flat	Up to {v}% more Damage over the first second of Channelling	
+ChannelCostLess.Flat	{v}% less Channelling Cost	{abs}% more Channelling Cost
+ConduitInterval.Flat	Casts your linked Spell every {v} seconds while Channelling	
+ConduitCostPct.Flat	Each linked cast costs {v}% of the Spell's Mana Cost	
+TrigCooldown.Flat	Casts the linked Spell at most once every {v} seconds	
+TrigLifePct.Flat	Casts the linked Spell each time you have taken damage equal to {v}% of your maximum Life	
+TrigDamage.More	The linked Spell deals {v}% more Damage	The linked Spell deals {abs}% less Damage
+FissureSpikes.Flat	Enemies killed by Earthshatter's Fissures leave {v} additional {n}|plural(one=Spike,other=Spikes)	
+LifeRegenPct.Flat	Regenerate {v}% of Life per second	Lose {abs}% of Life per second
+ManaLeech.Flat	{v}% of Damage Leeched as Mana	
+EnergyShieldLeech.Flat	{v}% of Damage Leeched as Energy Shield	
+ManaLeech.Flat+	{v}% of {tags} Damage Leeched as Mana	
+LifeLeech.Flat+	{v}% of {tags} Damage Leeched as Life	
+EsRecharge.Inc	{v}% faster Energy Shield Recharge	{abs}% slower Energy Shield Recharge
+EsRechargeDelay.Inc	Energy Shield Recharge starts {v}% later	Energy Shield Recharge starts {abs}% sooner
+ManaCost.Inc+	{v}% increased Mana Cost of {skills}	{abs}% reduced Mana Cost of {skills}
+Area.More+	{skills} have {v}% more Area of Effect	{skills} have {abs}% less Area of Effect
+GrantSupport.Flag+skyfall	Your {tag1} Spells are Supported by Skyfall	
+GrantSupport.Flag+tether	Your {tag1} Skills are Supported by Tether	
+GrantSupport.Flag+spell_echo	Your {tag1} Skills are Supported by Spell Echo (the gem's own price: 15% less Damage, 10% less Cast Speed)	
+GrantSupport.Flag+channel_conduit	Your {tag1} Skills are Supported by Channel Conduit	
+GrantSupport.Flag+zap_support	Your {tag1} Skills are Supported by Lightning	
+GrantSupport.Flag+ravening_host	Your {tag1} Skills are Supported by Ravening Host	
+GrantSupport.Flag+fork	Your {tag1} Skills are Supported by Fork	
+GrantSupport.Flag+ice_support	Your {tag1} Skills are Supported by Ice	
+GrantSupport.Flag+swift_step	Your {tag1} Skills are Supported by Swift Step	
+GrantSupport.Flag+hunters_mark_support	Your {tag1} Skills are Supported by Hunter's Mark	
+SkyfallDelay.Inc	Skyfall strikes land {v}% later	Skyfall strikes land {abs}% sooner
+SkyfallRepeat.Flat	Skyfall strikes fall again 0.4 seconds later for {v}% of their Damage (one second fall: every source adds to it, up to 100%)	
+EngineHoldInRupture.Flat	Your Bloodlust does not run out while you are inside a Rupture, except while you fight a Guardian. Leaving a Rupture costs half of it	
+EngineHoldWhileSentenced.Flat	Your Bloodlust does not run out while an enemy you Sentenced is alive	
+StrMeleeMore.Flat	{v}% more Melee Physical Damage for every 10 Strength	
+IntSpellMore.Flat	{v}% more Spell Damage for every 10 Intelligence	
+ChannelRepeats.Flat	Each pulse of the channelled skill strikes again a moment later	
+ConduitInterval.More	Channel Conduit casts with a {v}% longer interval	Channel Conduit casts with a {abs}% shorter interval
+MinionDeathBurst.Flat	Your Minions explode on death for {v}% of their maximum Life as Fire Damage	
+MinionOneKind.Flat	You can command only one kind of Minion: raising a kind dismisses the others. Its maximum number is doubled (at least +2) and each raise brings twice as many, and your Minions deal 30% less Damage	
+MinionKindMore.Flat	Your Minions deal {v}% more Damage for each different kind of Minion you command (up to 4 kinds)	
+MinionDeathRecover.Flat	When one of your Minions dies, you and your Minions recover {v}% of Life	
+DeathBurst.Flat	Enemies that die an Elemental death deal {v}% of their Life as that Element to nearby Enemies	
+DamageTaken.Inc+	You take {v}% increased {tags} Damage	You take {abs}% reduced {tags} Damage
+DamageTaken.Inc	You take {v}% increased Damage	You take {abs}% reduced Damage
+PhysTakenAsElemental.Flat	{v}% of Physical Damage taken as Fire, Cold and Lightning	
+Keystone.Flag		
+DamageVsFullLife.More	{v}% more Damage with Hits against Enemies on Full Life	{abs}% less Damage with Hits against Enemies on Full Life
+Trigger.Trigger		
+BleedChance.Flat	+{v}% chance to cause Bleeding with Physical hits	-{abs}% chance to cause Bleeding with Physical hits
+BleedDamage.Inc	{v}% increased Bleeding damage	{abs}% reduced Bleeding damage
+BleedDamage.More	{v}% more Bleeding damage	{abs}% less Bleeding damage
+IgniteDamage.More	{v}% more Burning damage	{abs}% less Burning damage
+ShockEffect.More	{v}% more effect of Shock	{abs}% less effect of Shock
+DotMulti.Flat	+{v}% to Damage over Time Multiplier	-{abs}% to Damage over Time Multiplier
+ShockStacks.Flat	Your Shocks stack: +{v} Shock on an enemy at once	-{abs} Shock on an enemy at once
+IgniteStacks.Flat	Your Ignites stack: +{v} Ignite burning on an enemy at once	-{abs} Ignite on an enemy at once
+ShockSpreadOnKill.Flat	{v}% chance for a Shocked enemy's Shock to spread to enemies within 4.5 metres when it dies	{abs}% less Shock spread
+IgniteSpreadOnKill.Flat	{v}% chance for a Burning enemy's Ignite to spread to enemies within 4.5 metres when it dies	{abs}% less Ignite spread
+ChillEffect.Inc	{v}% increased effect of Chill	{abs}% reduced effect of Chill
+LifeLeech.More	{v}% more Life Leech	{abs}% less Life Leech
+ShatterOnKill.Flat	Chilled or Frozen enemies you kill shatter: {v}% of their maximum Life as Cold damage to enemies within 3.5 metres	Shatters deal {abs}% less
+MeleeSplash.Flat	Blows splash {v}% of their damage onto enemies within 2 metres of each enemy struck	
+MinionStrikes.Flat	Minions' blows strike {v} additional {n}|plural(one=time,other=times)	
+MaimOnHit.Flat	Hits Maim for 4 seconds: Maimed enemies are 30% slower and take {v}% more Physical damage	
+RuthlessBlow.Flat	Every third blow is Ruthless: {v}% more Physical damage	
+CullingStrike.Flat	Hits kill enemies left below {v}% of their life	
+LowLifeMore.Flat	{v}% more damage to enemies below 35% of their life	
+Phys70.Flag		
+AttackSpeed.Inc+DualWielding	{v}% increased Attack Speed while Dual Wielding	{abs}% reduced Attack Speed while Dual Wielding
+AttackSpeed.Inc+Unarmed	{v}% increased Attack Speed while Unarmed	{abs}% reduced Attack Speed while Unarmed
+AttackSpeed.Inc+Martial	{v}% increased Attack Speed with Fists and Claws	{abs}% reduced Attack Speed with Fists and Claws
+Block.Flat+DualWielding	+{v}% Chance to Block while Dual Wielding	-{abs}% Chance to Block while Dual Wielding
+Block.Flat+HoldingShield	+{v}% Chance to Block while holding a Shield	-{abs}% Chance to Block while holding a Shield
+Damage.Inc+HoldingShield	{v}% increased Damage while holding a Shield	{abs}% reduced Damage while holding a Shield
+Damage.Inc+DualWielding	{v}% increased Damage while Dual Wielding	{abs}% reduced Damage while Dual Wielding
+Damage.Inc+Unarmed	{v}% increased Damage while Unarmed	{abs}% reduced Damage while Unarmed
+Damage.Inc+Martial	{v}% increased Damage with Fists and Claws	{abs}% reduced Damage with Fists and Claws
+Damage.Inc+BothHands	{v}% increased Damage with Skills that hit with Both Weapons at once	{abs}% reduced Damage with Skills that hit with Both Weapons at once
+Damage.Inc+Shield	{v}% increased Damage with Shield Skills	{abs}% reduced Damage with Shield Skills
+CritChance.Inc+Martial	{v}% increased Critical Strike Chance with Fists and Claws	{abs}% reduced Critical Strike Chance with Fists and Claws
+AddedDamage.Flat+Martial	Adds {v} to {v2} Physical Damage to Attacks with Fists and Claws	
+LifeOnBlock.Flat	Recover {v} Life when you Block	
+AttackSpeed.More+DualWielding	{v}% more Attack Speed while Dual Wielding	{abs}% less Attack Speed while Dual Wielding
+AttackSpeed.More+Martial	{v}% more Attack Speed with Fists and Claws	{abs}% less Attack Speed with Fists and Claws
+Damage.More+Shield	{v}% more Damage with Shield Skills	{abs}% less Damage with Shield Skills
+CritChance.Inc+	{v}% increased Critical Strike Chance with {skills}	{abs}% reduced Critical Strike Chance with {skills}
+CritChance.More+	{v}% more Critical Strike Chance with {skills}	{abs}% less Critical Strike Chance with {skills}
+CritMulti.Flat+	+{v}% to Critical Strike Multiplier with {skills}	-{abs}% to Critical Strike Multiplier with {skills}
+AttackSpeed.More+	{v}% more Attack Speed with {skills}	{abs}% less Attack Speed with {skills}
+Pierce.Flat+	{skills} Pierce {v} additional {n}|plural(one=Target,other=Targets)	
+Repeats.Flat+Bow	Bow Attacks Repeat {v} additional {n}|plural(one=time,other=times) (stacks with the repeats of a support gem, but the smaller of the two deals 50% less damage)	
+WaveCount.Flat+Slam	Ground Slam, Earthshatter and Rending Slam: their spike lines run {v} {n}|plural(one=step,other=steps) further	
+BloodMagic.Flag+BloodMagic	Costs Life instead of Mana	
+ManaOnHit.Flat	+{v} Mana gained for each Enemy hit by Attacks	
+ManaOnHit.Flat+	+{v} Mana gained for each Enemy hit by {tags}s	
+ManaOnKill.Flat	+{v} Mana gained on Kill	
+Woebringer.Flat	The Woe is sworn as an aura round you (reserves 30% of your Mana)	
+PassSentence.Flat	The Sentence passes to the nearest rare or unique enemy when its target dies	
+FuryOnKill.Flat	Kills grant a Fury charge (at most one every 0.5 seconds)	
+BloodlustOnKill.Flat	Kills grant Bloodlust (0.6% more damage per stack, each lasts 5 seconds)	
+BloodlustMax.Flat	+{v} to maximum Bloodlust	
+BloodlustDuration.Inc	Bloodlust lasts {v}% longer	
+WarBanner.Flat	Your skills plant your War Banner where you stand (it does not add up with your Hunter's Marks: an enemy takes the stronger)	
+ValourMax.Flat	+{v} to maximum Valour on your War Banner	
+BannerEffect.Inc	{v}% increased War Banner effect	
+MarkOnHit.Flat	Your hits put a Hunter's Mark on the enemy (1.4% more damage taken per Mark; it does not add up with your War Banner: an enemy takes the stronger)	
+MarkMax.Flat	+{v} to maximum Hunter's Marks on an enemy	
+MarkEffect.Inc	{v}% increased Hunter's Mark effect	
+CurseLimit.Flat	You can lay +{v} more {n}|plural(one=Woe,other=Woes) on each enemy	
+WoeOnHit.Flat	Your hits lay the linked Woe on the enemies they strike	
+ArmourMore.Flat	{v}% more {tags} Damage for every 1,000 Armour you have	{abs}% less {tags} Damage for every 1,000 Armour you have
+BlockMore.Flat	{v}% more {tags} Damage for every 1% Chance to Block you have	{abs}% less {tags} Damage for every 1% Chance to Block you have
+ManaMore.Flat	{v}% more {tags} Damage for every 100 maximum Mana you have	{abs}% less {tags} Damage for every 100 maximum Mana you have
+SpeedMore.Flat	{v}% more {tags} Damage for every 10% increased Attack Speed you have	{abs}% less {tags} Damage for every 10% increased Attack Speed you have
+DexLife.Flat	+{v} to maximum Life for every 10 Dexterity you have	-{abs} to maximum Life for every 10 Dexterity you have
+GolemLifeMore.Flat	Your Grave Golem deals {v}% more Damage for every 100 maximum Life you have	Your Grave Golem deals {abs}% less Damage for every 100 maximum Life you have
+GrantSupport.Flag+chain	Your {tag1} Skills are Supported by Chain (the gem's own price: 5% less Damage)	
+GrantSupport.Flag+rain_support	Your {tag1} Attacks are Supported by Rain (the gem's own price: 30% less Damage)	
+GrantSupport.Flag+afterimage	Your {tag1} Skills are Supported by Afterimage (the gem's own price: 20% less Damage)	
+VolatileDead.Flat	Supported Minions explode where they fall for {v}% of their maximum Life as Fire Damage	
+VolatileDeadHit.Flat	The blast adds {v}% of the Minion's hit damage	
+CorpsePyre.Flat	Enemies killed by Hits burst for {v}% of their maximum Life as Fire Damage	
+ChainJumpMore.Flat	Each Chain jump deals {v}% more Damage than the last	Each Chain jump deals {abs}% less Damage than the last
+LeechingMore.Flat	{v}% more Damage while Leeching	{abs}% less Damage while Leeching
+SelfLowLifeMore.Flat	{v}% more Damage while below half Life	{abs}% less Damage while below half Life
+ChilledLightningMore.Flat	{v}% more Lightning Damage against Chilled or Frozen Enemies	{abs}% less Lightning Damage against Chilled or Frozen Enemies
+ManaOnHitPct.Flat	Gain {v}% of maximum Mana per Hit with Attacks	Lose {abs}% of maximum Mana per Hit with Attacks
+ManaOnKillPct.Flat	Gain {v}% of maximum Mana per Enemy Killed	Lose {abs}% of maximum Mana per Enemy Killed
+IgniteSpreadTick.Flat	Burning Enemies pass their Ignite to a nearby Enemy {v} {n}|plural(one=time,other=times) a second	
+BlockToDamage.Flat	The linked Shield attack deals {v}% more Damage for each 1% chance to Block	The linked Shield attack deals {abs}% less Damage for each 1% chance to Block
+CurseMore.Flat	Every line of the linked Woe is {v}% stronger	Every line of the linked Woe is {abs}% weaker
+AuraDrainLess.Flat	The linked aura drains {v}% less of your life	The linked aura drains {abs}% more of your life
+PyreChain.Flat	The linked corpse burst leaps on to {v} more fresh corpses	The linked corpse burst leaps on to {abs} fewer fresh corpses
+PyreChainShare.Flat	Each leap deals {v}% of the damage of the leap before it	Each leap deals {abs}% less
+CryFury.Flat	The linked war cry grants {v} Fury charge for each Resolve charge it grants	The linked war cry grants {abs} fewer Fury charges
+CryLinger.Flat	Resolve from the linked war cry lasts {v}% longer	Resolve from the linked war cry lasts {abs}% shorter
+BannerStartValour.Flat	The linked War Banner lands with {v} Valour	The linked War Banner lands with {abs} less Valour
+BannerKeepValour.Flat	The linked War Banner keeps {v}% of its Valour when you move it	The linked War Banner keeps {abs}% less Valour when moved
+FocusVolley.Flat	The linked bow skill's arrows fly on one line, each with its own hit	The linked bow skill's arrows fly on one line, each with its own hit
+FocusShare.Flat	Each arrow after the first deals {v}% of the damage of the one before it	Each arrow after the first deals {abs}% less
+VowReserveLess.Flat	The linked Vow or Herald reserves {v}% less	The linked Vow or Herald reserves {abs}% more
+HeraldKillRadius.Flat	The linked Herald's kill effect reaches {v}% further	The linked Herald's kill effect reaches {abs}% less far
+HeraldKillMore.Flat	The linked Herald's kill effect deals {v}% more Damage	The linked Herald's kill effect deals {abs}% less Damage
+WoeLinger.Flat	The linked Woe builds Dread {v}% faster and lasts {v}% longer	The linked Woe builds Dread {abs}% slower and lasts {abs}% shorter
+BleedStacks.Flat	Your Bleeds stack: up to {v} more on each enemy, but every Bleed deals 65% less	Your Bleeds stack {abs} fewer times
+BleedBurst.Flat	Enemies that die while Bleeding from you burst for {v}% of their maximum Life as Physical damage to enemies within 3.5 metres	Enemies that die while Bleeding from you burst for {abs}% less
+SparkThrow.Flat	Your Spark casts throw {v} more body at once (a cast lands its bodies apart)	Your Spark casts throw {abs} fewer bodies at once
+FortifyMax.Flat	+{v} to maximum Fortified stacks (melee hits you land give stacks, each 1% less damage taken from hits)	{abs} fewer maximum Fortified stacks
+FortifyEffect.Inc	{v}% increased effect of Fortified (less damage taken from hits per stack)	{abs}% reduced effect of Fortified
+FortifyDamage.Flat	{v}% more Melee Damage for every Fortified stack you have	{abs}% less Melee Damage for every Fortified stack you have
+LifeMore.Flat	{v}% more {tags} Damage for every 1,000 maximum Life you have	{abs}% less {tags} Damage for every 1,000 maximum Life you have
+EnergyShieldMore.Flat	{v}% more {tags} Damage for every 1,000 maximum Energy Shield you have	{abs}% less {tags} Damage for every 1,000 maximum Energy Shield you have
+EvasionMore.Flat	{v}% more {tags} Damage for every 1,000 Evasion you have	{abs}% less {tags} Damage for every 1,000 Evasion you have
+PoisonSpreadOnKill.Flat	When an enemy you poisoned dies, up to {v} of your poisons on it move to the enemy within 4.5 metres holding the fewest, once per death (a Plaguewyrm jump on that death takes its place)	{abs} fewer poisons move on when a poisoned enemy dies

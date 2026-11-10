@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>关于与数据 · 破誓资料库</title>
+<meta name="description" content="数据来源、版本、数值机制与免责声明。">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header id="bo-top"></header>
+<div class="wrap">
+  <section class="hero" style="padding-bottom:10px">
+    <div class="hero-kicker">ABOUT · DATA</div>
+    <h1>关于本站</h1>
+    <p>本站是《破誓 / Broken Oath》Playtest 版本的非官方中文资料库。所有数据直接读取自本机安装目录中的游戏数据文件，只读、未做任何改动。</p>
+  </section>
+  <div class="doc" id="doc"></div>
+</div>
+<div id="bo-foot"></div>
+
+<script src="assets/site.js"></script>
+<script src="assets/data/mechanics.js"></script>
+<script>
+(function(){
+  BO.mountHeader('about.html'); BO.mountFooter(); BO.setDocumentTitle('关于与数据','About');
+  const M = window.BO_MECH, T = BO.T, esc = BO.esc, num = BO.num;
+  const sc = M.scaling;
+
+  const tbl = (head, rows) => `<div class="tiers" style="border:1px solid var(--line);border-radius:10px;margin:10px 0">
+    <table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'mono':''}">${esc(String(c))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+
+  const rarity = Object.entries(sc.rarity||{}).map(([k,v])=>[
+    ['普通','魔法','稀有','守护者'][Number(k)]||k,
+    (v.Life??'')+'×', (v.Damage??'')+'×', (v.Xp??'')+'×',
+    (v.ItemChance!==undefined? Math.round(v.ItemChance*100)+'%':'—'), v.ItemRolls??'—'
+  ]);
+
+  const clsRows = (M.classes||[]).map(c=>[
+    T(c.n||[c.Id,c.Id]), c.Str, c.Dex, c.Int,
+    `${c.StrPerLevel}/${c.DexPerLevel}/${c.IntPerLevel}`,
+    (c.WeaponClasses||[]).join(', '), c.Gem1||'—'
+  ]);
+
+  const html = `
+  <h2>数据来源</h2>
+  <p>页面数据由以下游戏目录中的 JSON 数据文件生成（只读读取）：</p>
+  <ul>
+    <li><code>&lt;Steam&gt;\\steamapps\\common\\Broken Oath Playtest\\BrokenOath\\Data\\Items\\</code> — 底材、传奇、词缀、符文、符文之语、神话词条、魔方配方</li>
+    <li><code>…\\Data\\Gameplay\\</code> — 技能、辅助宝石、誓约与灾祸、锻造、天赋树、怪物、缩放曲线、职业</li>
+    <li><code>…\\Data\\Rifts\\bosses.json</code> — 守护者与首领机制</li>
+  </ul>
+  <p>词条文本并非手工抄写：每条词缀都由 <code>stat_text.json</code> 的模板加真实数值渲染而成，因此数值与游戏内完全一致。中文译文按《流放之路》风格的术语表统一处理，「增加/降低」对应加算，「更多/更少」对应乘算。</p>
+
+  <h2>数值一览</h2>
+  <div class="stat-cards">
+    <div class="stat-card"><b>${num(1416)}</b><span>物品 / 技能 / 配方词条</span></div>
+    <div class="stat-card"><b>${num(sc.gem.MaxLevel||20)}</b><span>宝石等级上限</span></div>
+    <div class="stat-card"><b>${Math.round(((sc.gem.DamageGrowth||1.19)-1)*100)}%</b><span>法术每级伤害成长</span></div>
+    <div class="stat-card"><b>${num(M.cubeRules.GridW||3)}×${num(M.cubeRules.GridH||4)}</b><span>誓石魔方网格</span></div>
+    <div class="stat-card"><b>${num(sc.rift.MapMaxLevel||80)}</b><span>裂隙等级上限</span></div>
+    <div class="stat-card"><b>${num(Object.keys(sc.rarity||{}).length)}</b><span>怪物稀有度档位</span></div>
+  </div>
+
+  <h3>稀有度与掉落</h3>
+  ${tbl(['稀有度','生命','伤害','经验','掉落几率','掉落次数'], rarity)}
+  <p>普通掉落稀有度权重：${Object.entries(sc.dropWeights||{}).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}。守护者必出稀有，传奇几率 ${Math.round((sc.bossDrop?.UniqueChance||0)*100)}%，辅助宝石几率 ${Math.round((sc.bossDrop?.SupportGemChance||0)*100)}%。</p>
+
+  <h3>怪物等级缩放</h3>
+  <p>怪物的基础生命/伤害来自怪物数据，乘以全局曲线：倍率 = Base × (1 + K × ML^P)。</p>
+  ${tbl(['曲线','Base','K','P'],[
+    ['生命', sc.monsterLife.Base, sc.monsterLife.K, sc.monsterLife.P],
+    ['伤害', sc.monsterDamage.Base, sc.monsterDamage.K, sc.monsterDamage.P],
+    ['经验', sc.monsterXp.Base, sc.monsterXp.K, sc.monsterXp.P],
+  ])}
+  <p>每怪物等级额外 +${sc.resistPerLevel} 抗性（上限 ${sc.resistMax}%）、+${sc.armourPerLevel} 护甲。经验惩罚：安全等级差 ${sc.xpPenalty.SafeRange}，每级 −${Math.round((sc.xpPenalty.PerLevel||0)*100)}%，下限 ${Math.round((sc.xpPenalty.Floor||0)*100)}%。</p>
+
+  <h3>装备词缀的物品等级门槛</h3>
+  <p>${(sc.affixItemLevels||[]).map((v,i)=>`T${i+1}: ilvl ${v}+`).join(' · ')}</p>
+
+  <h3>职业基础属性</h3>
+  ${tbl(['职业','力量','敏捷','智力','每级成长（力/敏/智）','武器类别','首个宝石'], clsRows)}
+
+  <h3>符文与镶嵌规则</h3>
+  <dl class="kv">
+    <dt>开始出现孔位</dt><dd>怪物等级 ${M.runeRules.SocketFromML}，单件装备出现孔位几率 ${Math.round(M.runeRules.SocketChance*100)}%</dd>
+    <dt>珠宝孔</dt><dd>怪物等级 ${M.runeRules.JewelSocketFromML}，护甲 ${Math.round(M.runeRules.JewelSocketChance*100)}% / 武器 ${Math.round(M.runeRules.JewelSocketChanceWeapon*100)}%</dd>
+    <dt>孔位上限</dt><dd>${esc(JSON.stringify(M.runeRules.MaxSockets))}</dd>
+    <dt>符文阶级</dt><dd>自怪物等级 ${M.runeRules.TierFromML} 起按权重提升阶级</dd>
+    <dt>合成</dt><dd>${M.runeRules.FuseCount ? esc(JSON.stringify(M.runeRules.FuseCount)) : '见魔方配方'}</dd>
+  </dl>
+
+  <h3>誓石魔方</h3>
+  <dl class="kv">
+    <dt>网格</dt><dd>${M.cubeRules.GridW} × ${M.cubeRules.GridH}</dd>
+    <dt>普通/魔法孔位上限</dt><dd>${esc(JSON.stringify(M.cubeRules.SocketCap))}</dd>
+    <dt>誓痕孔位</dt><dd>${M.cubeRules.OathmarkSocketCap}</dd>
+    <dt>红色阶级物品等级</dt><dd>${esc((M.cubeRules.RedTierLevels||[]).join(' / '))}</dd>
+    <dt>重铸次数</dt><dd>${M.cubeRules.ReforgeTries}</dd>
+  </dl>
+
+  <h3>锻造炉</h3>
+  <p>金色基础 ${sc.economy && sc.economy.GoldBase ? sc.economy.GoldBase : M.forge.rules.GoldBase}，每级 +${M.forge.rules.GoldPerLevel}；余烬在锻造等级 ${M.forge.rules.UnlockEmber} 解锁。</p>
+
+  <h2>名词对照</h2>
+  <dl class="kv">
+    <dt>increased / reduced</dt><dd>增加 / 降低 —— 同类加算</dd>
+    <dt>more / less</dt><dd>更多 / 更少 —— 各自乘算</dd>
+    <dt>Rupture Level (RL)</dt><dd>裂隙等级，决定掉落物的强度区间</dd>
+    <dt>Monster Level (ML)</dt><dd>怪物等级，决定性缩放</dd>
+    <dt>Emberforged</dt><dd>烬铸：传奇物品的强化形态</dd>
+    <dt>Vow / Herald / Woe</dt><dd>誓约 / 先驱 / 灾祸</dd>
+  </dl>
+
+  <h2>免责声明</h2>
+  <p>本站为非官方粉丝作品，与《破誓》开发团队无任何关联，亦未获其背书。游戏名称、美术与数据归其各自所有者。数据来自 Playtest 版本，数值会随版本变动。本站仅读取本机游戏文件，不修改、不重新分发游戏本体资源。</p>
+  <p style="color:var(--dim)">生成时间：${esc(new Date().toLocaleString('zh-CN'))}</p>`;
+  document.getElementById('doc').innerHTML = html;
+})();
+</script>
+</body>
+</html>
