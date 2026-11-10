@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>破誓 · 中文资料库 — Broken Oath Database</title>
+<meta name="description" content="《破誓 Broken Oath》Playtest 中文资料库：传奇物品、底材、词缀、符文与符文之语、技能宝石、天赋树、怪物图鉴与数值机制，全部由游戏数据文件直接生成。">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header id="bo-top"></header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="hero-kicker">BROKEN OATH · PLAYTEST DATABASE</div>
+    <h1>破誓 <em>资料库</em></h1>
+    <p>直接从游戏数据文件读取的完整中文数据库：每一条词缀、每一个符文、每一件传奇、每一个技能宝石与天赋节点，都带有真实的数值与说明。数据版本 <span class="num" id="ver">—</span>。</p>
+    <div class="hero-stats" id="stats"></div>
+  </section>
+
+  <div class="cat-grid" id="cats"></div>
+
+  <div class="section-title"><h2>官方构建指南</h2><a href="skills.html">查看技能数据 →</a></div>
+  <div class="guide-grid" id="guides"></div>
+
+  <div class="section-title"><h2>代表性传奇</h2><a href="items.html">进入物品库 →</a></div>
+  <div class="grid" id="feat"></div>
+</div>
+<div id="bo-foot"></div>
+
+<script src="assets/site.js"></script>
+<script src="assets/data/items.js"></script>
+<script src="assets/data/skills.js"></script>
+<script>
+(function(){
+  const IT = window.BO_ITEMS, SK = window.BO_SKILLS;
+  BO.VER = 'r92 · build 65';
+  BO.mountHeader('index.html');
+  BO.mountFooter();
+  BO.setDocumentTitle('中文资料库','Broken Oath Database');
+  document.getElementById('ver').textContent = 'r92';
+  const T = BO.T, esc = BO.esc, num = BO.num;
+
+  const cats = [
+    {href:'items.html#uniques', icon:BO.I.sword, zh:'传奇物品', en:'Uniques', count:IT.uniques.length, dzh:'带独特词条的传奇装备', den:'Unique items with bespoke modifiers'},
+    {href:'items.html#bases', icon:BO.I.gem, zh:'底材', en:'Base items', count:IT.bases.length, dzh:'武器、护甲与珠宝底材', den:'Weapons, armour and jewellery bases'},
+    {href:'items.html#affixes', icon:BO.I.scroll, zh:'词缀', en:'Item mods', count:IT.affixes.length, dzh:'前缀/后缀与全部阶级', den:'Prefixes, suffixes and every tier'},
+    {href:'items.html#runewords', icon:BO.I.rune, zh:'符文之语', en:'Runewords', count:IT.runewords.length, dzh:'符文组合与灌注奖励', den:'Rune combinations and power bonuses'},
+    {href:'items.html#runes', icon:BO.I.rune, zh:'符文与珠宝', en:'Runes & jewels', count:IT.runes.length+IT.jewels.length, dzh:'符文阶梯与珠宝', den:'The rune ladder and jewels'},
+    {href:'skills.html', icon:BO.I.book, zh:'技能宝石', en:'Skill gems', count:SK.skills.length, dzh:'六大职业的技能与辅助', den:'Class skills and support gems'},
+    {href:'tree.html', icon:BO.I.tree, zh:'天赋树', en:'Passive tree', count:1242, dzh:'可缩放、可搜索的天赋节点', den:'Zoomable passive tree'},
+    {href:'bestiary.html', icon:BO.I.skull, zh:'怪物图鉴', en:'Bestiary', count:410, dzh:'382 种怪物与 28 位守护者', den:'382 monsters and 28 Guardians'},
+  ];
+
+  document.getElementById('cats').innerHTML = cats.map(c=>`
+    <a class="cat" href="${c.href}">
+      ${c.icon}
+      <b>${num(c.count)}</b>
+      <h3>${esc(T([c.zh,c.en]))}</h3>
+      <p>${esc(T([c.dzh,c.den]))}</p>
+    </a>`).join('');
+
+  const stat = (v,zh,en)=>`<div class="hero-stat"><b>${num(v)}</b><span>${esc(T([zh,en]))}</span></div>`;
+  document.getElementById('stats').innerHTML =
+    stat(IT.bases.length,'底材','Base items')+stat(IT.uniques.length,'传奇','Uniques')+
+    stat(IT.affixes.length,'词缀','Affixes')+stat(IT.runewords.length,'符文之语','Runewords')+
+    stat(SK.skills.length+SK.supports.length,'技能与辅助','Skills & supports')+
+    stat(IT.cube.length+IT.forge.length,'制作配方','Recipes');
+
+  // guides
+  const ROLE = {starter:'开荒', clear:'清图', boss:'攻坚'};
+  const NAMEZH = new Map();
+  IT.uniques.concat(IT.bases, IT.runewords).forEach(r=>NAMEZH.set(r.n[1], r.n[0]));
+  SK.skills.concat(SK.supports, SK.blessings).forEach(r=>NAMEZH.set(r.n[1], r.n[0]));
+  const nm = x => NAMEZH.get(x) || x;
+  document.getElementById('guides').innerHTML = SK.guides.map(g=>`
+    <article class="guide">
+      <h3>${esc(T(g.title))}</h3>
+      <div class="who">${esc(T([g.clsZh, g.cls]))} · ${esc(T([ROLE[g.role]||g.role||'', g.role||'']))}</div>
+      <p>${esc(T(g.why))}</p>
+      <div class="tags">${(g.keys||[]).slice(0,4).map(k=>`<span class="tag hi">${esc(T([nm(k), k]))}</span>`).join('')}${(g.wish||[]).slice(0,3).map(k=>`<span class="tag">${esc(T([nm(k), k]))}</span>`).join('')}</div>
+    </article>`).join('');
+
+  // featured uniques
+  const feat = IT.uniques.filter(u=>u.mods.length>=3).slice(0,6);
+  document.getElementById('feat').innerHTML = feat.map(u=>`
+    <article class="card u">
+      <div class="card-head"><h3><a href="items.html#uniques/${encodeURIComponent(u.id)}">${esc(T(u.n))}</a></h3><span class="lvl">Lv ${u.lvl}</span></div>
+      <div class="sub"><b>${esc(T(u.base))}</b> · ${esc(T([u.clsZh,u.cls]))}</div>
+      <ul class="mods">${u.mods.slice(0,4).map(m=>`<li>${esc(T(m))}</li>`).join('')}</ul>
+      ${u.flav[1]?`<div class="flav"><em>风味</em>${esc(T(u.flav))}</div>`:''}
+    </article>`).join('');
+})();
+</script>
+</body>
+</html>
