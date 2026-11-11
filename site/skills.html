@@ -7,7 +7,7 @@
 <meta name="description" content="《破誓》技能宝石、辅助宝石、誓约与灾祸的完整数据：伤害类型、效率、魔力消耗、逐级成长与机制说明。">
 <link rel="stylesheet" href="assets/site.css">
 </head>
-<body>
+<body class="page-skills">
 <header id="bo-top"></header>
 <div class="wrap">
   <section class="hero" style="padding-bottom:12px">
@@ -41,7 +41,7 @@
 (function(){
   const SK = window.BO_SKILLS, T = BO.T, esc = BO.esc, num = BO.num, hl = BO.hl;
   BO.mountHeader('skills.html'); BO.mountFooter(); BO.setDocumentTitle('技能与宝石','Skills');
-  const S = { cat:'skills', q:'', cls:'', sort:'lvl', limit:60 };
+  const S = { cat:'skills', q:'', cls:'', sort:'lvl', f:{} };
   const $ = id => document.getElementById(id);
   const arrOf = k => k==='skills'?SK.skills.filter(s=>s.group!=='blessing') : k==='supports'?SK.supports : k==='vows'?SK.blessings : SK.curses;
   const CATS = [
@@ -50,6 +50,34 @@
     {k:'vows', zh:'誓约与先驱', en:'Vows & Heralds'},
     {k:'curses', zh:'灾祸与判决', en:'Woes & Sentences'},
   ];
+  // 支持 #分类 与 #分类?cls=Warrior&attr=力量&tag=攻击&q=技能名
+  function readHash(){
+    const raw = decodeURIComponent(location.hash.slice(1));
+    const qi = raw.indexOf('?');
+    const path = qi < 0 ? raw : raw.slice(0, qi);
+    const qs = qi < 0 ? '' : raw.slice(qi + 1);
+    if (path && !CATS.some(c => c.k === path)) return false;
+    if (path) S.cat = path;
+    S.f = {};
+    S.q = '';
+    if (qs) {
+      const p = new URLSearchParams(qs);
+      if (p.get('cls')) S.cls = p.get('cls');
+      if (p.has('q')) S.q = (p.get('q') || '').trim();
+      ['attr','tag','req','kind'].forEach(k => {
+        const val = p.get(k);
+        if (val) S.f[k] = new Set([val]);
+      });
+    }
+    const qi2 = document.getElementById('q');
+    if (qi2) qi2.value = S.q;
+    return true;
+  }
+  readHash();
+  window.addEventListener('hashchange', () => {
+    if (!readHash()) return;
+    render();
+  });
   arrOf('skills').concat(SK.supports, SK.blessings, SK.curses).forEach(r=>{ if(!r._s) r._s = JSON.stringify(r).toLowerCase(); });
 
   const dmgTable = s => {
@@ -152,7 +180,7 @@
     BO.renderFacets($('side'), gs, (gid,val)=>{
       const m = S.f[gid]||(S.f[gid]=new Set());
       if (val===null) delete S.f[gid]; else m.has(val)?m.delete(val):m.add(val);
-      S.limit=60; render();
+      render();
     });
 
     let arr = pool.slice();
@@ -171,15 +199,13 @@
 
     $('count').innerHTML = `<b>${arr.length}</b> 条${esc(T([CATS.find(c=>c.k===S.cat).zh, CATS.find(c=>c.k===S.cat).en]))}${S.q?` · 匹配 “${esc(S.q)}”`:''}`;
     if(!arr.length){ $('list').innerHTML = BO.empty('没有匹配的结果。'); return; }
-    const shown = arr.slice(0,S.limit);
-    $('list').innerHTML = `<div class="grid">${shown.map(RENDER[S.cat]).join('')}</div>`;
-    if (arr.length>S.limit){ $('list').insertAdjacentHTML('beforeend', `<button class="more" id="more">显示全部 ${arr.length} 条</button>`); $('more').onclick=()=>{S.limit=1e9;render();}; }
+    $('list').innerHTML = `<div class="grid">${arr.map(RENDER[S.cat]).join('')}</div>`;
     BO.collapseSide();
   }
 
-  $('tabs').addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(!b)return; S.cat=b.dataset.k; S.f={}; S.limit=60; render(); });
-  $('q').addEventListener('input', BO.debounce(e=>{ S.q=e.target.value.trim(); S.limit=60; render(); },140));
-  $('cls').addEventListener('change', e=>{ S.cls=e.target.value; S.limit=60; render(); });
+  $('tabs').addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(!b)return; S.cat=b.dataset.k; S.f={}; S.cls=''; render(); });
+  $('q').addEventListener('input', BO.debounce(e=>{ S.q=e.target.value.trim(); render(); },140));
+  $('cls').addEventListener('change', e=>{ S.cls=e.target.value; render(); });
   $('sort').addEventListener('change', e=>{ S.sort=e.target.value; render(); });
   document.addEventListener('keydown', e=>{ if(e.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$('q').focus();} });
   render();

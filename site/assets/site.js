@@ -50,19 +50,7 @@
     search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>',
     sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.5v2M12 19.5v2M4.7 4.7l1.4 1.4M17.9 17.9l1.4 1.4M2.5 12h2M19.5 12h2M4.7 19.3l1.4-1.4M17.9 6.1l1.4-1.4"/></svg>',
     moon: '<svg viewBox="0 0 24 24"><path d="M20.5 13.2A8.6 8.6 0 1 1 10.8 3.5a6.7 6.7 0 0 0 9.7 9.7Z"/></svg>',
-    filter: '<svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7.4V19l-4 2v-8.6Z"/></svg>',
-    close: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
-    zoomIn: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M11 8.5v5M8.5 11h5"/></svg>',
-    zoomOut: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M8.5 11h5"/></svg>',
-    reset: '<svg viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1M3.5 4.5V9h4.5"/></svg>',
-    sword: '<svg viewBox="0 0 24 24"><path d="M14.5 3.5 20.5 3.5 20.5 9.5 9.5 20.5 3.5 20.5 3.5 14.5Z"/><path d="m12 8 4 4"/></svg>',
-    gem: '<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M2 9h20M9 3l-3 6 6 12 6-12-3-6"/></svg>',
-    rune: '<svg viewBox="0 0 24 24"><path d="M12 2.5 20 7v10l-8 4.5L4 17V7Z"/><path d="M9 9h6M9 15h6M12 7v10"/></svg>',
-    tree: '<svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2"/><circle cx="5.5" cy="13" r="2"/><circle cx="18.5" cy="13" r="2"/><circle cx="12" cy="19.5" r="2"/><path d="M12 6.5v11M10.6 5.8 6.6 11.4M13.4 5.8l4 5.6M7.4 14.2l3.3 3.9M16.6 14.2l-3.3 3.9"/></svg>',
-    skull: '<svg viewBox="0 0 24 24"><path d="M12 2.5c-4.4 0-7.5 3-7.5 7 0 2.4 1.1 4.2 2.6 5.4v3.1c0 1 .8 1.9 1.9 1.9h6c1.1 0 1.9-.9 1.9-1.9v-3.1c1.5-1.2 2.6-3 2.6-5.4 0-4-3.1-7-7.5-7Z"/><path d="M9.3 10.2h.01M14.7 10.2h.01M10.5 14.5l1.5 1.5 1.5-1.5"/></svg>',
-    scroll: '<svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>',
-    flask: '<svg viewBox="0 0 24 24"><path d="M9 2.5h6M10 2.5v6L5.2 18a2 2 0 0 0 1.8 3h10a2 2 0 0 0 1.8-3L14 8.5v-6"/><path d="M7.2 14h9.6"/></svg>',
-    book: '<svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22Z"/><path d="M8 6h8M8 10h8"/></svg>',
+    arrowUp: '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
   };
   BO.I = I;
 
@@ -86,6 +74,7 @@
     ['bestiary.html', ['图鉴', 'Bestiary']],
     ['about.html', ['关于', 'About']],
   ];
+  BO.VER = BO.VER || '0.56.5';
   BO.mountHeader = function (active) {
     const host = document.getElementById('bo-top');
     if (!host) return;
@@ -95,12 +84,19 @@
     }).join('');
     host.className = 'bo-top';
     host.innerHTML = `<div class="bo-top-in">
-      <a class="bo-brand" href="index.html">
+      <a class="bo-brand" href="index.html" aria-label="破誓资料库 首页">
         <span class="bo-mark">${I.seal}</span>
-        <span class="bo-name"><b>破誓</b> 资料库<span>Broken Oath Database</span></span>
+        <span class="bo-brand-name">破誓<b>DB</b></span>
+        <span class="bo-brand-sub">Broken Oath Database</span>
       </a>
-      <nav class="bo-nav">${nav}</nav>
+      <nav class="bo-nav" aria-label="主导航">${nav}</nav>
       <div class="bo-tools">
+        <span class="bo-ver" title="游戏版本">${BO.esc(BO.VER)}</span>
+        <form class="bo-search" role="search" action="items.html" method="get">
+          ${I.search}
+          <input type="search" name="q" autocomplete="off" aria-label="搜索物品库"
+                 placeholder="${BO.LANG ? 'Search items…' : '搜索物品库…'}">
+        </form>
         <button class="bo-btn" id="boLang" title="切换语言 / Switch language"><span class="zh">中</span>/<span class="en">EN</span></button>
         <button class="bo-btn" id="boTheme" title="明暗主题"></button>
       </div>
@@ -131,11 +127,107 @@
   BO.mountFooter = function () {
     const host = document.getElementById('bo-foot');
     if (!host) return;
-    host.className = 'bo-foot';
-    host.innerHTML = `<div class="wrap"><footer class="bo-foot"><div class="row">
-      <div>破誓 · 中文资料库 · 数据版本 ${BO.VER || 'r92'} · 本地静态站</div>
-      <div><a href="about.html">数据来源与免责声明</a></div>
-    </div></footer></div>`;
+    const L = BO.LANG;
+    host.innerHTML = `<div class="bo-foot">
+      <div class="bo-foot-in">
+        <div><h5>${L ? 'Database' : '资料库'}</h5><ul>
+          <li><a href="index.html">${L ? 'Overview' : '总览'}</a></li>
+          <li><a href="items.html#uniques">${L ? 'Unique items' : '传奇物品'}</a></li>
+          <li><a href="items.html#bases">${L ? 'Base items' : '底材'}</a></li>
+          <li><a href="items.html#affixes">${L ? 'Item mods' : '词缀'}</a></li>
+          <li><a href="items.html#runewords">${L ? 'Runewords' : '符文之语'}</a></li>
+        </ul></div>
+        <div><h5>${L ? 'Mechanics' : '机制与图鉴'}</h5><ul>
+          <li><a href="skills.html">${L ? 'Skills & gems' : '技能与宝石'}</a></li>
+          <li><a href="tree.html">${L ? 'Passive tree' : '天赋树'}</a></li>
+          <li><a href="bestiary.html">${L ? 'Bestiary' : '怪物图鉴'}</a></li>
+          <li><a href="about.html">${L ? 'Numbers & rules' : '数值与规则'}</a></li>
+        </ul></div>
+        <div><h5>${L ? 'About' : '关于本站'}</h5>
+          <p>${L
+            ? `Unofficial Chinese database for Broken Oath PlayTest ${BO.esc(BO.VER)} — generated directly from the game data files.`
+            : `《破誓》PlayTest ${BO.esc(BO.VER)} 非官方中文资料库 · 数据由游戏数据文件直接生成。`}</p>
+        </div>
+      </div>
+      <div class="bo-foot-bottom">${L
+        ? 'Broken Oath Database · Fan-made, not affiliated with the developers · <a href="about.html">Sources & disclaimer</a>'
+        : '破誓 · 中文资料库 · 非官方粉丝作品，与开发团队无关联 · <a href="about.html">数据来源与免责声明</a>'}</div>
+    </div>
+    <a href="#top" class="to-top" id="boToTop" aria-label="${L ? 'Back to top' : '回到顶部'}" title="${L ? 'Back to top' : '回到顶部'}">${I.arrowUp}</a>`;
+
+    const tt = host.querySelector('#boToTop');
+    if (tt) {
+      const sync = () => tt.classList.toggle('on', (window.scrollY || 0) > 420);
+      window.addEventListener('scroll', sync, { passive: true });
+      sync();
+      tt.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  };
+
+  // ---------------- 悬浮信息卡 ----------------
+  BO.tips = BO.tips || {};
+  let tipEl = null, tipHost = null;
+  function tipNode() {
+    if (!tipEl) {
+      tipEl = document.createElement('div');
+      tipEl.className = 'bo-tip';
+      tipEl.setAttribute('role', 'tooltip');
+      document.body.appendChild(tipEl);
+    }
+    return tipEl;
+  }
+  function tipPlace(x, y) {
+    const el = tipNode();
+    const vw = window.innerWidth || 1200, vh = window.innerHeight || 800;
+    const r = el.getBoundingClientRect();
+    let left = x + 16, top = y + 16;
+    if (left + r.width > vw - 10) left = Math.max(10, x - r.width - 16);
+    if (top + r.height > vh - 10) top = Math.max(10, y - r.height - 16);
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  }
+  function tipHide() {
+    if (tipEl) tipEl.classList.remove('on');
+    tipHost = null;
+  }
+  BO.mountTips = function () {
+    if (BO._tipBound) return;
+    BO._tipBound = true;
+    const find = t => (t && t.closest ? t.closest('[data-tip]') : null);
+    const open = (host, x, y) => {
+      const make = BO.tips[host.getAttribute('data-tip')];
+      if (!make) return;
+      const el = tipNode();
+      el.innerHTML = typeof make === 'function' ? make() : make;
+      el.classList.add('on');
+      tipHost = host;
+      tipPlace(x, y);
+    };
+    document.addEventListener('mouseover', e => {
+      const host = find(e.target);
+      if (!host || host === tipHost) return;
+      open(host, e.clientX, e.clientY);
+    });
+    document.addEventListener('mousemove', e => {
+      if (tipHost) tipPlace(e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseout', e => {
+      const host = find(e.target);
+      if (!host) return;
+      if (e.relatedTarget && host.contains(e.relatedTarget)) return;
+      tipHide();
+    });
+    document.addEventListener('focusin', e => {
+      const host = find(e.target);
+      if (!host) return;
+      const r = host.getBoundingClientRect();
+      open(host, r.left, r.bottom);
+    });
+    document.addEventListener('focusout', tipHide);
+    window.addEventListener('scroll', tipHide, { passive: true });
   };
 
   // ---------------- small helpers ----------------

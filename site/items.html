@@ -7,7 +7,7 @@
 <meta name="description" content="《破誓》物品数据库：传奇、底材、词缀、符文、珠宝、符文之语、药剂、神话词条与制作配方，可搜索与筛选。">
 <link rel="stylesheet" href="assets/site.css">
 </head>
-<body>
+<body class="page-items">
 <header id="bo-top"></header>
 <div class="wrap">
   <section class="hero" style="padding-bottom:12px">
@@ -153,27 +153,33 @@
     },
   };
 
-  const cubeCard = c => `<article class="card">
+  const MAT_NAME = new Map((IT.materials||[]).map(m=>[m.id, m.n]));
+  const matName = id => { const n = MAT_NAME.get(id); return n ? T(n) : (id || ''); };
+
+  const CUBE_CLS = {'物品':'items', '红色阶级':'reds', '符文':'runes', '珠宝':'jewels'};
+  const cubeCard = c => {
+    const fam = CUBE_CLS[c.family] || 'items';
+    return `<article class="card cube-${fam}">
       <div class="card-head"><h3>${esc(T(c.n))}</h3><span class="lvl">${esc(c.family||'')}</span></div>
       <div class="sub">${esc(T(c.recipe))}</div>
       ${modList([c.result,c.makes,c.uses,c.keeps].filter(x=>x&&x[1]))}
     </article>`;
+  };
 
   const forgeCard = f => `<article class="card">
       <div class="card-head"><h3>${esc(T(f.n))}</h3><span class="lvl">${esc(T([f.kindZh,f.kind]))}</span></div>
-      <div class="sub">${f.mat?`消耗 ${esc(f.mat)} ×${f.cost}`:''}${f.mat2?` + ${esc(f.mat2)} ×${f.cost2}`:''}</div>
+      <div class="sub">${f.mat?`消耗 ${esc(matName(f.mat))} ×${f.cost}`:''}${f.mat2?` + ${esc(matName(f.mat2))} ×${f.cost2}`:''}</div>
       <div style="color:var(--fg2);font-size:.9rem">${hl(T(f.text))}</div>
       ${f.line[1]?`<div class="flav"><em>铁匠</em>${esc(T(f.line))}</div>`:''}
-      <div class="card-foot"><span>${esc(T(f.found))}</span>${f.lands.length?`<span>${f.lands.map(l=>esc(l)).join(' / ')}</span>`:''}</div>
+      <div class="card-foot"><span>${esc(T(f.found))}</span>${(f.landNames||[]).length?`<span>${f.landNames.map(l=>esc(T(l))).join(' / ')}</span>`:''}</div>
     </article>`;
 
-  const mythicRow = m => `<details class="arow"><summary>
-      <span class="ptype pre">${esc(T([m.typeZh,m.type]))}</span>
-      <span><span class="txt">${esc(T(m.groupZh?[m.groupZh,m.group]:m.group))}</span><br><span class="on">${(m.on||[]).map(s=>esc(slotZh(s))).join(' / ')}</span></span>
-      <span class="meta">${m.tiers.length} 阶</span></summary>
-      <div class="tiers"><table><thead><tr><th>阶级</th><th>物品等级</th><th>词缀</th><th>权重</th></tr></thead><tbody>
-      ${m.tiers.map(t=>`<tr><td class="mono">${t.t}</td><td class="mono">${t.ilvl??''}</td><td>${t.line?esc(T(t.line)):''}</td><td class="mono">${t.w??''}</td></tr>`).join('')}
-      </tbody></table></div></details>`;
+  const mythicCard = m => `<article class="card">
+      <div class="card-head"><h3>${esc(T(m.n || [m.groupZh, m.group]))}</h3><span class="lvl">${esc(T([m.typeZh,m.type]))}</span></div>
+      <div class="sub">神话物品专属词条 · 每件神话物品获得 1 条</div>
+      ${m.tiers.some(t=>t.line)?`<ul class="mods">${m.tiers.filter(t=>t.line).map(t=>`<li>${esc(T(t.line))}</li>`).join('')}</ul>`:''}
+      <div class="card-foot"><span>物品等级 ${m.tiers[0] && m.tiers[0].ilvl!=null?m.tiers[0].ilvl:'—'}</span><span>仅神话物品可获得（不入掉落池）</span></div>
+    </article>`;
 
   const affixRow = a => `<details class="arow"><summary>
       <span class="ptype ${a.type==='Prefix'?'pre':'suf'}">${esc(T([a.typeZh,a.type]))}</span>
@@ -200,7 +206,7 @@
     {k:'jewels', zh:'珠宝', en:'Jewels', arr:()=>IT.jewels, card:CARDS.runes,
      facetDefs:[['tier','阶级',r=>['阶级 '+r.tier]]], sort:['lvl','idx','name']},
     {k:'runewords', zh:'符文之语', en:'Runewords', arr:()=>IT.runewords, card:CARDS.runewords,
-     facetDefs:[['cls','职业',w=>[T([w.clsZh,w.cls])]],['sockets','孔数',w=>[w.sockets+' 孔']],['base','可嵌入',w=>w.bases.map(b=>T(b))]],
+     facetDefs:[['cls','职业',w=>[T([w.clsZh,w.cls]) || '通用']],['sockets','孔数',w=>[w.sockets+' 孔']],['base','可嵌入',w=>w.bases.map(b=>T(b))]],
      sort:['lvl','name']},
     {k:'potions', zh:'药剂', en:'Potions', arr:()=>IT.potions.types, card:CARDS.potions,
      facetDefs:[['role','类型',p=>[T([p.roleZh,p.role])]]], sort:['name'],
@@ -210,28 +216,51 @@
      facetDefs:[['family','系列',c=>[c.family||'其他']]], sort:['name']},
     {k:'forge', zh:'锻造', en:'Forge', arr:()=>IT.forge, card:forgeCard,
      facetDefs:[['kind','类型',f=>[T([f.kindZh,f.kind])]],['group','分组',f=>[f.group||'其他']]], sort:['name']},
-    {k:'mythic', zh:'神话词条', en:'Mythic lines', arr:()=>IT.mythic, card:mythicRow, row:true,
-     facetDefs:[['type','类型',m=>[T([m.typeZh,m.type])]],['on','可出现在',m=>(m.on||[]).map(s=>T([slotZh(s),s]))]], sort:['name']},
+    {k:'mythic', zh:'神话词条', en:'Mythic lines', arr:()=>IT.mythic, card:mythicCard,
+     facetDefs:[['type','类型',m=>[T([m.typeZh,m.type])]]], sort:['name']},
   ];
 
-  const S = { cat:'uniques', q:'', sort:'lvl', f:{}, limit:48, pin:'' };
+  const S = { cat:'uniques', q:'', sort:'lvl', f:{}, pin:'' };
   let terms = [];
   const arrOf = k => (CATS.find(c=>c.k===k)||CATS[0]).arr();
 
   // search index
   CATS.forEach(c=>c.arr().forEach(r=>{ if(!r._s) r._s = JSON.stringify(r).toLowerCase(); }));
 
+  // 支持 #分类 / #分类/物品id / #分类?分面=值&分面=值 / #分类?q=关键词
   function readHash(){
-    const h = decodeURIComponent(location.hash.slice(1));
-    const i = h.indexOf('/');
-    const cat = i<0 ? h : h.slice(0,i);
-    const id = i<0 ? '' : h.slice(i+1);
-    if (CATS.some(c=>c.k===cat)) { S.cat = cat; S.pin = id && arrOf(cat).some(r=>(r.id||r.Id)===id) ? id : ''; return true; }
-    return false;
+    const raw = decodeURIComponent(location.hash.slice(1));
+    const qi = raw.indexOf('?');
+    const path = qi < 0 ? raw : raw.slice(0, qi);
+    const qs = qi < 0 ? '' : raw.slice(qi + 1);
+    const i = path.indexOf('/');
+    const cat = i < 0 ? path : path.slice(0, i);
+    const id = i < 0 ? '' : path.slice(i + 1);
+    const def = CATS.find(c => c.k === cat);
+    if (!def) return false;
+    S.cat = cat;
+    S.pin = id && arrOf(cat).some(r => (r.id || r.Id) === id) ? id : '';
+    S.f = {};
+    S.q = '';
+    if (qs) {
+      const p = new URLSearchParams(qs);
+      if (p.has('q')) S.q = (p.get('q') || '').trim();
+      const valid = new Set((def.facetDefs || []).map(f => f[0]));
+      for (const [k, v] of p) {
+        if (k !== 'q' && valid.has(k) && v) (S.f[k] || (S.f[k] = new Set())).add(v);
+      }
+    }
+    const qEl = document.getElementById('q');
+    if (qEl) qEl.value = S.q;
+    return true;
   }
   readHash();
 
   const $ = id => document.getElementById(id);
+
+  // 顶栏搜索框跳转过来时带 ?q=…
+  const q0 = (new URLSearchParams(location.search).get('q') || '').trim();
+  if (q0) { S.q = q0; $('q').value = q0; }
 
   function filtered(k){
     const def = CATS.find(c=>c.k===k);
@@ -266,9 +295,16 @@
     BO.renderFacets($('side'), gs, (gid,val)=>{
       if (val===null){ delete S.f[gid]; }
       else { const s=S.f[gid]||(S.f[gid]=new Set()); s.has(val)?s.delete(val):s.add(val); }
-      S.limit=48; render();
+      render();
     });
     $('side').insertAdjacentHTML('beforeend', def.extra||'');
+    // 魔方「系列」分面用与卡片一致的颜色
+    if (S.cat === 'cube') {
+      $('side').querySelectorAll('.chip[data-v]').forEach(ch => {
+        const fam = CUBE_CLS[ch.getAttribute('data-v')];
+        if (fam) ch.classList.add('chip-' + fam);
+      });
+    }
     // sort options
     const sorts = {lvl:['等级：低到高','Level ↑'], lvlDesc:['等级：高到低','Level ↓'], name:['名称','Name'], dps:['伤害（DPS）','Damage (DPS)'], def:['防御值','Defence'], idx:['符文阶梯','Rune ladder']};
     $('sort').innerHTML = (def.sort||['lvl','name']).concat(['lvlDesc']).map(s=>`<option value="${s}">${esc(T(sorts[s]||[s,s]))}</option>`).join('');
@@ -283,33 +319,28 @@
     else if (S.sort==='lvlDesc') arr.sort((a,b)=>lv(b)-lv(a));
     else arr.sort((a,b)=>lv(a)-lv(b));
     $('count').innerHTML = S.pin && arr.length
-      ? `正在查看 <b>${esc(T(arr[0].n))}</b> · <a href="#${S.cat}" style="color:var(--acc)">显示全部 ${filtered(S.cat).length} 条</a>`
+      ? `正在查看 <b>${esc(T(arr[0].n))}</b> · <a href="#${S.cat}" style="color:var(--acc)">返回列表（共 ${num(def.arr().length)} 条）</a>`
       : `<b>${arr.length}</b> 条${esc(T([def.zh,def.en]))}${S.q?` · 匹配 “${esc(S.q)}”`:''}`;
     if (!arr.length){ $('list').innerHTML = BO.empty('没有匹配的结果。试试更少的关键词，或换一个分类标签。'); return; }
-    const shown = arr.slice(0, S.limit);
     $('list').innerHTML = def.row
-      ? `<div class="alist">${shown.map(def.card).join('')}</div>`
-      : `<div class="grid">${shown.map(def.card).join('')}</div>`;
-    if (arr.length > S.limit) {
-      $('list').insertAdjacentHTML('beforeend', `<button class="more" id="more">显示全部 ${arr.length} 条</button>`);
-      $('more').onclick = ()=>{ S.limit=1e9; render(); };
-    }
+      ? `<div class="alist">${arr.map(def.card).join('')}</div>`
+      : `<div class="grid">${arr.map(def.card).join('')}</div>`;
     $('lede').textContent = S.pin ? '' : `共 ${all.length} 条${T([def.zh,def.en])}数据，全部来自游戏数据文件；支持中英文关键词搜索。`;
     BO.collapseSide();
   }
 
   $('tabs').addEventListener('click', e=>{
     const b=e.target.closest('.tab'); if(!b) return;
-    S.cat=b.dataset.k; S.pin=''; S.limit=48; S.f={}; S.q=''; $('q').value='';
+    S.cat=b.dataset.k; S.pin=''; S.f={}; S.q=''; $('q').value='';
     history.replaceState(null,'','#'+S.cat); render(); window.scrollTo({top:0,behavior:'instant'});
   });
-  $('q').addEventListener('input', BO.debounce(e=>{ S.q=e.target.value.trim(); S.pin=''; S.limit=48; render(); },140));
-  $('sort').addEventListener('change', e=>{ S.sort=e.target.value; S.limit=48; render(); });
+  $('q').addEventListener('input', BO.debounce(e=>{ S.q=e.target.value.trim(); S.pin=''; render(); },140));
+  $('sort').addEventListener('change', e=>{ S.sort=e.target.value; render(); });
   document.addEventListener('keydown', e=>{
     if (e.key==='/' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); $('q').focus(); }
     if (e.key==='Escape' && document.activeElement===$('q')){ $('q').value=''; S.q=''; render(); }
   });
-  window.addEventListener('hashchange', ()=>{ readHash(); S.limit=48; render(); window.scrollTo({top:0,behavior:'instant'}); });
+  window.addEventListener('hashchange', ()=>{ readHash(); render(); window.scrollTo({top:0,behavior:'instant'}); });
   render();
 })();
 </script>

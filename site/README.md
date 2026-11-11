@@ -1,6 +1,8 @@
 # 破誓 · 中文资料库 (Broken Oath Database)
 
-《破誓 / Broken Oath》Playtest 版本的非官方中文资料库。**纯静态站点**，无需安装、无需联网（除了可选的 Google Fonts），双击 `index.html` 即可浏览。
+《破誓 / Broken Oath》Playtest 版本的非官方中文资料库。**纯静态站点**，无需安装、无需联网，双击 `index.html` 即可浏览。
+
+界面参考 [poedb.tw（流亡编年史）](https://poedb.tw/cn/) 的暗色配色与排版：近黑底色、金色标题（`#e7b478`）、细边框扁平面板，以及《流亡之路》的物品稀有度与词缀配色（传奇 `#af6025`、词缀 `#8888ff`、宝石 `#1ba29b`…）。
 
 ## 打开方式
 
@@ -20,14 +22,24 @@ python -m http.server 8080
 
 | 文件 | 内容 |
 |---|---|
-| `index.html` | 总览：数据规模、分类入口、官方构建指南、代表性传奇 |
+| `index.html` | 总览：PlayTest 0.56.5 版本卡、分类目录（物品 / 技能 / 图鉴 / 词缀）、代表性传奇 |
 | `items.html` | 物品库：传奇 182 / 底材 465 / 词缀 288 / 符文 34 / 珠宝 48 / 符文之语 69 / 药剂 / 魔方配方 41 / 锻造 59 / 神话词条 12 |
 | `skills.html` | 技能宝石 58 / 辅助宝石 93 / 誓约与先驱 33 / 灾祸与判决 14，含逐级成长表 |
 | `tree.html` | 1242 节点天赋树：滚轮缩放、拖拽平移、搜索、点击查看词条 |
 | `bestiary.html` | 382 种怪物 + 28 位守护者 + 19 种首领机制 |
 | `about.html` | 数据来源、版本、数值机制（缩放曲线/掉落/宝石成长/符文规则）与免责声明 |
 
-功能：中英文关键词搜索（`/` 聚焦）、分面筛选（带计数）、按等级/伤害/防御排序、深链（`items.html#uniques/windwhisper`）、明暗主题、**中/EN 一键切换**。
+功能：顶栏全局搜索（`items.html?q=…`）、中英文关键词搜索（`/` 聚焦）、分面筛选（带计数）、按等级/伤害/防御排序、深链、明暗主题、**中/EN 一键切换**。
+
+深链同时支持「分类」和「分面筛选」，首页目录里的每个词条都指向已筛好的列表：
+
+```
+items.html#bases?cls=单手剑          items.html#affixes?on=头盔
+items.html#uniques?q=风语           items.html#potions?role=生命
+items.html#uniques/windwhisper       items.html#runewords?q=漩涡
+skills.html#skills?cls=Warrior       skills.html#supports?attr=力量
+bestiary.html#mobs?role=bruiser      bestiary.html#mobs?type=守护者
+```
 
 ## 数据来源
 
@@ -48,7 +60,7 @@ D:\SteamLibrary\steamapps\common\Broken Oath Playtest\BrokenOath\Data\
 site/
 ├── index.html  items.html  skills.html  tree.html  bestiary.html  about.html
 └── assets/
-    ├── site.css          设计系统（深色为主 / 浅色主题）
+    ├── site.css          设计系统（参考 poedb.tw：近黑底 + 金色标题 + PoE 稀有度配色，含浅色主题）
     ├── site.js           共享脚本：语言切换、主题、分面、卡片、高亮
     └── data/             由构建脚本生成的静态数据（window.BO_*）
         ├── items.js      ~830 KB

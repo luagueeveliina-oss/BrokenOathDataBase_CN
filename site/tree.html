@@ -10,23 +10,23 @@
   .tnode text{display:none}
   .tnode.hit circle{stroke:#fff;stroke-width:5}
   .tnode.dim{opacity:.14}
-  .tlabel{fill:#c9d2e0;opacity:0;pointer-events:none;font-family:var(--font-body);letter-spacing:.02em;
+  .tlabel{fill:#c8c8c8;opacity:0;pointer-events:none;font-family:var(--font-body);letter-spacing:.02em;
     text-shadow:0 1px 3px rgba(0,0,0,.9)}
-  #treeSvg.zoomed .tlabel.l-Notable,#treeSvg.zoom2 .tlabel.l-Notable{opacity:.75}
-  #treeSvg.zoom2 .tlabel.l-Choice{opacity:.75}
-  #treeSvg .tlabel.l-Start{opacity:.9}
-  #treeSvg.zoomed .tlabel.l-Keystone{opacity:.95;fill:#e8c988;font-weight:600}
+  #treeSvg.zoomed .tlabel.l-Notable,#treeSvg.zoom2 .tlabel.l-Notable{opacity:.78}
+  #treeSvg.zoom2 .tlabel.l-Choice{opacity:.78}
+  #treeSvg .tlabel.l-Start{opacity:.92}
+  #treeSvg.zoomed .tlabel.l-Keystone{opacity:.95;fill:#e7b478;font-weight:600}
   .tlink{stroke:rgba(255,255,255,.10)}
-  .tlink.start{stroke:rgba(224,118,58,.5)}
+  .tlink.start{stroke:rgba(175,96,37,.55)}
   :root[data-theme="light"] .tlink{stroke:rgba(20,20,20,.13)}
-  .tree-search{height:34px;width:210px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);color:var(--fg);padding:0 10px;font-size:.85rem}
-  .tree-search:focus{outline:none;border-color:var(--acc)}
-  .tree-sel{height:34px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);color:var(--fg2);font-size:.85rem;padding:0 8px}
-  .tinfo{font-size:.8rem;color:var(--dim);line-height:1.6}
+  .tree-search{height:32px;width:210px;border-radius:3px;border:1px solid var(--line2);background:#0b0b0c;color:var(--fg);padding:0 10px;font-size:.84rem}
+  .tree-search:focus{outline:none;border-color:rgba(231,180,120,.6)}
+  .tree-sel{height:32px;border-radius:3px;border:1px solid var(--line2);background:#0b0b0c;color:var(--fg2);font-size:.84rem;padding:0 8px}
+  .tinfo{font-size:.78rem;color:var(--dim);line-height:1.6}
   .tinfo b{color:var(--fg2)}
 </style>
 </head>
-<body>
+<body class="page-tree">
 <header id="bo-top"></header>
 <div class="wrap">
   <section class="hero" style="padding-bottom:14px">
@@ -65,18 +65,18 @@
 
   // colours + radii (units are tree-space; the whole tree spans ~13000 units)
   const KIND = {
-    Keystone: {r:44, fill:'#d8a657', stroke:'#f7e4bc', zh:'基石'},
-    Notable:  {r:30, fill:'#9fb4d8', stroke:'#dbe6f7', zh:'显著'},
-    Attribute:{r:24, fill:'#7ea6b8', stroke:'#c3dfe9', zh:'属性'},
+    Keystone: {r:44, fill:'#e7b478', stroke:'#f7e4bc', zh:'基石'},
+    Notable:  {r:30, fill:'#8888ff', stroke:'#cfcfff', zh:'显著'},
+    Attribute:{r:24, fill:'#1ba29b', stroke:'#b6e8e3', zh:'属性'},
     Choice:   {r:30, fill:'#b07fd8', stroke:'#e5cef5', zh:'抉择'},
-    Socket:   {r:30, fill:'#7fbf9a', stroke:'#cbefdc', zh:'插槽'},
-    Small:    {r:17, fill:'#5d6675', stroke:'#8a94a5', zh:'小'},
-    Start:    {r:40, fill:'#e0763a', stroke:'#ffc79b', zh:'起始'},
+    Socket:   {r:30, fill:'#46a239', stroke:'#cbefdc', zh:'插槽'},
+    Small:    {r:17, fill:'#4b4b52', stroke:'#7c7c85', zh:'小'},
+    Start:    {r:40, fill:'#af6025', stroke:'#ffc79b', zh:'起始'},
   };
-  const CLASS_COL = {Warrior:'#e0763a', Mage:'#5aa7d8', Ranger:'#6ecf8f', Samurai:'#d8c45a', Paladin:'#e8e0c8', Necromancer:'#a06fd8'};
+  const CLASS_COL = {Warrior:'#c8483c', Mage:'#5aa7d8', Ranger:'#46a239', Samurai:'#d8c45a', Paladin:'#e8e0c8', Necromancer:'#a06fd8'};
   // dim tints so the six class wedges read at a glance
-  const CLASS_DIM = {Warrior:'#6b4433', Mage:'#37566c', Ranger:'#3a6650', Samurai:'#6b6538', Paladin:'#6f6c5d', Necromancer:'#54406b'};
-  const CLASS_MID = {Warrior:'#8f5a3f', Mage:'#4a7191', Ranger:'#4d8468', Samurai:'#8a8249', Paladin:'#918d79', Necromancer:'#6f558c'};
+  const CLASS_DIM = {Warrior:'#5e2c26', Mage:'#2f4a60', Ranger:'#315c2b', Samurai:'#5e5a33', Paladin:'#63604f', Necromancer:'#4a3762'};
+  const CLASS_MID = {Warrior:'#7f3b31', Mage:'#3f6383', Ranger:'#3f7b35', Samurai:'#7d7643', Paladin:'#85816e', Necromancer:'#63487f'};
 
   // ---- bounds
   let maxX=0, maxY=0, minX=0, minY=0;

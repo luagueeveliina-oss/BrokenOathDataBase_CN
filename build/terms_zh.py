@@ -74,7 +74,7 @@ SKILL_KIND = {"Gem": "技能宝石", "Basic": "基础攻击", "Weapon": "武器�
 
 ATTRIBUTE = {"Str": "力量", "Dex": "敏捷", "Int": "智力"}
 
-AFFIX_TYPE = {"Prefix": "前缀", "Suffix": "后缀"}
+AFFIX_TYPE = {"Prefix": "前缀", "Suffix": "后缀", "Mythic": "神话"}
 
 POTION_ROLE = {"Life": "生命", "Mana": "魔力", "Utility": "功能"}
 
@@ -87,7 +87,18 @@ RARITY = {"Normal": "普通", "Magic": "魔法", "Rare": "稀有", "Unique": "�
 
 FORGE_KIND = {
     "AddAffix": "添加词缀", "RemoveCrafted": "移除工艺", "Reroll": "重铸", "Upgrade": "升级",
+    "Hone": "打磨品质", "UpgradeMod": "提升词缀", "Temper": "淬炼工艺",
+    "RerollValues": "重掷数值", "Imbue": "点化", "Reforge": "重铸",
+    "Ascend": "升华", "KeepPrefixes": "锁定前缀", "KeepSuffixes": "锁定后缀",
+    "RerollUnique": "重掷传奇", "RerollMod": "重掷单词缀", "ReplaceMod": "替换词缀",
+    "RerollTiers": "重掷阶级", "RemoveMod": "移除词缀",
+    "EchoAdd": "回声·添加", "EchoUpgrade": "回声·提升", "EchoReroll": "回声·重掷", "EchoRemove": "回声·移除",
+    "AddSocket": "开孔",
 }
+
+FORGE_GROUP = {"Add": "添加词缀", "Reforge": "重铸", "Slots": "孔位与品质", "Mastery": "精通"}
+
+CUBE_FAMILY = {"Items": "物品", "Reds": "红色阶级", "Runes": "符文", "Jewels": "珠宝"}
 
 # words used inside {skills} / {tags} placeholders
 def tag_phrase(tag, lang="zh"):

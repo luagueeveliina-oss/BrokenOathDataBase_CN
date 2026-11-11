@@ -4,7 +4,8 @@ import json, os, re, glob, sys, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render as R
 from terms_zh import (TAGS, SLOTS, CLASSES, ITEM_CLASSES, DELIVERY, SKILL_KIND,
-                      ATTRIBUTE, AFFIX_TYPE, POTION_ROLE, TREE_KIND, RARITY, FORGE_KIND)
+                      ATTRIBUTE, AFFIX_TYPE, POTION_ROLE, TREE_KIND, RARITY, FORGE_KIND,
+                      FORGE_GROUP, CUBE_FAMILY)
 from text_zh import EXTRA_ZH
 
 DATA = r'D:\SteamLibrary\steamapps\common\Broken Oath Playtest\BrokenOath\Data'
@@ -319,8 +320,11 @@ def render_tiers_agnostic(m):
 
 mythic = []
 for m in load(r'Items\mythic_lines.json')['lines']:
+    tiers = m.get('Tiers') or []
+    line_name = (tiers[0].get('Name') if tiers else '') or m['Id']
     mythic.append({
-        'id': m['Id'], 'type': m.get('Type'), 'typeZh': AFFIX_TYPE.get(m.get('Type'), m.get('Type')),
+        'id': m['Id'], 'n': bi('tn:' + line_name, line_name),
+        'type': m.get('Type'), 'typeZh': AFFIX_TYPE.get(m.get('Type'), m.get('Type')),
         'group': m.get('Group'), 'groupZh': zh_of('ag:' + m.get('Group'), m.get('Group')),
         'weight': m.get('Weight'), 'on': m.get('BaseTags') or [],
         'tiers': render_tiers_agnostic(m),
@@ -329,32 +333,36 @@ for m in load(r'Items\mythic_lines.json')['lines']:
 cube_raw = load(r'Items\cube_recipes.json')
 cube = []
 for c in cube_raw['recipes']:
+    fam = c.get('Family')
     cube.append({
-        'id': c['Id'], 'family': c.get('Family'), 'op': c.get('Op'),
-        'n': bi('+' + c['Id'] + ':Name', c.get('Name') or ''),
-        'recipe': bi('+' + c['Id'] + ':Recipe', c.get('Recipe') or ''),
-        'result': bi('+' + c['Id'] + ':Result', c.get('Result') or ''),
-        'makes': bi('+' + c['Id'] + ':Makes', c.get('Makes') or ''),
-        'uses': bi('+' + c['Id'] + ':UsesUp', c.get('UsesUp') or ''),
-        'keeps': bi('+' + c['Id'] + ':Keeps', c.get('Keeps') or ''),
+        'id': c['Id'], 'family': CUBE_FAMILY.get(fam, fam), 'op': c.get('Op'),
+        'n': bi(c['Id'] + ':Name', c.get('Name') or ''),
+        'recipe': bi(c['Id'] + ':Recipe', c.get('Recipe') or ''),
+        'result': bi(c['Id'] + ':Result', c.get('Result') or ''),
+        'makes': bi(c['Id'] + ':Makes', c.get('Makes') or ''),
+        'uses': bi(c['Id'] + ':UsesUp', c.get('UsesUp') or ''),
+        'keeps': bi(c['Id'] + ':Keeps', c.get('Keeps') or ''),
         'count': c.get('Count'), 'minTier': c.get('MinTier'), 'maxTier': c.get('MaxTier'),
         'hidden': bool(c.get('bHidden')),
     })
 
 forge_raw = load(r'Gameplay\forge.json')
+LAND_MAP = {k: bi('land:' + k, v) for k, v in (forge_raw.get('Lands') or {}).items()}
 forge = []
 for r in forge_raw['Recipes']:
     forge.append({
         'id': r['Id'], 'kind': r.get('Kind'), 'kindZh': FORGE_KIND.get(r.get('Kind'), r.get('Kind')),
-        'group': r.get('Group'),
-        'n': bi('+' + r['Id'] + ':Name', r.get('Name') or ''),
-        'text': bi('+' + r['Id'] + ':Text', r.get('Text') or ''),
-        'line': bi('+' + r['Id'] + ':Line', r.get('Line') or ''),
-        'found': bi('+' + r['Id'] + ':FoundIn', r.get('FoundIn') or ''),
+        'group': FORGE_GROUP.get(r.get('Group'), r.get('Group')),
+        'n': bi(r['Id'] + ':Name', r.get('Name') or ''),
+        'text': bi(r['Id'] + ':Text', r.get('Text') or ''),
+        'line': bi(r['Id'] + ':Line', r.get('Line') or ''),
+        'found': bi(r['Id'] + ':FoundIn', r.get('FoundIn') or ''),
         'mat': r.get('Mat'), 'cost': r.get('MatCost'),
         'mat2': r.get('Mat2'), 'cost2': r.get('Mat2Cost'),
         'tier': r.get('Tier'), 'lvl': r.get('ForgeLevel'),
-        'lands': r.get('Lands') or [], 'guardian': bool(r.get('Guardian')),
+        'lands': r.get('Lands') or [],
+        'landNames': [LAND_MAP.get(x, [x, x]) for x in (r.get('Lands') or [])],
+        'guardian': bool(r.get('Guardian')),
         'potential': r.get('Potential'),
     })
 materials = []

@@ -7,6 +7,10 @@ shots/
 tools/dump_*.html
 tools/jscheck/
 
+# 设计参考（PoEDB 离线副本等，仅本地使用，不随仓库发布）
+PoEDB/
+.ref/
+
 # 发布产物
 *.zip
 
