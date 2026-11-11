@@ -79,9 +79,10 @@
     seal: '<path d="M12 2.6 20 6.4v5.2c0 4.6-3.3 8.2-8 9.8-4.7-1.6-8-5.2-8-9.8V6.4Z"/><path d="M12 7.4v5.2M12 15.6h.01"/>',
   };
   BO.GLYPH = GLYPH;
-  BO.icon = function (key, glyph, tint) {
+  BO.icon = function (key, glyph, tint, w, h) {
     const src = (window.BO_ICONS || {})[key];
-    const style = `--ico:${tint || '#a8a8a8'}`;
+    const size = (w && h) ? `;width:${w}px;height:${h}px` : '';
+    const style = `--ico:${tint || '#a8a8a8'}${size}`;
     if (src) return `<span class="ico ico-img" style="${style}"><img src="${BO.esc(src)}" alt="" loading="lazy" decoding="async"></span>`;
     return `<span class="ico" style="${style}"><svg viewBox="0 0 24 24">${GLYPH[glyph] || GLYPH.seal}</svg></span>`;
   };
@@ -108,7 +109,7 @@
     ['index.html', ['总览', 'Overview']],
     ['items.html', ['物品', 'Items']],
     ['skills.html', ['技能', 'Skills']],
-    ['tree.html', ['天赋树', 'Passive Tree']],
+    ['planner.html', ['构筑模拟', 'Planner']],
     ['bestiary.html', ['图鉴', 'Bestiary']],
     ['about.html', ['关于', 'About']],
   ];
@@ -176,7 +177,7 @@
         </ul></div>
         <div><h5>${L ? 'Mechanics' : '机制与图鉴'}</h5><ul>
           <li><a href="skills.html">${L ? 'Skills & gems' : '技能与宝石'}</a></li>
-          <li><a href="tree.html">${L ? 'Passive tree' : '天赋树'}</a></li>
+          <li><a href="planner.html">${L ? 'Build planner' : '模拟构筑'}</a></li>
           <li><a href="bestiary.html">${L ? 'Bestiary' : '怪物图鉴'}</a></li>
           <li><a href="about.html">${L ? 'Numbers & rules' : '数值与规则'}</a></li>
         </ul></div>

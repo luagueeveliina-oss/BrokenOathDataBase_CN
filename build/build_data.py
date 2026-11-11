@@ -41,6 +41,66 @@ def bi(key, en):
     return [zh_of(key, en), en]
 
 
+def tag_label(x):
+    """Slots, item classes and tags can all appear in BaseTags/ExcludeTags."""
+    return SLOTS.get(x) or ITEM_CLASSES.get(x) or TAGS.get(x) or zh_of('ag:' + x, x)
+
+
+# 构筑器只用得到进攻向词条；原样保留 Stat/Mode/Tags/数值供前端聚合
+DMG_STATS = {'Damage', 'AddedDamage', 'AttackSpeed', 'CastSpeed', 'CritChance', 'CritMulti',
+             'Penetration', 'DamageAsExtra', 'Convert', 'Phys70', 'Projectiles', 'Area',
+             'Repeats', 'Chains', 'ChainJumpMore', 'SkillLevel', 'MeleeSplash',
+             'DamageVsFullLife', 'LowLifeMore', 'SelfLowLifeMore', 'ChilledLightningMore',
+             'Pierce', 'Fork', 'TotemSpeed', 'MinionDamage'}
+
+
+def _raw_mod(stat, mode, tags, value, local=False):
+    if stat not in DMG_STATS:
+        return None
+    gem = 'GemScaled' in (tags or [])
+    tags = [t for t in (tags or []) if t not in ('GemScaled',)]
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        v = 0.0
+    out = {'s': stat, 'm': mode or 'Flat', 't': tags, 'v': round(v, 2)}
+    if local:
+        out['l'] = 1
+    if gem:
+        out['g'] = 1
+    return out
+
+
+def raw_direct(mods):
+    out = []
+    for m in mods or []:
+        if not isinstance(m, dict):
+            continue
+        v = m.get('Value') or 0
+        if m.get('Value2') is not None:
+            v = ((v or 0) + (m.get('Value2') or 0)) / 2
+        r = _raw_mod(m.get('Stat'), m.get('Mode'), m.get('Tags'), v, bool(m.get('bLocal')))
+        if r:
+            out.append(r)
+    return out
+
+
+def raw_uniques(mods):
+    out = []
+    for m in mods or []:
+        if not isinstance(m, dict):
+            continue
+        mm = m.get('Mod') or {}
+        v = mm.get('Value') or 0
+        mn, mx = m.get('Min'), m.get('Max')
+        if isinstance(mn, (int, float)) and isinstance(mx, (int, float)):
+            v = (mn + mx) / 2
+        r = _raw_mod(mm.get('Stat'), mm.get('Mode'), mm.get('Tags'), v)
+        if r:
+            out.append(r)
+    return out
+
+
 def tag_list(tags):
     out = []
     for t in tags or []:
@@ -88,6 +148,8 @@ for b in bases_raw:
         'block': b.get('Block') or 0,
         'req': {'str': b.get('ReqStr') or 0, 'dex': b.get('ReqDex') or 0, 'int': b.get('ReqInt') or 0},
         'impl': R.render_lines(b.get('Implicits') or []),
+        'impRaw': raw_direct(b.get('Implicits') or []),
+        'tagRaw': [t for t in (b.get('Tags') or []) if isinstance(t, str)],
         'tags': tag_list(b.get('Tags')),
         'nw': bool(b.get('Jewel')),
         'drop': b.get('DropWeight'),
@@ -144,6 +206,7 @@ for u in uni_raw:
         'slot': base.get('Slot', ''), 'slotZh': SLOTS.get(base.get('Slot', ''), ''),
         'flav': bi('flav:unique:' + u['Id'], u.get('Flavour') or ''),
         'mods': lines,
+        'raw': raw_uniques(u.get('Mods') or []),
         'forged': forged,
         'dps': dps,
         'def': base.get('Armour', 0) + base.get('Evasion', 0) + base.get('EnergyShield', 0),
@@ -177,10 +240,15 @@ for a in load(r'Items\affixes.json')['affixes']:
         'group': a.get('Group'), 'groupZh': zh_of('ag:' + a.get('Group'), a.get('Group')),
         'weight': a.get('Weight'),
         'on': a.get('BaseTags') or [],
-        'onZh': [SLOTS.get(x, x) for x in (a.get('BaseTags') or [])],
+        'onZh': [tag_label(x) for x in (a.get('BaseTags') or [])],
         'notOn': a.get('ExcludeTags') or [],
+        'notOnZh': [tag_label(x) for x in (a.get('ExcludeTags') or [])],
         'tiers': tiers,
         'top': top,
+        'stat': (a.get('Mod') or {}).get('Stat'),
+        'mode': (a.get('Mod') or {}).get('Mode'),
+        'mtags': (a.get('Mod') or {}).get('Tags') or [],
+        'local': bool((a.get('Mod') or {}).get('bLocal')),
         'minIlvl': min((t.get('ILvl') or 1) for t in tiers) if tiers else 1,
         'maxIlvl': max((t.get('ILvl') or 1) for t in tiers) if tiers else 1,
         'kinds': sorted({SLOTS.get(x, x) for x in (a.get('BaseTags') or [])}),
@@ -256,6 +324,8 @@ for w in load(r'Items\runewords.json')['runewords']:
 
 # ---------------------------------------------------------------- potions
 pot = load(r'Gameplay\potions.json')
+POT_SOURCE = {'Guardian': '守护者', 'Core': '核心', 'Catacombs': '墓穴'}
+pot_type_by_id = {t['Id']: t for t in pot['Types']}
 potion_types = []
 for t in pot['Types']:
     mods = []
@@ -267,15 +337,16 @@ for t in pot['Types']:
         'id': t['Id'], 'n': bi('pot:' + t['Id'], t['Name']),
         'role': t.get('Role'), 'roleZh': POTION_ROLE.get(t.get('Role'), t.get('Role')),
         'text': bi('ptext:' + t['Id'], t.get('Text') or ''),
-        'rec': t.get('RecoverPct'), 'sec': t.get('Seconds'),
+        'rec': t.get('RecoverPct'), 'sec': t.get('Seconds'), 'ward': t.get('Ward'),
         'mods': mods, 'weight': t.get('Weight'),
-        'bless': t.get('Blessing'),
+        'bless': t.get('Blessing'), 'onDrink': t.get('OnDrinkCharge'),
     })
 potion_mods = []
 for m in pot['Mods']:
     tiers = []
+    tpl = ZH.get('pmtext:' + m['Id']) or m.get('Text', '')
     for tt in m.get('Tiers') or []:
-        line = R.fill(R.pluralize(m.get('Text', ''), tt.get('Value')), {
+        line = R.fill(R.pluralize(tpl, tt.get('Value')), {
             'v': R.fmt(tt.get('Value')), 'v2': R.fmt(tt.get('Value2')), 'abs': R.fmt(abs(tt.get('Value') or 0))})
         tiers.append({'tier': tt.get('Tier'), 'minrl': tt.get('MinRL'), 'v': tt.get('Value'), 'v2': tt.get('Value2'), 'line': line})
     potion_mods.append({
@@ -283,7 +354,7 @@ for m in pot['Mods']:
         'kind': m.get('Kind'), 'kindZh': AFFIX_TYPE.get(m.get('Kind'), m.get('Kind')),
         'roles': m.get('Roles') or [], 'rolesZh': [POTION_ROLE.get(x, x) for x in (m.get('Roles') or [])],
         'effect': m.get('Effect'), 'weight': m.get('Weight'), 'tiers': tiers,
-        'text': m.get('Text'),
+        'text': bi('pmtext:' + m['Id'], m.get('Text') or ''),
     })
 potion_uniques = []
 for u in pot['Uniques']:
@@ -293,10 +364,13 @@ for u in pot['Uniques']:
             r = R.render_mod(ln['Stat'])
             if r:
                 lines.append([r[0], r[1]])
+    t_ = pot_type_by_id.get(u.get('Type') or '')
     potion_uniques.append({
         'id': u['Id'], 'n': bi('pu:' + u['Id'], u['Name']),
-        'type': u.get('Type'), 'source': u.get('Source'),
-        'text': u.get('Text') or '', 'lines': lines,
+        'type': u.get('Type'), 'typeN': bi('pot:' + u['Type'], t_['Name']) if t_ else ['', ''],
+        'source': u.get('Source'), 'sourceZh': POT_SOURCE.get(u.get('Source'), u.get('Source')),
+        'text': bi('putext:' + u['Id'], u.get('Text') or ''), 'lines': lines,
+        'later': bool(u.get('Later')),
     })
 potions = {
     'types': potion_types,
@@ -305,7 +379,16 @@ potions = {
     'vessels': [{'id': v['Id'], 'n': bi('ves:' + v['Id'], v['Name']), 'minrl': v.get('MinRL'),
                  'pre': v.get('Prefixes'), 'suf': v.get('Suffixes'), 'oath': v.get('Oath'),
                  'core': v.get('Core'), 'up': v.get('Upgraded')} for v in pot['Vessels']],
-    'slots': pot.get('Slots'), 'charges': pot.get('Charges'), 'unlock': pot.get('Unlock'),
+    'slots': [{'slot': s.get('Slot'), 'role': s.get('Role'),
+               'roleZh': POTION_ROLE.get(s.get('Role'), s.get('Role')),
+               'open': s.get('OpenAt'), 'key': s.get('Key')} for s in pot.get('Slots') or []],
+    'charges': [{'role': r, 'roleZh': POTION_ROLE.get(r, r), 'max': v.get('Max'),
+                 'use': v.get('PerUse'), 'kill': v.get('PerKill'), 'dur': v.get('Duration')}
+                for r, v in (pot.get('Charges') or {}).items()],
+    'pour': [{'id': p['Id'], 'n': bi('pour:' + p['Id'], p.get('Name') or '')} for p in pot.get('Pour') or []],
+    'costs': [{'id': k, 'items': v} for k, v in (pot.get('Costs') or {}).items()],
+    'drops': pot.get('Drops') or {},
+    'unlock': pot.get('Unlock') or {},
 }
 
 # ---------------------------------------------------------------- mythic / cube / forge
@@ -342,7 +425,7 @@ for c in cube_raw['recipes']:
         'makes': bi(c['Id'] + ':Makes', c.get('Makes') or ''),
         'uses': bi(c['Id'] + ':UsesUp', c.get('UsesUp') or ''),
         'keeps': bi(c['Id'] + ':Keeps', c.get('Keeps') or ''),
-        'flav': [ZH.get('cq:' + c['Id'], ''), ''],
+        'hint': [ZH.get('ch:' + c['Id'], ''), c.get('Hint') or ''],
         'count': c.get('Count'), 'minTier': c.get('MinTier'), 'maxTier': c.get('MaxTier'),
         'hidden': bool(c.get('bHidden')),
     })
@@ -431,6 +514,8 @@ for s in skills_all:
         'kind': kind, 'kindZh': SKILL_KIND.get(kind, kind),
         'attr': s.get('Attribute'), 'attrZh': ATTRIBUTE.get(s.get('Attribute'), s.get('Attribute')),
         'tags': tag_list(s.get('Tags')),
+        'rawTags': [x for x in (s.get('Tags') or []) if '=' not in x],
+        'weaponKinds': s.get('WeaponKinds') or [],
         'delivery': s.get('Delivery'), 'deliveryZh': DELIVERY.get(s.get('Delivery'), s.get('Delivery')),
         'dmgType': s.get('DamageType'), 'dmgTypeZh': TAGS.get(s.get('DamageType'), s.get('DamageType')),
         'desc': bi('skdesc:' + s['Id'], s.get('Description') or ''),
@@ -462,6 +547,7 @@ for s in load(r'Gameplay\supports.json')['supports']:
         'req': [[TAGS.get(x, x), x] for x in (s.get('RequiresAnyTag') or [])],
         'excl': [[TAGS.get(x, x), x] for x in (s.get('ExcludeTags') or [])],
         'mods': mods,
+        'raw': raw_direct(s.get('Mods') or []),
         'weight': s.get('DropWeight'),
         'color': col(s.get('Color')),
     })

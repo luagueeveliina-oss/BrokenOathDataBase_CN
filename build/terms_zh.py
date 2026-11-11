@@ -74,13 +74,14 @@ SKILL_KIND = {"Gem": "技能宝石", "Basic": "基础攻击", "Weapon": "武器�
 
 ATTRIBUTE = {"Str": "力量", "Dex": "敏捷", "Int": "智力"}
 
-AFFIX_TYPE = {"Prefix": "前缀", "Suffix": "后缀", "Mythic": "神话"}
+AFFIX_TYPE = {"Prefix": "前缀", "Suffix": "后缀", "Mythic": "神话", "Oath": "誓约", "Core": "核心"}
 
 POTION_ROLE = {"Life": "生命", "Mana": "魔力", "Utility": "功能"}
 
 TREE_KIND = {
     "Small": "小节点", "Notable": "显著节点", "Attribute": "属性节点", "Keystone": "基石",
     "Choice": "抉择", "Socket": "插槽", "Start": "起始点",
+    "Core": "核心", "Capstone": "顶点", "Shared": "共通节点",
 }
 
 RARITY = {"Normal": "普通", "Magic": "魔法", "Rare": "稀有", "Unique": "传奇", "Guardian": "守护者"}

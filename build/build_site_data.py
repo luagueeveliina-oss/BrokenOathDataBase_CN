@@ -44,7 +44,9 @@ for n in nodes_raw:
         'g': n.get('Group') or '',
         'r': n.get('Region') or '',
         'c': n.get('ClassStart') or '',
+        'icon': n.get('Icon') or '',
         'm': node_mods(n),
+        'raw': B.raw_direct(n.get('Mods') or []),
         't': B.bi('modtext:' + n.get('Text'), n.get('Text') or '') if n.get('Text') else ['', ''],
         'f': bi('tf:' + n['Id'], n.get('Flavour') or ''),
         'p': ['', ''] if not price else [price, price],
@@ -61,6 +63,135 @@ tree = {
     'suggested': pt.get('Suggested') or {},
     'version': pt.get('Version'),
     'slots': (pt.get('Layout') or {}).get('Slots') or {},
+}
+
+# ---------------------------------------------------------------- dragonling (subclass) tree
+def dragon_mods(n):
+    asc = n.get('Ascend') or {}
+    pos = n.get('Pos76') or {}
+    src = asc.get('Mods') or pos.get('Mods') or n.get('Mods') or []
+    out = []
+    for m in src:
+        r = R.render_mod(m)
+        if r:
+            out.append([r[0], r[1]])
+    return out
+
+
+DL = (B.load(r'Gameplay\dragonling.json') or {}).get('Tree') or {}
+dragon_classes = []
+for cls in ['Warrior', 'Mage', 'Ranger', 'Samurai', 'Paladin', 'Necromancer']:
+    raw = (DL.get('Classes') or {}).get(cls) or []
+    ids = {x['Id'] for x in raw}
+    dn, de, seen = [], [], set()
+    for n in raw:
+        asc = n.get('Ascend') or {}
+        pos = n.get('Pos76') or {}
+        name = asc.get('Name') or n.get('Name') or ''
+        icon = asc.get('Icon') or n.get('Icon') or ''
+        text = asc.get('Text') or pos.get('Text') or n.get('Text') or ''
+        dn.append({
+            'i': n['Id'],
+            'n': bi('dn:' + n['Id'], name),
+            'k': n.get('Kind') or 'Small',
+            'kZh': TREE_KIND.get(n.get('Kind'), n.get('Kind')),
+            'p': n.get('Path') or '',
+            'pZh': bi('dp:' + n['Path'], n['Path']) if n.get('Path') else ['', ''],
+            'x': n.get('X') or 0, 'y': n.get('Y') or 0,
+            'icon': icon,
+            'm': dragon_mods(n),
+            't': [B.ZH.get('dt:' + n['Id'], ''), ''],
+            'asc': 1 if asc else 0,
+            'only': 1 if n.get('AscendOnly') else 0,
+        })
+        for l in n.get('Links') or []:
+            if l in ids:
+                k = tuple(sorted((n['Id'], l)))
+                if k not in seen:
+                    seen.add(k)
+                    de.append([k[0], k[1]])
+    dragon_classes.append({'c': cls, 'n': [CLASSES.get(cls, cls), cls], 'nodes': dn, 'edges': de})
+
+# 节点图标图集：tools/icons.json 里的 tree 映射（T px 一格，cols 列）
+try:
+    import json as _json
+    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _ti = _json.load(open(os.path.join(ROOT, 'tools', 'icons.json'), encoding='utf-8'))['tree']
+    used = {n.get('icon') for n in nodes if n.get('icon')}
+    used |= {'portrait_Warrior', 'portrait_Mage', 'portrait_Ranger',
+             'portrait_Samurai', 'portrait_Paladin', 'portrait_Necromancer'}
+    for c in dragon_classes:
+        used |= {n.get('icon') for n in c['nodes'] if n.get('icon')}
+    _idx = _ti['idx']
+    idx = {}
+    for k in used:
+        if k in _idx:
+            idx[k] = _idx[k]
+        elif ('@' + k) in _idx:      # game Icon names lack the atlas' '@' prefix
+            idx[k] = _idx['@' + k]
+
+    _keys = set(_idx.keys())
+
+    def _atlas_key(n):
+        """Map a passive node to an icon in the public atlas (keystones by id, rest by effect)."""
+        kind = n['Kind']
+        if kind == 'Keystone' and ('ks_' + n['Id']) in _keys:
+            return 'ks_' + n['Id']
+        stats = set()
+        tags = set()
+        for m in n.get('Mods') or []:
+            stats.add(m.get('Stat'))
+            tags |= set(m.get('Tags') or [])
+        fam = ''
+        for t, f in (('Fire', 'fire'), ('Cold', 'cold'), ('Lightning', 'lightning'), ('Poison', 'poison'),
+                     ('Elemental', 'elemental'), ('Slam', 'slam'), ('Channelling', 'channel'),
+                     ('Bow', 'bow'), ('Projectile', 'projectile'), ('Melee', 'melee'), ('Area', 'area'),
+                     ('Trap', 'trap'), ('Chain', 'chain'), ('Spell', 'spell'), ('Attack', 'attack')):
+            if t in tags:
+                fam = f
+                break
+        if not fam:
+            for s, f in (('Life', 'life'), ('LifeRegenPct', 'life'), ('LifeOnKill', 'life'),
+                         ('LifeLeech', 'leech'), ('Leech', 'leech'),
+                         ('Mana', 'mana'), ('ManaRegen', 'mana'), ('ManaCost', 'mana'),
+                         ('Armour', 'armour'), ('Evasion', 'evasion'), ('EnergyShield', 'energy_shield'),
+                         ('Resist', 'resist'), ('CritChance', 'crit'), ('CritMulti', 'crit'),
+                         ('AttackSpeed', 'speed'), ('CastSpeed', 'spell'), ('MoveSpeed', 'swift'),
+                         ('Block', 'bulwark'), ('Area', 'area'),
+                         ('MinionDamage', 'grave'), ('MinionLife', 'grave'), ('MinionAttackSpeed', 'grave')):
+                if s in stats:
+                    fam = f
+                    break
+        if not fam:
+            fam = {'Warrior': 'attack', 'Mage': 'spell', 'Ranger': 'bow', 'Samurai': 'edge',
+                   'Paladin': 'faith', 'Necromancer': 'bone'}.get(n.get('Region') or '', 'sigil')
+        suffix = '_N' if kind in ('Notable', 'Choice') else '_S'
+        for cand in (fam + suffix, fam + '_N', fam + '_S', fam):
+            if cand in _keys:
+                return cand
+        return ''
+
+    raw_by_id = {n['Id']: n for n in nodes_raw}
+    for n in nodes:
+        n['ico'] = _atlas_key(raw_by_id[n['i']])
+        if n['ico'] and n['ico'] in _idx:
+            idx[n['ico']] = _idx[n['ico']]
+
+    rows = max(list(_ti['idx'].values()) + [0]) // _ti['cols'] + 1
+    tree['icons'] = {'T': _ti['T'], 'cols': _ti['cols'], 'w': _ti['cols'] * _ti['T'],
+                     'h': rows * _ti['T'], 'idx': idx}
+except Exception as exc:  # noqa: BLE001
+    print('  ! icon atlas mapping failed:', exc)
+    tree['icons'] = {'T': 64, 'cols': 22, 'w': 1408, 'h': 1344, 'idx': {}}
+
+tree['dragon'] = {
+    'version': DL.get('TreeVersion'),
+    'milestones': DL.get('MilestoneLevels') or [],
+    'pointsPerGate': DL.get('PointsPerGateKill'),
+    'refundNodes': DL.get('RefundNodes'),
+    'aspectChange': DL.get('AspectChangeNodes'),
+    'maxKeystones': DL.get('MaxKeystones'),
+    'classes': dragon_classes,
 }
 
 # ---------------------------------------------------------------- bestiary

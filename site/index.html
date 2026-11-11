@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Broken Oath · 中文资料库 — Broken Oath Database</title>
-<meta name="description" content="《Broken Oath》Playtest 中文资料库：传奇物品、底材、词缀、符文与符文之语、技能宝石、天赋树、怪物图鉴与数值机制，全部由游戏数据文件直接生成。">
+<meta name="description" content="《Broken Oath》Playtest 中文资料库：传奇物品、底材、神像、词缀、符文与符文之语、技能宝石、怪物图鉴与数值机制，全部由游戏数据文件直接生成。">
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body class="page-home">
@@ -14,7 +14,7 @@
   <section class="hero">
     <div class="hero-kicker">BROKEN OATH · PLAYTEST DATABASE</div>
     <h1>破誓 <em>中文资料库</em></h1>
-    <p>直接从游戏数据文件读取的完整中文数据库：每一条词缀、每一个符文、每一件传奇、每一个技能宝石与天赋节点，都带有真实的数值与说明。版本 <span class="num" id="ver">—</span>。</p>
+    <p>直接从游戏数据文件读取的完整中文数据库：每一条词缀、每一个符文、每一件传奇、每一个技能宝石与神像，都带有真实的数值与说明。版本 <span class="num" id="ver">—</span>。</p>
     <div class="hero-stats" id="stats"></div>
   </section>
 
@@ -157,24 +157,24 @@
   const BOARDS = [
     {
       title: ['物品库','Item database'],
-      meta: `${num(IT.uniques.length)} 传奇 · ${num(IT.bases.length)} 底材 · ${num(IT.affixes.length)} 词缀`,
+      meta: `${num(IT.uniques.length)} 传奇 · ${num(IT.bases.length)} 底材 · ${num(IT.bases.filter(b=>b.slot==='Idol').length)} 神像底材 · ${num(IT.affixes.length)} 词缀`,
       rows: [
-        row('物品', [item('uniques','传奇','u'), item('bases','底材'), item('affixes','词缀'), item('mythic','神话词条')]),
+        row('物品', [item('uniques','传奇','u'), item('bases','底材'), item('idols','神像'), item('affixes','词缀'), item('mythic','神话词条')]),
         row('单手', ['单手剑','单手斧','单手锤','匕首','利爪','拳套','魔杖']
           .map(c => itemF('bases','cls',c,c))),
         row('双手', ['巨剑','法杖','弓','镰刀','双刃','锤盾']
           .map(c => itemF('bases','cls',c,c))),
         row('副手', ['盾牌','箭袋','魔典'].map(c => itemF('bases','cls',c,c))),
         row('护甲', ['头盔','胸甲','手套','靴子'].map(s => itemF('bases','slot',s,s))),
-        row('饰品', ['项链','戒指','腰带','神像'].map(s => itemF('bases','slot',s,s))),
+        row('饰品', ['项链','戒指','腰带'].map(s => itemF('bases','slot',s,s))),
         row('符文', [item('runes','符文'), item('jewels','珠宝'), item('runewords','符文之语','r')]),
         row('药剂', ['生命','魔力','功能'].map(r => itemF('potions','role',r,r))),
         row('制作', [item('cube','魔方配方'), item('forge','锻造')]),
       ],
     },
     {
-      title: ['技能与天赋','Skills & tree'],
-      meta: `${num(gemSkills.length)} 技能 · ${num(SK.supports.length)} 辅助 · 1242 节点`,
+      title: ['技能与宝石','Skills & gems'],
+      meta: `${num(gemSkills.length)} 技能 · ${num(SK.supports.length)} 辅助`,
       rows: [
         row('宝石', [A('skills.html#skills','技能宝石','g'), A('skills.html#supports','辅助宝石','g')]),
         row('誓约', [A('skills.html#vows','誓约与先驱'), A('skills.html#curses','灾祸与判决')]),
@@ -183,7 +183,6 @@
         row('属性', ['力量','敏捷','智力'].map(a => skillF('skills','attr',a,a))),
         row('标签', ['攻击','法术','近战','投射物','区域','链锁','闪电'].map(t => skillF('skills','tag',t,t))),
         row('辅助', ['力量','敏捷','智力'].map(a => skillF('supports','attr',a,a))),
-        row('天赋', [A('tree.html','天赋树（1242 节点）')]),
       ],
     },
     {
@@ -214,7 +213,19 @@
     },
   ];
 
-  document.getElementById('dirs').innerHTML = BOARDS.map(b=>`
+  document.getElementById('dirs').innerHTML = `<section class="board plan-board">
+      <div class="board-head"><h3>${esc(T(['模拟构筑','Build planner']))}</h3><span class="meta">装备 11 槽 · 114 天赋点 · 93 辅助宝石 · 实时 DPS</span></div>
+      <div class="board-body"><div class="dir-list">
+        ${row('构筑器', [A('planner.html','打开模拟构筑 →','g'),
+          '导入 / 导出 <code>BO1</code> 构筑代码',
+          '技能 DPS 与伤害拆解',
+          '天赋树 + 龙裔 + 装备词缀校验'])}
+        ${row('规则', ['同类 increase 加算、每条 more 独立乘算',
+          '攻击用武器伤害、法术用宝石基础伤害',
+          '默认不计敌人抗性，另给「有效 DPS」',
+          A('planner.html','计算规则说明')])}
+      </div></div>
+    </section>` + BOARDS.map(b=>`
     <section class="board">
       <div class="board-head"><h3>${esc(T(b.title))}</h3><span class="meta">${esc(b.meta)}</span></div>
       <div class="board-body"><div class="dir-list">${b.rows.join('')}</div></div>

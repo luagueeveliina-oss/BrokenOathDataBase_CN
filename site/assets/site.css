@@ -252,7 +252,7 @@ mark{background:rgba(231,180,120,.26);color:inherit;border-radius:2px;padding:0 
 .card-head{display:flex;align-items:center;gap:10px;margin-bottom:1px}
 
 /* 物品/技能图标：真实图片优先，没有图片时用站内矢量图标 */
-.ico{width:36px;height:44px;flex:none;display:grid;place-items:center;border-radius:3px;
+.ico{width:36px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:3px;
   border:1px solid color-mix(in srgb,var(--ico,#8a8a8a) 30%,transparent);
   background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--ico,#8a8a8a) 15%,transparent),rgba(0,0,0,.22) 72%),#101012;
   color:var(--ico,#a8a8a8);overflow:hidden}
