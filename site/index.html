@@ -28,6 +28,7 @@
 <div id="bo-foot"></div>
 
 <script src="assets/site.js"></script>
+<script src="assets/icons/manifest.js"></script>
 <script src="assets/data/items.js"></script>
 <script src="assets/data/skills.js"></script>
 <script src="assets/data/bestiary.js"></script>
@@ -70,17 +71,22 @@
   const tipMods = (arr, n) => !arr || !arr.length ? '' :
     `<ul class="t-mods">${arr.slice(0, n).map(m => `<li>${esc(T(m))}</li>`).join('')}</ul>` +
     (arr.length > n ? `<div class="t-more">另有 ${arr.length - n} 条</div>` : '');
-  const tipUnique = u => `<div class="t-head"><span class="t-name u">${esc(T(u.n))}</span><span class="t-lvl">Lv ${u.lvl}</span></div>
+  const tipUnique = u => `<div class="t-head">${BO.icon('u:' + u.id, BO.glyphFor(u), '#cd8f52')}<div class="t-title"><span class="t-name u">${esc(T(u.n))}</span></div><span class="t-lvl">Lv ${u.lvl}</span></div>
     <div class="t-sub">${esc(T(u.base))} · ${esc(T([u.clsZh, u.cls]))}</div>
     ${tipMods(u.mods, 6)}
     ${u.flav && u.flav[1] ? `<div class="t-flav">${esc(T(u.flav))}</div>` : ''}`;
-  const tipRuneword = w => `<div class="t-head"><span class="t-name r">${esc(T(w.n))}</span><span class="t-lvl">Lv ${w.lvl}</span></div>
+  const RUNE_BY_NAME = new Map(IT.runes.map(r => [T(r.n), r.id]));
+  const tipRuneword = w => {
+    const runeId = (w.runes || []).map(r => RUNE_BY_NAME.get(T(r))).find(Boolean);
+    return `<div class="t-head">${BO.icon(runeId ? 'r:' + runeId : 'w:' + w.id, 'rune', '#c9a06a')}<div class="t-title"><span class="t-name r">${esc(T(w.n))}</span></div><span class="t-lvl">Lv ${w.lvl}</span></div>
     <div class="t-sub">${esc(T([w.clsZh, w.cls]))} · ${w.sockets} 孔 · ${w.bases.map(b => esc(T(b))).join(' / ')}</div>
     <div class="t-runes">${w.runes.map(r => esc(T(r))).join(' · ')}</div>
     ${tipMods(w.mods, 5)}
     ${w.power && w.power.length ? `<div class="t-more">注入奖励 ${w.power.length} 条</div>` : ''}
     ${w.flav && w.flav[1] ? `<div class="t-flav">${esc(T(w.flav))}</div>` : ''}`;
+  };
   const tipSkill = (s, isSupport) => {
+    const ATTR_TINT = {Str: '#d07c6f', Dex: '#7fce9b', Int: '#8fb0e8'};
     const head = isSupport ? `魔力 ×${s.mana}` : T([s.kindZh, s.kind]);
     const sub = [T([s.clsZh, s.cls]), T([s.attrZh, s.attr])].filter(Boolean).join(' · ');
     const foot = isSupport
@@ -88,18 +94,21 @@
          (s.excl || []).length ? '不可与 ' + s.excl.map(r => T(r)).join('、') : ''].filter(Boolean).join(' · ')
       : [s.mana != null ? '魔力 ' + s.mana : '', s.cast ? '施法 ' + s.cast + 's' : '',
          s.cd ? '冷却 ' + s.cd + 's' : ''].filter(Boolean).join(' · ');
-    return `<div class="t-head"><span class="t-name g">${esc(T(s.n))}</span><span class="t-lvl">${esc(head || '')}</span></div>
+    const ico = isSupport
+      ? BO.icon('sp:' + s.id, 'support', '#b4b4ff')
+      : BO.icon('sk:' + s.id, 'gem', ATTR_TINT[s.attr] || '#9fb4d8');
+    return `<div class="t-head">${ico}<div class="t-title"><span class="t-name g">${esc(T(s.n))}</span></div><span class="t-lvl">${esc(head || '')}</span></div>
       ${sub ? `<div class="t-sub">${esc(sub)}</div>` : ''}
       <div class="t-desc">${esc(T(s.desc))}</div>
       ${tipMods(s.mods, 3)}
       ${foot ? `<div class="t-foot">${esc(foot)}</div>` : ''}`;
   };
-  const tipGuardian = g => `<div class="t-head"><span class="t-name m">${esc(T(g.n))}</span><span class="t-lvl">生命 ×${g.life}</span></div>
+  const tipGuardian = g => `<div class="t-head">${BO.icon('g:' + g.id, 'skull', '#e3a470')}<div class="t-title"><span class="t-name m">${esc(T(g.n))}</span></div><span class="t-lvl">生命 ×${g.life}</span></div>
     <div class="t-desc t-lore">${esc(T(g.lore))}</div>
     <div class="t-foot">${g.variants.length} 种变体${(g.phases || []).length ? ` · ${g.phases.length} 个阶段` : ''}</div>`;
   const tipMech = t => {
     const body = T(t.text);
-    return `<div class="t-head"><span class="t-name">${esc(T(t.n))}</span><span class="t-lvl">RL ${t.fromRL}+</span></div>
+    return `<div class="t-head">${BO.icon('t:' + (t.id || ''), 'seal', '#b9a06a')}<div class="t-title"><span class="t-name">${esc(T(t.n))}</span></div><span class="t-lvl">RL ${t.fromRL}+</span></div>
       ${body && body !== T(t.n) ? `<div class="t-desc">${esc(body)}</div>` : ''}
       <div class="t-foot">伤害系数 ${t.damage == null ? '—' : t.damage}${t.count ? ` · ${t.count} 层` : ''}</div>`;
   };
@@ -121,7 +130,6 @@
         <span class="meta">当前版本 · 数据 ${esc(meta.version || 'r92')} · build ${esc(meta.build || '65')}</span>
       </div>
       <div class="board-body">
-        <p class="board-intro">《Broken Oath》Playtest 0.56.5 版本的数据快照：本资料库收录该版本可解析的全部物品、技能、天赋与怪物数据，词条与数值均由游戏数据文件直接生成，未作手工改动。名字悬停可查看各自的信息。</p>
         <div class="dir-list">
           ${row('传奇', IT.uniques.map(u =>
             tipName('items.html#uniques?q=' + encodeURIComponent(T(u.n)), T(u.n), 'u:' + u.id)))}
@@ -216,7 +224,7 @@
   const feat = IT.uniques.filter(u=>u.mods.length>=3).slice(0,6);
   document.getElementById('feat').innerHTML = feat.map(u=>`
     <article class="card u">
-      <div class="card-head"><h3><a href="items.html#uniques?q=${encodeURIComponent(T(u.n))}">${esc(T(u.n))}</a></h3><span class="lvl">Lv ${u.lvl}</span></div>
+      <div class="card-head">${BO.icon('u:' + u.id, BO.glyphFor(u), '#cd8f52')}<h3><a href="items.html#uniques?q=${encodeURIComponent(T(u.n))}">${esc(T(u.n))}</a></h3><span class="lvl">Lv ${u.lvl}</span></div>
       <div class="sub"><b>${esc(T(u.base))}</b> · ${esc(T([u.clsZh,u.cls]))}</div>
       <ul class="mods">${u.mods.slice(0,4).map(m=>`<li>${esc(T(m))}</li>`).join('')}</ul>
       ${u.flav[1]?`<div class="flav"><em>风味</em>${esc(T(u.flav))}</div>`:''}

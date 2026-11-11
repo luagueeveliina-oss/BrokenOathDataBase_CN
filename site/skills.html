@@ -36,6 +36,7 @@
 <div id="bo-foot"></div>
 
 <script src="assets/site.js"></script>
+<script src="assets/icons/manifest.js"></script>
 <script src="assets/data/skills.js"></script>
 <script>
 (function(){
@@ -44,6 +45,7 @@
   const S = { cat:'skills', q:'', cls:'', sort:'lvl', f:{} };
   const $ = id => document.getElementById(id);
   const arrOf = k => k==='skills'?SK.skills.filter(s=>s.group!=='blessing') : k==='supports'?SK.supports : k==='vows'?SK.blessings : SK.curses;
+  const ATTR_TINT = {Str:'#d07c6f', Dex:'#7fce9b', Int:'#8fb0e8'};
   const CATS = [
     {k:'skills', zh:'技能宝石', en:'Skill gems'},
     {k:'supports', zh:'辅助宝石', en:'Support gems'},
@@ -103,7 +105,7 @@
     if (s.pierce) meta.push(`穿透 ${s.pierce}`);
     const eff = s.eff ? `效率 ${Math.round(s.eff*100)}%${s.effLate?` → ${Math.round(s.effLate*100)}%（${s.lateFrom}–${s.lateAt} 级）`:''}` : '';
     return `<article class="card">
-      <div class="card-head"><h3>${esc(T(s.n))}</h3><span class="lvl">${esc(T([s.kindZh,s.kind]))}</span></div>
+      <div class="card-head">${BO.icon('sk:' + s.id, 'gem', ATTR_TINT[s.attr] || '#9fb4d8')}<h3>${esc(T(s.n))}</h3><span class="lvl">${esc(T([s.kindZh,s.kind]))}</span></div>
       <div class="sub"><b>${esc(T([s.clsZh,s.cls]))}</b> · ${esc(T([s.attrZh,s.attr]))} · ${esc(T([s.deliveryZh,s.delivery]))} · ${esc(T([s.dmgTypeZh,s.dmgType]))}</div>
       <div class="card-foot" style="border:0;padding:0;margin:0 0 8px">
         ${eff?`<span class="tag hi">${esc(eff)}</span>`:''}
@@ -117,7 +119,7 @@
   };
 
   const supportCard = s => `<article class="card">
-      <div class="card-head"><h3>${esc(T(s.n))}</h3><span class="lvl">魔力 ×${s.mana}</span></div>
+      <div class="card-head">${BO.icon('sp:' + s.id, 'support', '#b4b4ff')}<h3>${esc(T(s.n))}</h3><span class="lvl">魔力 ×${s.mana}</span></div>
       <div class="sub"><b>${esc(T([s.attrZh,s.attr]))}</b> · 掉落权重 ${s.weight}</div>
       <div style="color:var(--fg2);font-size:.9rem">${hl(T(s.desc))}</div>
       ${s.mods.length?`<ul class="mods imp">${s.mods.map(m=>`<li>${hl(T(m))}</li>`).join('')}</ul>`:''}

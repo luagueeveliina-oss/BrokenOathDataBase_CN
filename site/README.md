@@ -54,6 +54,21 @@ D:\SteamLibrary\steamapps\common\Broken Oath Playtest\BrokenOath\Data\
 
 所有词条文本都不是手抄：每条词缀由 `Items\stat_text.json` 的模板 + 真实数值渲染，因此数值与游戏内一致。
 
+## 图标
+
+```
+assets/icons/
+├── manifest.js          图标清单（id -> 图片路径），卡片按 id 取图
+├── uniques/ bases/ runes/ jewels/ skills/ supports/
+│                        <id>.webp，共 955 张
+```
+
+- 传奇、底材、符文、珠宝、技能宝石、辅助宝石的卡片都会显示图标
+- 有图片时用图片，缺图（如尚未收录的 3 件传奇、1 颗辅助宝石）自动回退成站内矢量图标
+- 重新抓取：`python tools\fetch_icons.py`（已存在的文件会跳过）
+- 替换或新增图片后重建清单：`python tools\make_icon_manifest.py`
+- 图标为游戏美术资源，版权归开发者所有，本站仅用于非商业的资料展示
+
 ## 目录结构
 
 ```
@@ -61,7 +76,8 @@ site/
 ├── index.html  items.html  skills.html  tree.html  bestiary.html  about.html
 └── assets/
     ├── site.css          设计系统（参考 poedb.tw：近黑底 + 金色标题 + PoE 稀有度配色，含浅色主题）
-    ├── site.js           共享脚本：语言切换、主题、分面、卡片、高亮
+    ├── site.js           共享脚本：语言切换、主题、分面、卡片、图标、悬浮信息、高亮
+    ├── icons/            物品/技能图标与 manifest.js
     └── data/             由构建脚本生成的静态数据（window.BO_*）
         ├── items.js      ~830 KB
         ├── skills.js     ~250 KB
@@ -88,4 +104,4 @@ python build\build_site_data.py     # 读取游戏 JSON -> site\assets\data\*.js
 
 ## 免责声明
 
-本站为非官方粉丝作品，与《破誓》开发团队无任何关联，亦未获其背书。游戏名称、美术与数据归其各自所有者。数据来自 Playtest 版本，数值会随版本变动。本站仅读取本机游戏文件，不修改、不重新分发游戏本体资源。
+本站为非官方粉丝作品，与《破誓》开发团队无任何关联，亦未获其背书。游戏名称、美术与数据归其各自所有者。数据来自 Playtest 版本，数值会随版本变动。本站仅读取本机游戏文件生成数据，不重新分发游戏本体资源；站点里的物品/技能图标为游戏美术资源，仅用于非商业的资料展示。

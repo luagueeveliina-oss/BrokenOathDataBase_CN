@@ -96,10 +96,9 @@ mark{background:rgba(231,180,120,.26);color:inherit;border-radius:2px;padding:0 
   background:linear-gradient(150deg,rgba(231,180,120,.16),rgba(231,180,120,.015));
   box-shadow:inset 0 0 12px rgba(231,180,120,.14)}
 .bo-mark svg{width:15px;height:15px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
-.bo-brand-name{font-size:1.34rem;font-weight:700;line-height:1;letter-spacing:.02em;color:#f1f1f1;text-shadow:0 1px 2px rgba(0,0,0,.9);white-space:nowrap}
+.bo-brand-name{font-size:1.08rem;font-weight:700;line-height:1;letter-spacing:.01em;color:#f1f1f1;text-shadow:0 1px 2px rgba(0,0,0,.9);white-space:nowrap}
 :root[data-theme="light"] .bo-brand-name{color:#1d1a15;text-shadow:none}
-.bo-brand-name b{color:var(--gold);font-weight:700;margin-left:1px}
-.bo-brand-sub{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding-left:10px;border-left:1px solid var(--line);line-height:1.5;white-space:nowrap}
+.bo-brand-name b{color:var(--gold);font-weight:700;margin-left:0}
 .bo-nav{display:flex;align-items:center;gap:1px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
 .bo-nav::-webkit-scrollbar{display:none}
 .bo-nav a{position:relative;padding:7px 10px;border-radius:3px;color:#cfcfcf;font-size:.92rem;text-decoration:none;white-space:nowrap;transition:background .13s,color .13s}
@@ -250,7 +249,20 @@ mark{background:rgba(231,180,120,.26);color:inherit;border-radius:2px;padding:0 
 :root[data-theme="light"] .chip.chip-reds:not([aria-pressed="true"]){color:#9e2f26;border-color:rgba(158,47,38,.35)}
 :root[data-theme="light"] .chip.chip-runes:not([aria-pressed="true"]){color:#8a571d;border-color:rgba(138,87,29,.35)}
 :root[data-theme="light"] .chip.chip-jewels:not([aria-pressed="true"]){color:#0f7a74;border-color:rgba(15,122,116,.35)}
-.card-head{display:flex;align-items:baseline;gap:10px;margin-bottom:1px}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:1px}
+
+/* 物品/技能图标：真实图片优先，没有图片时用站内矢量图标 */
+.ico{width:36px;height:44px;flex:none;display:grid;place-items:center;border-radius:3px;
+  border:1px solid color-mix(in srgb,var(--ico,#8a8a8a) 30%,transparent);
+  background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--ico,#8a8a8a) 15%,transparent),rgba(0,0,0,.22) 72%),#101012;
+  color:var(--ico,#a8a8a8);overflow:hidden}
+.ico svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ico img{width:100%;height:100%;object-fit:contain;display:block}
+.ico.ico-img{background:#0d0d0f;border-color:rgba(255,255,255,.14)}
+:root[data-theme="light"] .ico{color:var(--ico,#6b6458);
+  border-color:color-mix(in srgb,var(--ico,#8a8a8a) 32%,#d7cfbf);
+  background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--ico,#8a8a8a) 13%,transparent),rgba(255,255,255,.5) 72%),#f5f1e7}
+:root[data-theme="light"] .ico.ico-img{background:#f2eee4;border-color:#d7cfbf}
 .card-head h3{font-family:var(--font-item);font-size:1.04rem;font-weight:600;flex:1;min-width:0;color:var(--fg2);
   line-height:1.4;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.75)}
 :root[data-theme="light"] .card-head h3{text-shadow:none}
@@ -363,11 +375,9 @@ td.mono,th.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;w
 .section-title a{font-size:.8rem;color:var(--gold2);text-decoration:none}
 .section-title a:hover{color:var(--gold);text-decoration:underline}
 
-/* 版本卡（poedb 首页赛季介绍卡）：标题 + 一段说明 + 内容索引 */
+/* 版本卡（poedb 首页赛季介绍卡）：标题 + 内容索引 */
 .version-board{margin-top:16px}
-.board-intro{margin:9px 0 0;padding-bottom:8px;border-bottom:1px solid #2c2c30;color:#b4b4b4;
-  font-size:.9rem;line-height:1.72}
-:root[data-theme="light"] .board-intro{color:#4c463a;border-bottom-color:#e2dacb}
+.version-board .board-body{padding-top:2px}
 
 /* ---------- 悬浮信息卡（poedb / PoE 物品信息风格） ---------- */
 .bo-tip{position:fixed;left:0;top:0;z-index:90;width:330px;max-width:calc(100vw - 20px);padding:10px 12px 11px;
@@ -377,7 +387,9 @@ td.mono,th.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;w
 .bo-tip.on{opacity:1;visibility:visible;transform:none}
 :root[data-theme="light"] .bo-tip{background:rgba(255,253,248,.98);border-color:#c6bcaa;
   box-shadow:0 12px 30px rgba(60,45,20,.18)}
-.bo-tip .t-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.bo-tip .t-head{display:flex;align-items:center;gap:9px}
+.bo-tip .t-title{flex:1;min-width:0}
+.bo-tip .ico{width:34px;height:42px}
 .bo-tip .t-name{font-family:var(--font-item);font-size:1rem;font-weight:600;color:var(--fg2);line-height:1.35}
 .bo-tip .t-name.u{color:var(--uniq)}
 .bo-tip .t-name.r{color:var(--rune)}
@@ -505,7 +517,6 @@ td.mono,th.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;w
 
 /* ---------- 响应式 ---------- */
 @media (max-width:1120px){
-  .bo-brand-sub{display:none}
   .bo-search input{width:170px}
 }
 @media (max-width:980px){

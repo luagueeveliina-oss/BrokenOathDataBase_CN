@@ -35,6 +35,7 @@
 <div id="bo-foot"></div>
 
 <script src="assets/site.js"></script>
+<script src="assets/icons/manifest.js"></script>
 <script src="assets/data/items.js"></script>
 <script>
 (function(){
@@ -54,12 +55,26 @@
   };
   const dpsTag = (dps,def) => (dps?`<span class="tag dps">DPS <b>${num(dps,1)}</b></span>`:'') + (def?`<span class="tag def">防御 <b>${num(def)}</b></span>`:'');
 
+  /* ---------- 图标 ---------- */
+  const SLOT_GLYPH = {MainHand:'weapon', OffHand:'shield', Helm:'helm', Chest:'chest', Gloves:'gloves',
+    Boots:'boots', Belt:'belt', Ring:'ring', Amulet:'amulet', Idol:'idol', DwarvenRune:'rune'};
+  const CLS_GLYPH = {Bow:'bow', Quiver:'quiver', Tome:'tome', Shield:'shield'};
+  const glyphOf = r => CLS_GLYPH[r.cls] || SLOT_GLYPH[r.slot] || 'weapon';
+  const JEWEL_SLOTS = {Ring:1, Amulet:1, Belt:1, Idol:1};
+  const tintOfBase = b => JEWEL_SLOTS[b.slot] ? '#cbb27f' : (b.slot === 'MainHand' || b.slot === 'OffHand' ? '#c3cdda' : '#aeb7c4');
+  const boostHex = (hex, a) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return '#c9a06a';
+    const n = parseInt(m[1], 16), mix = c => Math.round(c + (255 - c) * a);
+    return `rgb(${mix(n >> 16 & 255)},${mix(n >> 8 & 255)},${mix(n & 255)})`;
+  };
+
   // ---------------- category cards ----------------
   const CARDS = {
     uniques(u){
       const forged = (u.forged||[]).map((v,i)=>v>1?i:-1).filter(i=>i>=0);
       return `<article class="card u">
-        <div class="card-head"><h3>${nameLink('uniques',u)}</h3><span class="lvl">Lv ${u.lvl}</span></div>
+        <div class="card-head">${BO.icon('u:' + u.id, glyphOf(u), '#cd8f52')}<h3>${nameLink('uniques',u)}</h3><span class="lvl">Lv ${u.lvl}</span></div>
         <div class="sub"><b>${hl(T(u.base))}</b> · ${esc(T([u.clsZh,u.cls]))}${T([u.clsZh,u.cls])!==T([u.slotZh,u.slot])?' · '+esc(T([u.slotZh,u.slot])):''}</div>
         <div class="card-foot" style="border:0;padding:0;margin:0 0 8px">
           <span class="tag tier">红色阶级 ${'I'.repeat(u.tier)}</span>
@@ -83,7 +98,7 @@
       if(b.es)stats.push(`${b.es} 能量护盾`);
       if(b.block)stats.push(`${b.block}% 格挡`);
       return `<article class="card">
-        <div class="card-head"><h3>${nameLink('bases',b)}</h3><span class="lvl">Lv ${b.lvl}</span></div>
+        <div class="card-head">${BO.icon('b:' + b.id, glyphOf(b), tintOfBase(b))}<h3>${nameLink('bases',b)}</h3><span class="lvl">Lv ${b.lvl}</span></div>
         <div class="sub"><b>${esc(T([b.clsZh,b.cls]))}</b>${b.twoh?' · 双手':''} · 占用 ${b.size}</div>
         <div class="card-foot" style="border:0;padding:0;margin:0 0 8px">${dpsTag(b.dps, b.def)}
           ${b.block?`<span class="tag">${b.block}% 格挡</span>`:''}
@@ -95,8 +110,9 @@
       </article>`;
     },
     runes(r){
+      const isJewel = r.kind === 'jewel';
       return `<article class="card">
-        <div class="card-head"><h3><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${esc(r.color)};margin-right:8px"></span>${nameLink('runes',r)}</h3><span class="lvl">Lv ${r.lvl}</span></div>
+        <div class="card-head">${BO.icon((isJewel ? 'j:' : 'r:') + r.id, isJewel ? 'jewel' : 'rune', boostHex(r.color, isJewel ? 0.12 : 0.45))}<h3>${nameLink('runes',r)}</h3><span class="lvl">Lv ${r.lvl}</span></div>
         <div class="sub">${r.kind==='jewel'?'珠宝':'符文'} · 阶级 ${r.tier}${r.lore[1]?' · '+hl(T(r.lore)):''}</div>
         <hr style="border:0;border-top:1px solid var(--line);margin:6px 0">
         <div style="font-size:.72rem;letter-spacing:.14em;color:var(--dim);text-transform:uppercase">嵌入武器</div>

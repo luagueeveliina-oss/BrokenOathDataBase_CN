@@ -54,6 +54,44 @@
   };
   BO.I = I;
 
+  // ---------------- 物品图标 ----------------
+  // 站内矢量图标（游戏把物品图标在运行时用 3D 模型烘焙，安装目录里没有图片文件）；
+  // 若 assets/icons/manifest.js 里登记了真实图片，则优先使用图片。
+  const GLYPH = {
+    weapon: '<path d="M14.5 3.5 20.5 3.5 20.5 9.5 9.5 20.5 3.5 20.5 3.5 14.5Z"/><path d="m11.5 8.5 4 4"/>',
+    bow: '<path d="M7 3a16 16 0 0 1 0 18"/><path d="M7 3 20 12 7 21"/><path d="M7 12h9"/>',
+    shield: '<path d="M12 2.8 20 6.4v5.2c0 4.6-3.3 8.2-8 9.8-4.7-1.6-8-5.2-8-9.8V6.4Z"/><path d="M12 7v8"/>',
+    quiver: '<path d="M7 3h7l3 5v13H7Z"/><path d="M10 3v21M13.5 3v21"/>',
+    tome: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
+    helm: '<path d="M4 13a8 8 0 0 1 16 0v6H4Z"/><path d="M9 19v-5M15 19v-5"/>',
+    chest: '<path d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7Z"/>',
+    gloves: '<path d="M7 21V10a2 2 0 0 1 4 0V6a2 2 0 0 1 4 0v4a2 2 0 0 1 4 0v11Z"/><path d="M9 21v-4M12 21v-4M15 21v-4"/>',
+    boots: '<path d="M7 3v9l-2 4v5h14v-4l-6-4V3Z"/><path d="M7 16h10"/>',
+    belt: '<path d="M3 9h18v6H3Z"/><path d="M9 9v6M15 9v6"/>',
+    ring: '<circle cx="12" cy="14" r="6.5"/><path d="m8.5 5 3.5-3 3.5 3"/>',
+    amulet: '<path d="M6.5 3a5.5 5.5 0 0 0 11 0"/><path d="M12 8v3"/><circle cx="12" cy="16" r="4.5"/>',
+    idol: '<path d="M12 2.5 20 8v12H4V8Z"/><path d="M9 12h6M9 16h6"/>',
+    rune: '<path d="M12 2.5 20 7v10l-8 4.5L4 17V7Z"/><path d="M9.5 9h5M9.5 15h5M12 7v10"/>',
+    jewel: '<path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M2 9h20M9 3l-3 6 6 12 6-12-3-6"/>',
+    gem: '<path d="M12 2.5 20 7v10l-8 4.5L4 17V7Z"/><path d="m12 7 4 5-4 5-4-5Z"/>',
+    support: '<path d="M9.5 14.5 14.5 9.5"/><path d="M11 6.5 13 4.5a4 4 0 0 1 6 6l-2 2"/><path d="m13 17.5-2 2a4 4 0 0 1-6-6l2-2"/>',
+    skull: '<path d="M12 2.5c-4.4 0-7.5 3-7.5 7 0 2.4 1.1 4.2 2.6 5.4v3.1c0 1 .8 1.9 1.9 1.9h6c1.1 0 1.9-.9 1.9-1.9v-3.1c1.5-1.2 2.6-3 2.6-5.4 0-4-3.1-7-7.5-7Z"/><path d="M9.3 10.2h.01M14.7 10.2h.01M10.5 14.5l1.5 1.5 1.5-1.5"/>',
+    seal: '<path d="M12 2.6 20 6.4v5.2c0 4.6-3.3 8.2-8 9.8-4.7-1.6-8-5.2-8-9.8V6.4Z"/><path d="M12 7.4v5.2M12 15.6h.01"/>',
+  };
+  BO.GLYPH = GLYPH;
+  BO.icon = function (key, glyph, tint) {
+    const src = (window.BO_ICONS || {})[key];
+    const style = `--ico:${tint || '#a8a8a8'}`;
+    if (src) return `<span class="ico ico-img" style="${style}"><img src="${BO.esc(src)}" alt="" loading="lazy" decoding="async"></span>`;
+    return `<span class="ico" style="${style}"><svg viewBox="0 0 24 24">${GLYPH[glyph] || GLYPH.seal}</svg></span>`;
+  };
+  BO.glyphFor = function (rec) {
+    const CLS = {Bow:'bow', Quiver:'quiver', Tome:'tome', Shield:'shield'};
+    const SLOT = {MainHand:'weapon', OffHand:'shield', Helm:'helm', Chest:'chest', Gloves:'gloves',
+      Boots:'boots', Belt:'belt', Ring:'ring', Amulet:'amulet', Idol:'idol', DwarvenRune:'rune'};
+    return CLS[(rec || {}).cls] || SLOT[(rec || {}).slot] || 'weapon';
+  };
+
   // ---------------- theme ----------------
   function currentTheme() {
     const t = root.getAttribute('data-theme');
@@ -84,10 +122,9 @@
     }).join('');
     host.className = 'bo-top';
     host.innerHTML = `<div class="bo-top-in">
-      <a class="bo-brand" href="index.html" aria-label="破誓资料库 首页">
+      <a class="bo-brand" href="index.html" aria-label="Broken Oath Data Base 首页">
         <span class="bo-mark">${I.seal}</span>
-        <span class="bo-brand-name">破誓<b>DB</b></span>
-        <span class="bo-brand-sub">Broken Oath Database</span>
+        <span class="bo-brand-name">Broken Oath <b>Data Base</b></span>
       </a>
       <nav class="bo-nav" aria-label="主导航">${nav}</nav>
       <div class="bo-tools">
