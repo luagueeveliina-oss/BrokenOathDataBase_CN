@@ -179,6 +179,7 @@
       <div class="card-head"><h3>${esc(T(c.n))}</h3><span class="lvl">${esc(c.family||'')}</span></div>
       <div class="sub">${esc(T(c.recipe))}</div>
       ${modList([c.result,c.makes,c.uses,c.keeps].filter(x=>x&&x[1]))}
+      ${c.flav && c.flav[0] ? `<div class="flav"><em>誓石</em>${esc(T(c.flav))}</div>` : ''}
     </article>`;
   };
 

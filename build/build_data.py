@@ -342,6 +342,7 @@ for c in cube_raw['recipes']:
         'makes': bi(c['Id'] + ':Makes', c.get('Makes') or ''),
         'uses': bi(c['Id'] + ':UsesUp', c.get('UsesUp') or ''),
         'keeps': bi(c['Id'] + ':Keeps', c.get('Keeps') or ''),
+        'flav': [ZH.get('cq:' + c['Id'], ''), ''],
         'count': c.get('Count'), 'minTier': c.get('MinTier'), 'maxTier': c.get('MaxTier'),
         'hidden': bool(c.get('bHidden')),
     })
