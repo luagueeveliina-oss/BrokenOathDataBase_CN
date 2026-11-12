@@ -247,14 +247,14 @@
     var nodes = Object.keys(N.nodes || {}).map(function (k) { return [k, N.nodes[k]]; });
     POE_TIPS = {};
     function tip(label, text) { if (label && text) POE_TIPS[label] = label + ' · ' + text; }
-    uniques.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[3] || '') + ' · 传奇'); });
-    bases.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · ilvl ' + (v[4] || '—')); });
-    skills.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 技能宝石'); });
-    supports.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 辅助宝石'); });
-    Object.keys(N.runes || {}).forEach(function (k) { var v = N.runes[k]; tip(v[0], (v[1] || '') + ' · 等级 ' + (v[2] || '—') + ' · 符文'); });
-    Object.keys(N.runewords || {}).forEach(function (k) { var v = N.runewords[k]; tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 符文之语'); });
-    Object.keys(N.monsters || {}).forEach(function (k) { var v = N.monsters[k]; tip(v[0], (v[1] || '') + ' · 图鉴'); });
-    Object.keys(N.nodes || {}).forEach(function (k) { var v = N.nodes[k]; tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 天赋'); });
+    uniques.forEach(function (v) { tip(v[0], (v[3] || '') + ' · 传奇装备'); });
+    bases.forEach(function (v) { tip(v[0], (v[2] || '') + ' · 物品等级 ' + (v[4] || '—')); });
+    skills.forEach(function (v) { tip(v[0], (v[2] || '') + ' · 技能宝石'); });
+    supports.forEach(function (v) { tip(v[0], (v[2] || '') + ' · 辅助宝石'); });
+    Object.keys(N.runes || {}).forEach(function (k) { var v = N.runes[k]; tip(v[0], '等级 ' + (v[2] || '—') + ' · 符文'); });
+    Object.keys(N.runewords || {}).forEach(function (k) { var v = N.runewords[k]; tip(v[0], (v[2] || '') + ' · 符文之语'); });
+    Object.keys(N.monsters || {}).forEach(function (k) { var v = N.monsters[k]; tip(v[0], '图鉴'); });
+    Object.keys(N.nodes || {}).forEach(function (k) { var v = N.nodes[k]; tip(v[0], (v[2] || '') + ' · 天赋'); });
 
     var gear = { weapon: [], armour: [], jewel: [], other: [] };
     uniques.forEach(function (v) {
@@ -268,7 +268,7 @@
     bases.forEach(function (v) { var k = v[2] || '其他'; (baseGroups[k] = baseGroups[k] || []).push(v[0]); });
     var skillGroups = {};
     skills.forEach(function (v) { var k = v[2] || '其他'; (skillGroups[k] = skillGroups[k] || []).push(v[0]); });
-    var guardians = monsters.filter(function (x) { return /^g_/.test(x[0]); }).map(function (x) { return x[1][0]; });
+    var guardians = monsters.filter(function (x) { return /^g_/.test(x[0]) && /[\u4e00-\u9fff]/.test(x[1][0]); }).map(function (x) { return x[1][0]; });
     var notables = nodes.filter(function (x) { return /Notable|Keystone/.test(String(x[1][2] || '')); }).map(function (x) { return x[1][0]; });
 
     var meta = N.meta || {}, counts = (meta.items && meta.items.counts) || {};
@@ -328,7 +328,7 @@
     var runewords = Object.keys(N.runewords || {}).map(function (k) { return N.runewords[k]; });
     var monsters = Object.keys(N.monsters || {}).map(function (k) { return [k, N.monsters[k]]; });
     var nodes = Object.keys(N.nodes || {}).map(function (k) { return [k, N.nodes[k]]; });
-    var guardians = monsters.filter(function (x) { return /^g_/.test(x[0]); }).map(function (x) { return x[1][0]; });
+    var guardians = monsters.filter(function (x) { return /^g_/.test(x[0]) && /[\u4e00-\u9fff]/.test(x[1][0]); }).map(function (x) { return x[1][0]; });
     var notables = nodes.filter(function (x) { return /Notable|Keystone/.test(String(x[1][2] || '')); }).map(function (x) { return x[1][0]; });
     var gear = { weapon: [], armour: [], jewel: [], other: [] };
     uniques.forEach(function (v) {
@@ -363,7 +363,7 @@
       row('底材', groupList(baseGroups, 'items.html')) +
       row('技能', groupList(skillGroups, 'skills.html') + '<br><span class="poe-vsub">辅助</span> ' + names(supports, 'skills.html') + '<br><span class="poe-vsub">天赋</span> ' + names(notables, 'planner.html#tree')) +
       row('符文', '<span class="poe-vsub">符文</span> ' + names(runes, 'items.html') + '<br><span class="poe-vsub">符文之语</span> ' + names(runewords, 'items.html')) +
-      row('图鉴', '<span class="poe-vsub">守护者</span> ' + names(guardians, 'bestiary.html') + '<br><span class="poe-vsub">怪物</span> ' + names(monsters.map(function (x) { return x[1][0]; }), 'bestiary.html')) +
+      row('图鉴', '<span class="poe-vsub">守护者</span> ' + names(guardians, 'bestiary.html') + '<br><span class="poe-vsub">怪物</span> ' + names(monsters.filter(function (x) { return /[\u4e00-\u9fff]/.test(x[1][0]); }).map(function (x) { return x[1][0]; }), 'bestiary.html')) +
       row('模拟', '<a href="planner.html">装备</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a>');
     var currentHtml = '<article class="poe-vblock" data-patch="' + BO.attr(patch) + '"><div class="poe-vbar"><b>' + BO.esc(title) + '</b><span>补丁 ' + BO.esc(patch) + '</span></div><div class="poe-vbody">' + body + '</div></article>';
 

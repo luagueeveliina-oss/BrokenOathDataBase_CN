@@ -1523,3 +1523,14 @@ input[type="checkbox"] { accent-color: var(--gold2); }
   .poe-next-time { font-size: 20px; }
   .poe-ended-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Equal top cards and tighter left labels */
+.poe-league-row { align-items: stretch; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.poe-league-row > .panel { height: 100%; }
+.poe-next { min-height: 0; height: 100%; }
+.poe-league-current { height: 100%; }
+.poe-vrow { grid-template-columns: 42px minmax(0, 1fr); gap: 6px; }
+.poe-vbody { padding-left: 10px; padding-right: 10px; }
+.poe-vrow > b { font-size: 11px; }
+.poe-compact p b { min-width: 32px; }
