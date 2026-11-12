@@ -175,7 +175,7 @@
     const id = lc(a.id || a.i || '');
     if (!id) return null;
     const af = AFF[id];
-    if (!af) return { id, tier: clamp(n(a.tier != null ? a.tier : a.t), 0, 99), v: n(a.v != null ? a.v : a.value), v2: n(a.v2 != null ? a.v2 : a.value2), unknown: true };
+    if (!af) return { id, tier: clamp(n(a.tier != null ? a.tier : a.t), 0, 99), v: n(a.v != null ? a.v : a.value), v2: n(a.v2 != null ? a.v2 : a.value2), oath: !!(a.oath || a.bOath83), crafted: !!(a.crafted || a.bCrafted), unknown: true };
     let tier = clamp(n(a.tier != null ? a.tier : a.t), 0, (af.Tiers || []).length - 1);
     let v = a.v != null ? n(a.v) : null, v2 = a.v2 != null ? n(a.v2) : null;
     if (v == null) {
@@ -184,7 +184,7 @@
       v = n(t.Min) + (n(t.Max) - n(t.Min)) * rr / 100;
       if (t.Min2 != null) v2 = n(t.Min2) + (n(t.Max2) - n(t.Min2)) * rr / 100;
     }
-    return { id, tier, v: Math.round(v * 100) / 100, v2: v2 == null ? 0 : Math.round(v2 * 100) / 100 };
+    return { id, tier, v: Math.round(v * 100) / 100, v2: v2 == null ? 0 : Math.round(v2 * 100) / 100, oath: !!(a.oath || a.bOath83), crafted: !!(a.crafted || a.bCrafted) };
   }
   function normItem(raw) {
     if (!raw) return null;
@@ -195,6 +195,7 @@
       slot, base: lc(raw.base || raw.b || ''), rarity: raw.rarity || raw.r || 'Normal',
       unique: lc(raw.unique || raw.u || 'None'), name: raw.name || '', level: clamp(n(raw.level || raw.il) || 84, 1, 100),
       quality: clamp(n(raw.quality || raw.q) || 0, 0, 30), affixes: [], runes: (raw.runes || raw.so || []).map(lc).filter(r => GD.runes[r]),
+      sockets: raw.sockets != null ? clamp(n(raw.sockets), 0, 6) : (raw.Sockets != null ? clamp(n(raw.Sockets), 0, 6) : undefined),
       gx: raw.gx != null ? n(raw.gx) : (raw.gridX != null ? n(raw.gridX) : (raw.GridX != null ? n(raw.GridX) : undefined)),
       gy: raw.gy != null ? n(raw.gy) : (raw.gridY != null ? n(raw.gridY) : (raw.GridY != null ? n(raw.GridY) : undefined)),
     };
@@ -223,6 +224,7 @@
     }).slice(0, 60);
     layoutIdols(st.items);
     st.passives = (raw.passives || raw.p || []).map(realNode).filter((id, i, a) => NODE[id] && a.indexOf(id) === i);
+    normalizePassives(st);
     st.gems = (raw.gems || []).map(lc).filter(id => SK[id]);
     st.gemLevels = {};
     for (const [k, v] of Object.entries(raw.gemLevels || raw.gl || {})) if (SK[lc(k)]) st.gemLevels[lc(k)] = clamp(n(v) || 1, 1, 40);
@@ -306,7 +308,7 @@
       if (slot === 'Idol') slot = 'Idol';
       let base = lc(it.base);
       if (!BASE[base] && it.unique && UNI[lc(it.unique)] && UNI[lc(it.unique)].BaseId) base = lc(UNI[lc(it.unique)].BaseId);
-      const ni = { slot, base, rarity: it.rarity || 'Normal', unique: lc(it.unique || 'None'), name: '', level: clamp(n(it.item_level) || 84, 1, 100), quality: clamp(n(it.quality) || 0, 0, 30), affixes: [], runes: (it.runes || []).map(lc).filter(r => GD.runes[r]) };
+      const ni = { slot, base, rarity: it.rarity || 'Normal', unique: lc(it.unique || 'None'), name: '', level: clamp(n(it.item_level) || 84, 1, 100), quality: clamp(n(it.quality) || 0, 0, 30), sockets: it.sockets != null ? clamp(n(it.sockets), 0, 6) : undefined, affixes: [], runes: (it.runes || []).map(lc).filter(r => GD.runes[r]) };
       if (!BASE[ni.base]) continue;
       if (ni.unique && UNI[ni.unique]) { ni.rarity = 'Unique'; }
       const ulines = (it.affixes || []).filter(a => a && /^unique:\d+$/.test(String(a.id))).map(a => ({ id: String(a.id), tier: 0, v: n(a.value), v2: n(a.value2) }));
@@ -315,7 +317,7 @@
         const af = AFF[id]; if (!af) return null;
         let tier = 0, bd = 1e18;
         af.Tiers.forEach((t, i) => { const d = n(a.value) < t.Min ? t.Min - n(a.value) : n(a.value) > t.Max ? n(a.value) - t.Max : 0; if (d < bd) { bd = d; tier = i; } });
-        return { id, tier, v: n(a.value), v2: n(a.value2) };
+        return { id, tier, v: n(a.value), v2: n(a.value2), oath: !!a.oath, crafted: !!a.crafted };
       }).filter(Boolean);
       if (ni.unique && UNI[ni.unique]) ni.affixes = (ulines.length ? ulines : uniqueAffixes(UNI[ni.unique], 0.5)).concat(ni.affixes.filter(a => !String(a.id).startsWith('unique:')));
       st.items.push(ni);
@@ -451,6 +453,7 @@
     PANE = p;
     document.querySelectorAll('#rpNav [data-pane]').forEach(b => b.classList.toggle('on', b.dataset.pane === p));
     document.querySelectorAll('.rp-pane').forEach(el => el.classList.toggle('on', el.id === 'pane-' + p));
+    if (p === 'idols' || p === 'gear') renderGear();
     if (p === 'tree') { buildTreeIfNeeded(); paintTree(); }
     if (p === 'dragon') renderDragon();
   }
@@ -489,20 +492,45 @@
 
   /* ---------------------------------------------------------------- overview */
   function slotItem(slot) { return (S.items || []).find(it => it.slot === slot) || null; }
+  function runeMaxForBase(b) {
+    if (!b) return 0;
+    const R = GD.runeSockets || {}, tags = (b.Tags || []).map(lc);
+    const keys = Object.keys(R).filter(k => tags.includes(lc(k)) || lc(b.Slot) === lc(k));
+    return keys.length ? Math.max(...keys.map(k => n(R[k]) || 0)) : 0;
+  }
+  function affixKind(a, it) {
+    if (!a) return { label: '词缀', cls: '' };
+    if (String(a.id).startsWith('unique:')) return { label: '传奇', cls: 'unique' };
+    if (it && it.rarity === 'Unique') return { label: '誓语', cls: 'vow' };
+    if (a.oath) return { label: '誓语', cls: 'oath' };
+    if (a.crafted) return { label: '工艺', cls: 'crafted' };
+    const af = AFF[a.id];
+    if (af && af.Type === 'Prefix') return { label: '前缀', cls: 'prefix' };
+    if (af && af.Type === 'Suffix') return { label: '后缀', cls: 'suffix' };
+    return { label: '词缀', cls: '' };
+  }
+  function oathwordForItem(it) {
+    if (!it || !(it.runes || []).length) return null;
+    const b = BASE[it.base]; if (!b) return null;
+    const runes = (it.runes || []).map(lc), tags = (b.Tags || []).map(lc);
+    return (GD.runewords || []).find(w => (w.Runes || []).map(lc).join(',') === runes.join(',') &&
+      (w.Bases || []).some(x => lc(x) === lc(b.Id) || lc(x) === lc(b.Class) || tags.includes(lc(x)))) || null;
+  }
   function itemModLines(it, max) {
     if (!it) return [];
     const out = [];
     const b = BASE[it.base];
-    if (b) for (const m of b.Implicits || []) if (out.length < (max || 3)) out.push(modText(m));
+    if (b) for (const m of b.Implicits || []) if (out.length < (max || 3)) out.push('固有 · ' + modText(m));
     for (const a of it.affixes || []) {
       if (out.length >= (max || 4)) break;
       if (String(a.id).startsWith('unique:')) {
         const u = UNI[it.unique], um = u && u.Mods[+a.id.slice(7)];
-        if (um) out.push(SIM.modText(GD, { stat: um.Mod.Stat, mode: um.Mod.Mode, tags: um.Mod.Tags || [], v: a.v, v2: a.v2 }));
+        if (um) out.push('传奇 · ' + SIM.modText(GD, { stat: um.Mod.Stat, mode: um.Mod.Mode, tags: um.Mod.Tags || [], v: a.v, v2: a.v2 }));
       } else {
         const af = AFF[a.id];
-        if (af) out.push(SIM.modText(GD, { stat: af.Mod.Stat, mode: af.Mod.Mode, tags: af.Mod.Tags || [], v: a.v, v2: a.v2 }));
-        else out.push('未收录词缀 ' + a.id + (a.v != null ? '：' + num(a.v) : ''));
+        const k = affixKind(a, it);
+        if (af) out.push(k.label + ' · ' + SIM.modText(GD, { stat: af.Mod.Stat, mode: af.Mod.Mode, tags: af.Mod.Tags || [], v: a.v, v2: a.v2 }));
+        else out.push(k.label + ' · 未收录 ' + a.id + (a.v != null ? '：' + num(a.v) : ''));
       }
     }
     return out.filter(Boolean);
@@ -521,7 +549,7 @@
     const lines = itemModLines(it, compact ? 1 : 99);
     const ic = itemIcon(it);
     return '<button type="button" class="rp-slot ' + (compact ? 'compact ' : 'full ') + (ic ? 'icon-slot ' : '') + (it.rarity === 'Unique' ? 'unique' : it.rarity === 'Rare' ? 'rare' : '') + '" data-edit-slot="' + esc(slot) + '">' + ic +
-      '<span class="rp-slot-label">' + esc(label) + '</span><b>' + esc(nm) + '</b><small>' + esc(base ? base.Name : it.base) + (it.level ? ' · ilvl ' + it.level : '') + '</small>' +
+      '<span class="rp-slot-label">' + esc(label) + '</span><b>' + esc(nm) + '</b><small>' + esc(base ? base.Name : it.base) + (it.level ? ' · ilvl ' + it.level : '') + (it.sockets != null ? ' · ' + it.sockets + ' 孔' : '') + '</small>' +
       (lines.length ? '<span class="rp-slot-mods">' + lines.slice(0, compact ? 1 : 99).map(esc).join('<br>') + '</span>' : '') + '</button>';
   }
   function renderOverview() {
@@ -532,7 +560,7 @@
       offEl.innerHTML = off ? '<span>公开 API · 游戏实测中位 DPS（守护者）</span><b>' + big(off) + '</b><span>来自守护者实战，不是本页 Boss DPS；两种口径不同。</span>' : '';
     }
     $('ovGear').innerHTML = ITEM_SLOTS.map(sl => slotHtml(slotItem(sl), sl, true)).join('');
-    $('ovIdols').innerHTML = S.items.some(it => it.slot === 'Idol') ? idolBoardHtml(true) : '<div class="rp-hint">还没有神像。</div>';
+    $('ovIdols').innerHTML = S.items.some(it => it.slot === 'Idol') ? idolBoardHtml(false) : '<div class="rp-hint">还没有神像。</div>';
     const rows = skillRows();
     $('ovSkills').innerHTML = rows.length ? rows.map(x => {
       const sk = SK[x.skill], rr = calcFor(S, x.skill);
@@ -661,6 +689,11 @@
   function renderGear() {
     $('rpDoll').innerHTML = ITEM_SLOTS.map(sl => slotHtml(slotItem(sl), sl, false)).join('');
     $('rpIdols').innerHTML = idolBoardHtml(false);
+    const idolN = S.items.filter(it => it.slot === 'Idol').length;
+    if ($('rpIdolCount')) $('rpIdolCount').textContent = idolN || '';
+    if ($('rpGearIdolN')) $('rpGearIdolN').textContent = idolN;
+    if ($('rpIdolAffixes')) $('rpIdolAffixes').innerHTML = idolAffixesHtml();
+    if ($('rpIdolEmpty')) $('rpIdolEmpty').hidden = !!idolN;
   }
   function idolBoardHtml(compact) {
     layoutIdols(S.items);
@@ -684,6 +717,15 @@
     return '<div class="rp-idol-board' + (compact ? ' compact' : '') + '">' + cells + items + '</div>' +
       (lost.length ? '<div class="rp-hint">未放下：' + lost.map(x => esc(itemName(x.it))).join('、') + '（格子不够，移除其他神像或换小底材）</div>' : '');
   }
+  function idolAffixesHtml() {
+    const idols = S.items.map((it, i) => ({ it, i })).filter(x => x.it.slot === 'Idol');
+    if (!idols.length) return '<div class="rp-hint">还没有神像。</div>';
+    return idols.map(x => {
+      const it = x.it, b = BASE[it.base], lines = itemModLines(it, 99);
+      return '<div class="rp-idol-affix"><b>' + esc(itemName(it)) + ' <small>' + (it.gw || 1) + '×' + (it.gh || 1) + (b ? ' · ' + esc(b.Name) : '') + '</small></b>' +
+        (lines.length ? '<ul>' + lines.map(line => '<li>' + esc(line) + '</li>').join('') + '</ul>' : '<div class="rp-hint">没有词缀。</div>') + '</div>';
+    }).join('');
+  }
   function addIdol(cell) {
     openItemEditor('Idol', null, cell);
   }
@@ -698,12 +740,18 @@
     const lines = [];
     if (b) for (const m of b.Implicits || []) lines.push('<li class="imp">' + esc(modText(m)) + '</li>');
     for (const a of it.affixes || []) {
+      const k = affixKind(a, it);
       if (String(a.id).startsWith('unique:')) {
         const um = u && u.Mods[+a.id.slice(7)];
-        if (um) lines.push('<li>' + esc(SIM.modText(GD, { stat: um.Mod.Stat, mode: um.Mod.Mode, tags: um.Mod.Tags || [], v: a.v, v2: a.v2 })) + '</li>');
-      } else { const line = itemAffixLine(a); if (line) lines.push('<li' + (AFF[a.id] ? '' : ' class="unknown"') + '>' + esc(line) + '</li>'); }
+        if (um) lines.push('<li><span class="rp-atag ' + k.cls + '">' + k.label + '</span>' + esc(SIM.modText(GD, { stat: um.Mod.Stat, mode: um.Mod.Mode, tags: um.Mod.Tags || [], v: a.v, v2: a.v2 })) + '</li>');
+      } else { const line = itemAffixLine(a); if (line) lines.push('<li' + (AFF[a.id] ? '' : ' class="unknown"') + '><span class="rp-atag ' + k.cls + '">' + k.label + '</span>' + esc(line) + '</li>'); }
     }
-    return '<div class="rp-preview"><div class="name">' + esc(itemName(it)) + '</div><div class="base">' + esc(b ? b.Name : it.base) + ' · ilvl ' + it.level + ' · ' + esc(it.rarity) + '</div><ul>' + (lines.join('') || '<li>没有词缀</li>') + '</ul></div>';
+    const runeNames = (it.runes || []).map(r => (GD.runes[r] || {}).Name || r).filter(Boolean);
+    if (runeNames.length) lines.push('<li><span class="rp-atag rune">符文</span>' + esc(runeNames.join(' / ')) + '</li>');
+    const word = oathwordForItem(it);
+    if (word) lines.push('<li><span class="rp-atag vow">符文之语</span>' + esc(word.Name) + '</li>');
+    const socketText = it.sockets != null ? ' · ' + it.sockets + ' 孔' : '';
+    return '<div class="rp-preview"><div class="name">' + esc(itemName(it)) + '</div><div class="base">' + esc(b ? b.Name : it.base) + ' · ilvl ' + it.level + ' · ' + esc(it.rarity) + socketText + '</div><ul>' + (lines.join('') || '<li>没有词缀</li>') + '</ul></div>';
   }
   let EDIT = null;
   function openItemEditor(slot, idx, cell) {
@@ -727,21 +775,39 @@
     } else if (EDIT.tab === 'affix') {
       if (it.rarity === 'Unique') {
         const u = UNI[it.unique];
-        body = '<div class="rp-hint">传奇词缀固定；用滑块调整 roll。</div>' + (u ? '<div style="margin-top:8px"><label class="rp-mini">传奇 roll <b style="color:var(--rp-accent2)">' + Math.round((it.roll == null ? 0.5 : it.roll) * 100) + '%</b><input type="range" min="0" max="100" value="' + Math.round((it.roll == null ? 0.5 : it.roll) * 100) + '" data-urange style="width:100%;accent-color:var(--rp-accent)"></label></div>' : '') + '<div style="margin-top:9px">' + itemPreview(it) + '</div>';
+        const VOW_MAX = 6;
+        const vows = (it.affixes || []).map((a, i) => ({ a, i })).filter(x => !String(x.a.id).startsWith('unique:'));
+        const vowRows = vows.map((x, vi) => {
+          const a = x.a, af = AFF[a.id], k = affixKind(a, it);
+          const share = (GD.vowShares || [])[Math.min(vi, (GD.vowShares || []).length - 1)] || 1;
+          if (!af) return '<div class="rp-affix-row"><span class="rp-atag ' + k.cls + '">' + k.label + '</span><span class="txt">' + esc(itemAffixLine(a)) + '</span><button class="rm" type="button" data-arem="' + x.i + '">×</button></div>';
+          const tier = af.Tiers[a.tier] || {};
+          return '<div class="rp-affix-row"><span class="rp-atag ' + k.cls + '">' + k.label + ' ' + (vi + 1) + (share < 1 ? ' · ' + Math.round(share * 100) + '%' : '') + '</span><select class="sel" data-atier="' + x.i + '">' + af.Tiers.map((t, ti) => '<option value="' + ti + '"' + (ti === a.tier ? ' selected' : '') + '>T' + (ti + 1) + ' ilvl ' + t.ILvl + '</option>').join('') + '</select><span class="txt">' + esc(itemAffixLine(a)) + '</span><input type="range" min="0" max="100" value="' + Math.round((a.v - (tier.Min || 0)) / Math.max(1, (tier.Max || 0) - (tier.Min || 0)) * 100) + '" data-aroll="' + x.i + '"><span class="rp-note">' + Math.round(a.v) + '</span><button class="rm" type="button" data-arem="' + x.i + '">×</button></div>';
+        }).join('');
+        const vowPool = Object.values(AFF).filter(af => affixFits(af, BASE[it.base])).filter(af => !(it.affixes || []).some(x => AFF[x.id] && AFF[x.id].Group === af.Group));
+        body = '<div class="rp-hint">传奇固定词缀不可编辑，只能改 roll；下方誓语（Vow）来自稀有装备，可按品阶和 roll 编辑，每条誓语按顺序递减。</div>' + (u ? '<div style="margin-top:8px"><label class="rp-mini">传奇 roll <b style="color:var(--rp-accent2)">' + Math.round((it.roll == null ? 0.5 : it.roll) * 100) + '%</b><input type="range" min="0" max="100" value="' + Math.round((it.roll == null ? 0.5 : it.roll) * 100) + '" data-urange style="width:100%;accent-color:var(--rp-accent)"></label></div>' : '') +
+          '<div class="rp-hint" style="margin-top:8px">誓语 ' + vows.length + '/' + VOW_MAX + '</div>' + (vowRows || '<div class="rp-hint">还没有誓语。</div>') +
+          (vows.length < VOW_MAX ? '<div class="rp-hint" style="margin-top:6px">添加誓语</div><div class="rp-list">' + vowPool.slice(0, 120).map(af => {
+            const t = af.Tiers[0] || {};
+            return '<button type="button" class="rp-option" data-vowadd="' + attr(af.Id) + '"><span><b>' + esc((ZH.affixGroup && ZH.affixGroup[lc(af.Group)]) || af.Group || af.Id) + ' · ' + esc(af.Type) + '</b><small style="display:block">' + esc(SIM.modText(GD, { stat: af.Mod.Stat, mode: af.Mod.Mode, tags: af.Mod.Tags || [], v: t.Max || 0, v2: t.Max2 || 0 })) + '</small></span><small>' + af.Tiers.length + ' 阶</small></button>';
+          }).join('') + '</div>' : '') +
+          '<div style="margin-top:9px">' + itemPreview(it) + '</div>';
       } else {
         const editRarity = it.rarity === 'Normal' ? 'Rare' : it.rarity;
         const cap = editRarity === 'Rare' ? [3, 3] : editRarity === 'Magic' ? [1, 1] : [0, 0];
-        const pre = (it.affixes || []).filter(a => AFF[a.id] && AFF[a.id].Type === 'Prefix').length;
-        const suf = (it.affixes || []).filter(a => AFF[a.id] && AFF[a.id].Type === 'Suffix').length;
+        const pre = (it.affixes || []).filter(a => AFF[a.id] && AFF[a.id].Type === 'Prefix' && !a.oath && !a.crafted).length;
+        const suf = (it.affixes || []).filter(a => AFF[a.id] && AFF[a.id].Type === 'Suffix' && !a.oath && !a.crafted).length;
+        const oathN = (it.affixes || []).filter(a => a.oath).length;
+        const craftN = (it.affixes || []).filter(a => a.crafted && !a.oath).length;
         const rows = (it.affixes || []).map((a, i) => {
-          const af = AFF[a.id];
-          if (!af) return '<div class="rp-affix-row"><span class="rp-note">未知</span><span class="txt">' + esc(itemAffixLine(a)) + '</span><button class="rm" type="button" data-arem="' + i + '">×</button></div>';
+          const af = AFF[a.id], k = affixKind(a, it);
+          if (!af) return '<div class="rp-affix-row"><span class="rp-atag ' + k.cls + '">' + k.label + '</span><span class="txt">' + esc(itemAffixLine(a)) + '</span><button class="rm" type="button" data-arem="' + i + '">×</button></div>';
           const tier = af.Tiers[a.tier] || {};
-          return '<div class="rp-affix-row"><select class="sel" data-atier="' + i + '">' + af.Tiers.map((t, ti) => '<option value="' + ti + '"' + (ti === a.tier ? ' selected' : '') + '>T' + (ti + 1) + ' ilvl ' + t.ILvl + '</option>').join('') + '</select><span class="txt">' + esc(itemAffixLine(a)) + '</span><input type="range" min="0" max="100" value="' + Math.round((a.v - (tier.Min || 0)) / Math.max(1, (tier.Max || 0) - (tier.Min || 0)) * 100) + '" data-aroll="' + i + '"><span class="rp-note">' + Math.round(a.v) + '</span><button class="rm" type="button" data-arem="' + i + '">×</button></div>';
+          return '<div class="rp-affix-row"><span class="rp-atag ' + k.cls + '">' + k.label + '</span><select class="sel" data-atier="' + i + '">' + af.Tiers.map((t, ti) => '<option value="' + ti + '"' + (ti === a.tier ? ' selected' : '') + '>T' + (ti + 1) + ' ilvl ' + t.ILvl + '</option>').join('') + '</select><span class="txt">' + esc(itemAffixLine(a)) + '</span><input type="range" min="0" max="100" value="' + Math.round((a.v - (tier.Min || 0)) / Math.max(1, (tier.Max || 0) - (tier.Min || 0)) * 100) + '" data-aroll="' + i + '"><span class="rp-note">' + Math.round(a.v) + '</span><button class="rm" type="button" data-arem="' + i + '">×</button></div>';
         }).join('');
         const pool = Object.values(AFF).filter(af => affixFits(af, b)).filter(af => !(it.affixes || []).some(x => AFF[x.id] && AFF[x.id].Group === af.Group)).filter(af => af.Type === 'Prefix' ? pre < cap[0] : suf < cap[1]);
         body = '<div class="rp-hint">' + (it.rarity === 'Normal' ? '普通底材：添加第一条词缀时会自动转为稀有（3 前缀 / 3 后缀）。' : '') + '</div>' +
-          '<div class="rp-hint">前缀 ' + pre + '/' + cap[0] + ' · 后缀 ' + suf + '/' + cap[1] + ' · 只列出底材可用词缀</div>' +
+          '<div class="rp-hint">前缀 ' + pre + '/' + cap[0] + ' · 后缀 ' + suf + '/' + cap[1] + (oathN ? ' · 誓语 ' + oathN : '') + (craftN ? ' · 工艺 ' + craftN : '') + '</div>' +
           '<div class="rp-hint" style="margin-top:6px">当前词缀</div>' + (rows || '<div class="rp-hint">还没有词缀。</div>') +
           '<div class="rp-hint" style="margin-top:6px">可添加</div><div class="rp-list">' + pool.slice(0, 160).map(af => {
             const t = af.Tiers[0] || {};
@@ -750,11 +816,17 @@
       }
     } else {
       const b0 = BASE[it.base];
-      const max = b0 ? (GD.runeSockets[b0.Class] || 0) : 0;
+      const baseMax = runeMaxForBase(b0);
+      const sock = it.sockets != null ? clamp(n(it.sockets), 0, 6) : baseMax;
+      const max = Math.max(sock, (it.runes || []).length);
       const runes = Object.values(GD.runes).filter(r => r.Kind === 'rune');
       const opts = runes.map(r => '<option value="' + attr(r.Id) + '">' + esc(r.Name) + '</option>').join('');
-      body = '<div class="rp-hint">孔位：' + max + '。符文之语按顺序检测。</div>';
-      for (let i = 0; i < max; i++) body += '<div class="rp-affix-row"><span class="rp-note">孔 ' + (i + 1) + '</span><select class="sel" data-rune="' + i + '"><option value="">空</option>' + opts + '</select></div>';
+      body = '<div class="rp-affix-row"><span class="rp-note">孔洞数</span><input class="rp-input" type="number" min="0" max="' + Math.max(6, baseMax) + '" value="' + sock + '" data-sockets style="max-width:90px"><span class="rp-hint" style="margin:0">底材最多 ' + baseMax + ' 孔；导入时按装备实际孔数保留。</span></div>' +
+        '<div class="rp-hint">符文之语按顺序检测；导入的符文会保留。</div>';
+      for (let i = 0; i < max; i++) {
+        const cur = (it.runes || [])[i] || '';
+        body += '<div class="rp-affix-row"><span class="rp-note">孔 ' + (i + 1) + '</span><select class="sel" data-rune="' + i + '"><option value="">空</option>' + runes.map(r => '<option value="' + attr(r.Id) + '"' + (lc(cur) === lc(r.Id) ? ' selected' : '') + '>' + esc(r.Name) + '</option>').join('') + '</select></div>';
+      }
       if (!max) body += '<div class="rp-hint">这个底材没有符文孔。</div>';
       body += '<div style="margin-top:9px">' + itemPreview(it) + '</div>';
     }
@@ -783,6 +855,12 @@
       renderItemEditor();
     });
     const clr = root.querySelector('[data-clear-item]'); if (clr) clr.onclick = () => { EDIT.item = { slot: EDIT.slot, base: '', rarity: 'Normal', unique: 'None', name: '', level: 84, quality: 0, affixes: [], runes: [] }; renderItemEditor(); };
+    root.querySelectorAll('[data-vowadd]').forEach(b => b.onclick = () => {
+      const af = AFF[b.dataset.vowadd]; if (!af) return;
+      const t0 = af.Tiers[0] || {};
+      EDIT.item.affixes.push({ id: af.Id, tier: 0, v: t0.Min || 0, v2: t0.Min2 || 0, oath: false, crafted: false });
+      renderItemEditor();
+    });
     root.querySelectorAll('[data-aadd]').forEach(b => b.onclick = () => {
       const af = AFF[b.dataset.aadd]; if (!af) return;
       const tier0 = af.Tiers[0] || {};
@@ -802,6 +880,12 @@
       renderItemEditor();
     });
     const ur = root.querySelector('[data-urange]'); if (ur) ur.oninput = () => { EDIT.item.roll = +ur.value / 100; const vows = EDIT.item.affixes.filter(a => !String(a.id).startsWith('unique:')); EDIT.item.affixes = uniqueAffixes(UNI[EDIT.item.unique], EDIT.item.roll).concat(vows); renderItemEditor(); };
+    const socks = root.querySelector('[data-sockets]'); if (socks) socks.onchange = () => {
+      const b = BASE[EDIT.item.base], bm = runeMaxForBase(b);
+      EDIT.item.sockets = clamp(n(socks.value), 0, Math.max(6, bm));
+      EDIT.item.runes = (EDIT.item.runes || []).slice(0, EDIT.item.sockets);
+      renderItemEditor();
+    };
     root.querySelectorAll('[data-rune]').forEach(sel => sel.onchange = () => {
       const i = +sel.dataset.rune, arr = (EDIT.item.runes || []).slice(); while (arr.length < i + 1) arr.push(''); arr[i] = sel.value; EDIT.item.runes = arr.filter(Boolean); renderItemEditor();
     });
@@ -947,6 +1031,7 @@
     if (location.hash === '#tree') setPane('tree');
     if (location.hash === '#dragon') setPane('dragon');
     if (location.hash === '#gear') setPane('gear');
+    if (location.hash === '#idols') setPane('idols');
     if (location.hash === '#skills') setPane('skills');
     if (location.hash === '#damage') setPane('damage');
     const h = decodeURIComponent(location.hash || '');
@@ -1151,14 +1236,15 @@
       const id = c.dataset.id, nd = NODE[id], on = have.has(id) || id === s0;
       c.classList.toggle('alloc', on); c.classList.toggle('next', !on && next.has(id)); c.classList.toggle('sel', id === TREE.sel);
       const ic = TREE.icons.get(id);
-      if (ic) { const want = on ? ic.key : dimKey(ic.key); if (ic.cur !== want) { ic.el.setAttribute('viewBox', iconBox(want)); ic.cur = want; } }
+      if (ic) { const want = on ? ic.key : dimKey(ic.key); if (ic.cur !== want) { ic.el.setAttribute('viewBox', iconBox(want)); ic.cur = want; }
+        ic.el.style.opacity = on ? '1' : (next.has(id) ? '.72' : '.22'); }
       let found = false;
       if (q) found = lc(nd.Name + ' ' + (nd.Text || '') + ' ' + (nd.Mods || []).map(m => modText(m)).join(' ')).includes(q);
       c.classList.toggle('found', found);
     }
     for (const ln of $('rpTreeSvg').querySelectorAll('line.tl')) {
       const a = NODE[ln.dataset.a], b = NODE[ln.dataset.b];
-      const near = a && b && !/waygate|seam/i.test(ln.dataset.a + ln.dataset.b) && Math.hypot(a.X - b.X, a.Y - b.Y) < 260;
+      const near = a && b && !/waygate|seam/i.test(ln.dataset.a + ln.dataset.b) && Math.hypot(a.X - b.X, a.Y - b.Y) < 600;
       ln.classList.toggle('alloc', near && (have.has(ln.dataset.a) || ln.dataset.a === s0) && (have.has(ln.dataset.b) || ln.dataset.b === s0));
     }
     for (const t of $('rpTreeSvg').querySelectorAll('text.tlabel')) t.classList.toggle('alloc', have.has(t.dataset.id));
@@ -1205,6 +1291,42 @@
     const have = allocSet(), s0 = treeStart();
     for (const c of $('rpTreeSvg').querySelectorAll('circle.tn')) c.classList.toggle('sel', c.dataset.id === TREE.sel);
   }
+  function normalizePassives(st) {
+    const start = 'start_' + lc(st.classId || 'warrior');
+    const raw = (st.passives || []).map(realNode).filter(id => NODE[id] && id !== start);
+    const given = new Set(raw);
+    if (!NODE[start] || !given.size) { st.passives = raw.filter((id, i, a) => a.indexOf(id) === i); return st; }
+    // Keep only the component actually connected to this class's start.
+    const seen = new Set([start]), q = [start];
+    while (q.length) {
+      const id = q.shift();
+      for (const v of NODE[id].Links || []) if (given.has(v) && !seen.has(v)) { seen.add(v); q.push(v); }
+    }
+    const dropped = raw.filter(id => !seen.has(id));
+    // Choice altars keep only one option.
+    const chosen = new Map();
+    const kept = new Set();
+    for (const id of [...seen].filter(id => id !== start)) {
+      const ch = NODE[id] && NODE[id].Choice;
+      if (ch) { if (chosen.has(ch)) continue; chosen.set(ch, id); }
+      kept.add(id);
+    }
+    // DFS from the start: a valid, connected allocation order.
+    const out = [], visited = new Set([start]);
+    (function walk(id) {
+      for (const v of NODE[id].Links || []) {
+        if (!kept.has(v) || visited.has(v)) continue;
+        visited.add(v); out.push(v); walk(v);
+      }
+    })(start);
+    st.passives = out.filter((id, i, a) => a.indexOf(id) === i);
+    if (dropped.length) {
+      st._importWarnings = (st._importWarnings || []).slice();
+      st._importWarnings.push('导入了 ' + dropped.length + ' 个与职业起点不相连的天赋点，已忽略：' + dropped.slice(0, 8).join('、') + (dropped.length > 8 ? '…' : ''));
+    }
+    return st;
+  }
+
   function treeCanAdd(id) {
     const nd = NODE[id];
     if (!nd || treeBlocked(id) || nd.Kind === 'Start' || allocSet().has(id)) return false;
@@ -1396,6 +1518,8 @@
   function importReport(st, how) {
     const gear = (st.items || []).filter(x => x.slot !== 'Idol').length, idols = (st.items || []).filter(x => x.slot === 'Idol').length;
     const warns = (st._importWarnings || []).slice();
+    const lostIdols = (st.items || []).filter(x => x.slot === 'Idol' && x.gx < 0);
+    if (lostIdols.length) warns.push('有 ' + lostIdols.length + ' 个神像因格子不足没有自动放下：' + lostIdols.map(x => itemName(x)).join('、'));
     if (st.official && st.official.dps) warns.push('游戏实测中位 DPS：' + big(st.official.dps) + '（公开 API，不是本站计算）');
     if (pointsUsed && (st.passives || []).length > ((st.level - 1) * (n(H.PassivePointsPerLevel) || 1) + (st.bonusPoints || 0))) warns.push('天赋点超过等级预算，已按导入值保留');
     if ((st.dragonNodes || []).length > MILESTONES.filter(l => st.level >= l).length + (RULES.hatch || 0) + n(st.dragonExtra)) warns.push('龙裔点超过预算，已按导入值保留');
@@ -1406,6 +1530,8 @@
     const base = MILESTONES.filter(l => S.level >= l).length + (RULES.hatch || 0);
     if ((S.dragonNodes || []).length > base + (S.dragonExtra || 0)) S.dragonExtra = Math.max(0, (S.dragonNodes || []).length - base);
     TREE = null; DRAGON = null; closeModal(); done(); saveLocal();
+    const idolN = (S.items || []).filter(it => it.slot === 'Idol').length;
+    if (idolN) { setPane('overview'); toast('已导入 ' + idolN + ' 个神像，已自动摆放；可在左侧「神像」页查看或调整。'); }
     setPane('overview');
     modal(modalHead('导入报告') + '<div class="rp-modal-body">' + importReport(S, how) + '</div><div class="rp-modal-foot"><button class="rp-btn main" type="button" data-close>开始编辑</button></div>');
   }
