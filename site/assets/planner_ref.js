@@ -535,12 +535,13 @@
     }
     return out.filter(Boolean);
   }
-  function itemIcon(it) {
+  function itemIcon(it, big) {
     if (!it || !window.BO_ICONS) return '';
     const key = it.rarity === 'Unique' && it.unique && it.unique !== 'None' ? 'u:' + it.unique : 'b:' + it.base;
     const src = window.BO_ICONS[key] || window.BO_ICONS['b:' + it.base];
     if (!src) return '';
-    return '<span class="ico ico-img" style="--ico:#d8c9a8;width:24px;height:28px"><img src="' + attr(src) + '" alt=""></span>';
+    const w = big ? 52 : 24, h = big ? 62 : 28;
+    return '<span class="ico ico-img" style="--ico:#d8c9a8;width:' + w + 'px;height:' + h + 'px"><img src="' + attr(src) + '" alt=""></span>';
   }
   function slotHtml(it, slot, compact) {
     const label = SLOT_LABEL[slot] || slot;
@@ -711,7 +712,7 @@
       const it = x.it, b = BASE[it.base], w = it.gw || 1, h = it.gh || 1;
       const lines = itemModLines(it, compact ? 0 : 2);
       return '<button type="button" class="rp-idol-item' + (compact ? ' compact' : '') + '" data-edit-idol="' + x.i + '" style="' + pos(it.gx, it.gy, w, h) + '" title="' + attr(itemName(it) + ' · ' + w + '×' + h + (b ? ' · ' + b.Name : '')) + '">' +
-        itemIcon(it) + '<b>' + esc(itemName(it)) + '</b><small>' + w + '×' + h + (b ? ' · ' + esc(b.Name) : '') + '</small>' + (lines.length ? '<span>' + esc(lines[0]) + '</span>' : '') + '</button>';
+        itemIcon(it, true) + '<b>' + esc(itemName(it)) + '</b><small>' + w + '×' + h + (b ? ' · ' + esc(b.Name) : '') + '</small>' + (lines.length ? '<span>' + esc(lines[0]) + '</span>' : '') + '<em class="rp-idol-size">' + w + '×' + h + '</em></button>';
     }).join('');
     const lost = idols.filter(x => x.it.gx < 0);
     return '<div class="rp-idol-board' + (compact ? ' compact' : '') + '">' + cells + items + '</div>' +
@@ -1244,7 +1245,7 @@
     }
     for (const ln of $('rpTreeSvg').querySelectorAll('line.tl')) {
       const a = NODE[ln.dataset.a], b = NODE[ln.dataset.b];
-      const near = a && b && !/waygate|seam/i.test(ln.dataset.a + ln.dataset.b) && Math.hypot(a.X - b.X, a.Y - b.Y) < 600;
+      const near = a && b && !/waygate|seam/i.test(ln.dataset.a + ln.dataset.b) && (Math.hypot(a.X - b.X, a.Y - b.Y) < 600 || ln.dataset.a === s0 || ln.dataset.b === s0);
       ln.classList.toggle('alloc', near && (have.has(ln.dataset.a) || ln.dataset.a === s0) && (have.has(ln.dataset.b) || ln.dataset.b === s0));
     }
     for (const t of $('rpTreeSvg').querySelectorAll('text.tlabel')) t.classList.toggle('alloc', have.has(t.dataset.id));
