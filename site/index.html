@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#08090b">
+<meta name="theme-color" content="#1a1a1b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <title>Broken Oath Data Base · 破誓中文资料库</title>
 <meta name="description" content="《破誓 / Broken Oath》非官方中文资料库：官方天梯、构筑库、环境统计、物品、技能宝石与怪物图鉴。天梯与构筑数据来自 Broken Oath public API。">
@@ -14,57 +14,87 @@
 <a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
 
-<main id="main" class="wrap">
+<main id="main" class="wrap poe-home">
 
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="hero-kicker">Broken Oath · 非官方中文资料库</div>
-      <h1 class="hero-title">破誓者<em>数据库</em><span class="en">Ladder · Builds · Items · Bestiary</span></h1>
-      <p class="hero-lede">把 <b>官方天梯</b>、<b>玩家构筑</b>、<b>环境统计</b> 与游戏里的每一件装备放在同一个地方。天梯每 15 分钟、构筑每小时由本站同步公开 API，直接查、直接看、直接抄作业。</p>
-      <div class="hero-actions">
-        <a class="btn btn-gold btn-lg" href="ladder.html">查看天梯 <svg class="i"><use href="#i-arrow"/></svg></a>
-        <a class="btn btn-lg" href="builds.html">浏览构筑库</a>
-        <button class="btn btn-ghost btn-lg" id="heroSearch">搜索数据库 <kbd>/</kbd></button>
+  <div class="poe-home-top">
+    <section class="panel poe-live" id="liveCard" aria-live="polite">
+      <div class="panel-hd"><span class="panel-title">当前赛季</span><span class="lc-badge"><span class="dot live"></span> LIVE</span><span class="tag gold">公开 API</span></div>
+      <div class="panel-bd">
+        <div class="lc-league" id="lcLeague">Online Testing</div>
+        <div class="lc-sub" id="lcSub">正在载入联赛与天梯…</div>
+        <div class="lc-grid">
+          <div class="lc-cell"><b id="lcHeroes">—</b><span>天梯英雄</span></div>
+          <div class="lc-cell"><b id="lcBuilds">—</b><span>已发布构筑</span></div>
+          <div class="lc-cell"><b id="lcPatch">—</b><span>游戏补丁</span></div>
+        </div>
+        <div class="lc-foot"><span id="lcLeft">剩余 —</span><a class="sec-link" href="ladder.html">进入天梯 <svg class="i"><use href="#i-arrow"/></svg></a></div>
+        <div class="poe-sync"><span id="heroPatch">Patch —</span><span id="heroSynced">同步状态读取中…</span></div>
       </div>
-      <div class="hero-meta">
-        <span><span class="dot live"></span> Online Testing 进行中</span>
-        <span id="heroPatch">Patch 0.56.8</span>
-        <span id="heroSynced">正在读取同步状态…</span>
-      </div>
-    </div>
+    </section>
 
-    <aside class="livecard" id="liveCard" aria-live="polite">
-      <div class="lc-top"><span class="lc-badge"><span class="dot live"></span> LIVE</span><span class="tag gold">公开 API</span></div>
-      <div class="lc-league" id="lcLeague">Online Testing</div>
-      <div class="lc-sub" id="lcSub">正在载入联赛与天梯…</div>
-      <div class="lc-grid">
-        <div class="lc-cell"><b id="lcHeroes">—</b><span>天梯英雄</span></div>
-        <div class="lc-cell"><b id="lcBuilds">—</b><span>已发布构筑</span></div>
-        <div class="lc-cell"><b id="lcPatch">—</b><span>游戏补丁</span></div>
-      </div>
-      <div class="lc-foot"><span id="lcLeft">剩余 —</span><a class="sec-link" href="ladder.html">进入天梯 <svg class="i"><use href="#i-arrow"/></svg></a></div>
-    </aside>
-  </section>
+    <section class="panel">
+      <div class="panel-hd"><span class="panel-title">赛季与时间</span><a class="sec-link" href="ladder.html">全部联赛 <svg class="i"><use href="#i-arrow"/></svg></a></div>
+      <div class="panel-bd"><div class="poe-league-list" id="leagueRail">
+        <div class="league skeleton" style="height:50px"></div><div class="league skeleton" style="height:50px"></div>
+        <div class="league skeleton" style="height:50px"></div><div class="league skeleton" style="height:50px"></div>
+      </div></div>
+    </section>
+  </div>
 
-  <section class="sec" aria-labelledby="leaguesTitle">
-    <div class="sec-head">
-      <div class="sec-left"><div class="sec-kicker">Public leagues</div><h2 class="sec-title" id="leaguesTitle">当前联赛<span class="en">Every public league, live first</span></h2></div>
-      <a class="sec-link" href="ladder.html">全部联赛 <svg class="i"><use href="#i-arrow"/></svg></a>
-    </div>
-    <div class="leagues" id="leagueRail">
-      <div class="league skeleton" style="height:74px"></div><div class="league skeleton" style="height:74px"></div>
-      <div class="league skeleton" style="height:74px"></div><div class="league skeleton" style="height:74px"></div>
-    </div>
-  </section>
+  <div class="poe-shortcuts" aria-label="快捷入口">
+    <a href="ladder.html"><svg class="i"><use href="#i-crown"/></svg><span>天梯</span></a>
+    <a href="builds.html"><svg class="i"><use href="#i-scroll"/></svg><span>构筑库</span></a>
+    <a href="items.html"><svg class="i"><use href="#i-sword"/></svg><span>物品</span></a>
+    <a href="skills.html"><svg class="i"><use href="#i-spark"/></svg><span>技能</span></a>
+    <a href="bestiary.html"><svg class="i"><use href="#i-skull"/></svg><span>图鉴</span></a>
+    <a href="meta.html"><svg class="i"><use href="#i-chart"/></svg><span>环境</span></a>
+    <a href="planner.html"><svg class="i"><use href="#i-crown"/></svg><span>模拟构筑</span></a>
+    <button type="button" id="heroSearch"><svg class="i"><use href="#i-search"/></svg><span>搜索 <kbd>/</kbd></span></button>
+  </div>
 
-  <section class="statgrid mt24" id="statGrid">
+  <section class="statgrid poe-stats" id="statGrid">
     <div class="stat"><b>—</b><span>公开联赛</span></div>
     <div class="stat"><b>—</b><span>天梯英雄</span></div>
     <div class="stat"><b>—</b><span>官方构筑</span></div>
     <div class="stat"><b>—</b><span>游戏补丁</span></div>
   </section>
 
-  <section class="sec">
+  <section class="poe-directory" aria-label="资料目录">
+    <div class="panel poe-block">
+      <div class="panel-hd"><span class="panel-title">物品</span><a class="sec-link" href="items.html">全部</a></div>
+      <div class="panel-bd">
+        <p><a href="items.html">物品</a> · <a href="items.html#unique">传奇</a> · <a href="items.html#bases">底材</a> · <a href="items.html#affixes">词缀</a></p>
+        <p><a href="items.html#runes">符文</a> · <a href="items.html#runewords">符文之语</a> · <a href="items.html#idols">神像</a> · <a href="items.html#potions">药剂</a></p>
+        <p class="poe-meta">传奇、底材、词缀、符文、神像</p>
+      </div>
+    </div>
+    <div class="panel poe-block">
+      <div class="panel-hd"><span class="panel-title">技能</span><a class="sec-link" href="skills.html">全部</a></div>
+      <div class="panel-bd">
+        <p><a href="skills.html">技能宝石</a> · <a href="skills.html#supports">辅助宝石</a> · <a href="skills.html#vows">誓约</a> · <a href="skills.html#curses">诅咒</a></p>
+        <p><a href="planner.html#tree">天赋树</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#skills">技能栏</a></p>
+        <p class="poe-meta">技能、辅助、誓约、诅咒、天赋与龙裔</p>
+      </div>
+    </div>
+    <div class="panel poe-block">
+      <div class="panel-hd"><span class="panel-title">天梯与构筑</span><a class="sec-link" href="ladder.html">全部</a></div>
+      <div class="panel-bd">
+        <p><a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a> · <a href="meta.html">环境统计</a> · <a href="planner.html">模拟构筑</a></p>
+        <p><a href="ladder.html">守护者 DPS</a> · <a href="builds.html">职业分布</a> · <a href="meta.html">主技能</a></p>
+        <p class="poe-meta">公开 API 快照 · 每 15 分钟天梯刷新</p>
+      </div>
+    </div>
+    <div class="panel poe-block">
+      <div class="panel-hd"><span class="panel-title">图鉴与资料</span><a class="sec-link" href="bestiary.html">全部</a></div>
+      <div class="panel-bd">
+        <p><a href="bestiary.html">怪物</a> · <a href="bestiary.html#guardians">守护者</a> · <a href="bestiary.html#mechanics">机制</a></p>
+        <p><a href="about.html">关于</a> · <a href="about.html#sources">数据来源</a> · <a href="about.html#api">API</a></p>
+        <p class="poe-meta">怪物、守护者、裂隙机制与数据说明</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec poe-section">
     <div class="sec-head">
       <div class="sec-left"><div class="sec-kicker">Ladder</div><h2 class="sec-title">天梯领跑者<span class="en">Top of the current league</span></h2></div>
       <a class="sec-link" href="ladder.html">完整天梯 <svg class="i"><use href="#i-arrow"/></svg></a>
@@ -87,30 +117,18 @@
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec poe-section">
     <div class="sec-head">
       <div class="sec-left"><div class="sec-kicker">Featured builds</div><h2 class="sec-title">各职业代表作<span class="en">One top build per class</span></h2></div>
       <a class="sec-link" href="builds.html">构筑库 <svg class="i"><use href="#i-arrow"/></svg></a>
     </div>
     <div class="build-grid" id="buildGrid">
-      <div class="build-card skeleton" style="height:118px"></div><div class="build-card skeleton" style="height:118px"></div>
-      <div class="build-card skeleton" style="height:118px"></div>
+      <div class="build-card skeleton" style="height:92px"></div><div class="build-card skeleton" style="height:92px"></div>
+      <div class="build-card skeleton" style="height:92px"></div>
     </div>
   </section>
 
-  <section class="sec">
-    <div class="sec-head">
-      <div class="sec-left"><div class="sec-kicker">Database</div><h2 class="sec-title">资料库<span class="en">Items, gems, monsters and the planner</span></h2></div>
-    </div>
-    <div class="db-grid" id="dbCards">
-      <a class="db-card" href="items.html"><svg class="i"><use href="#i-sword"/></svg><span class="db-n">—</span><h3>物品</h3><p>传奇、底材、词缀、符文、符文之语、药剂与神像。</p></a>
-      <a class="db-card" href="skills.html"><svg class="i"><use href="#i-spark"/></svg><span class="db-n">—</span><h3>技能</h3><p>技能宝石、辅助宝石、誓约与诅咒的完整数值。</p></a>
-      <a class="db-card" href="bestiary.html"><svg class="i"><use href="#i-skull"/></svg><span class="db-n">—</span><h3>图鉴</h3><p>382 种怪物、28 位守护者与裂隙首领机制。</p></a>
-      <a class="db-card" href="planner.html"><svg class="i"><use href="#i-crown"/></svg><span class="db-n">PLANNER</span><h3>模拟构筑</h3><p>从零构筑或导入存档/代码，编辑装备词缀、神像、天赋与龙裔，实时计算 DPS 与魔力消耗。</p></a>
-    </div>
-  </section>
-
-  <section class="sec">
+  <section class="sec poe-section">
     <div class="panel" id="dataNote">
       <div class="panel-bd">
         <div class="spread">

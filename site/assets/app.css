@@ -8,21 +8,22 @@
 :root {
   color-scheme: dark;
 
-  --bg: #07080a;
-  --bg-soft: #0b0d10;
-  --bg2: #101317;
-  --bg3: #15191e;
-  --panel: #101317;
-  --panel2: #15191f;
-  --panel3: #1b2027;
-  --line: #23282f;
-  --line2: #323941;
-  --line3: #46505b;
+  /* PoEDB dark theme: #1a1a1b body, Bootstrap dark cards, warm gold headings. */
+  --bg: #1a1a1b;
+  --bg-soft: #1e1f21;
+  --bg2: #212529;
+  --bg3: #2b3035;
+  --panel: #212529;
+  --panel2: #2b3035;
+  --panel3: #343a40;
+  --line: #343a40;
+  --line2: #495057;
+  --line3: #6c757d;
 
-  --fg: #e6e1d6;
-  --fg2: #c6c0b4;
-  --dim: #8d8980;
-  --mute: #6b6862;
+  --fg: #dee2e6;
+  --fg2: #c9ced4;
+  --dim: #9ca3a9;
+  --mute: #7f868d;
 
   --gold: #e7b478;
   --gold2: #c99655;
@@ -46,11 +47,11 @@
   --corrupt: #d20000;
   --crafted: #b4b4ff;
 
-  --card: rgba(19, 23, 28, .72);
-  --card2: rgba(11, 13, 16, .8);
-  --card-solid: #0d1013;
-  --tbl-bg: rgba(9, 11, 13, .35);
-  --input-bg: #0b0d10;
+  --card: #212529;
+  --card2: #1b1d20;
+  --card-solid: #212529;
+  --tbl-bg: #1b1d20;
+  --input-bg: #212529;
   --radius: 4px;
   --radius-lg: 8px;
   --shadow: 0 18px 50px rgba(0, 0, 0, .45);
@@ -224,6 +225,10 @@ mark { background: rgba(231, 180, 120, .25); color: inherit; padding: 0 1px; bor
 .friends a::before { content: ""; width: 3px; height: 3px; border-radius: 50%; background: var(--gold3); }
 [data-theme="light"] .friends { background: #e9e1d1; border-bottom-color: #d8ccb5; }
 
+.server-clock { display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; height: 30px; border: 1px solid var(--line2); border-radius: var(--radius); background: var(--bg2); color: var(--mute); font-size: 9px; white-space: nowrap; }
+.server-clock b { color: var(--fg2); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .02em; }
+.server-clock em { color: var(--mute); font-style: normal; font-size: 8px; }
+@media (max-width: 760px) { .server-clock { display: none; } }
 .topbar {
   position: sticky;
   top: 0;
@@ -691,6 +696,42 @@ button.chip:hover { border-color: var(--line3); color: var(--fg2); }
 .stat.gold b { color: var(--gold); }
 
 /* ---------- 12. hero (home) ---------- */
+.poe-home { padding-top: 16px; }
+.poe-home-top { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: 12px; align-items: start; margin-bottom: 12px; }
+.poe-home-top > .panel { margin: 0; }
+.poe-live .panel-bd { padding: 12px 15px; }
+.poe-live .lc-league { font-size: 24px; }
+.poe-live .lc-sub { font-size: 11px; margin-top: 2px; }
+.poe-live .lc-grid { grid-template-columns: repeat(3, 1fr); margin-top: 10px; }
+.poe-live .lc-cell { padding: 7px 9px; }
+.poe-live .lc-cell b { font-size: 15px; }
+.poe-live .lc-cell span { font-size: 9px; }
+.poe-live .lc-foot { margin-top: 8px; font-size: 10px; }
+.poe-sync { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; color: var(--mute); font-size: 9px; }
+.poe-league-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.poe-league-list .league { min-height: 0; padding: 7px 8px; font-size: 10px; gap: 4px; }
+.poe-league-list .league-nm { gap: 5px; }
+.poe-league-list .league-tag { font-size: 8px; }
+.poe-league-list .league-meta { font-size: 9px; }
+.poe-shortcuts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 10px 0 12px; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg2); }
+.poe-shortcuts a, .poe-shortcuts button { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border: 0; border-radius: 3px; background: none; color: var(--dim); font: inherit; font-size: 11px; cursor: pointer; }
+.poe-shortcuts a:hover, .poe-shortcuts button:hover { background: var(--gold-dim); color: var(--gold); }
+.poe-shortcuts .i { width: 15px; height: 15px; }
+.poe-shortcuts kbd { font-size: 8px; }
+.poe-stats { margin: 0 0 12px; }
+.poe-stats .stat { padding: 9px 11px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.poe-stats .stat b { font-size: 19px; }
+.poe-stats .stat span { font-size: 10px; }
+.poe-stats .stat small { font-size: 8px; }
+.poe-directory { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px 0 4px; align-items: stretch; }
+.poe-block .panel-bd { padding: 9px 11px 10px; }
+.poe-block p { margin: 0 0 7px; color: var(--dim); font-size: 10.5px; line-height: 1.8; }
+.poe-block p a { color: var(--fg2); }
+.poe-block p a:hover { color: var(--gold); }
+.poe-block .poe-meta { color: var(--mute); font-size: 9px; line-height: 1.5; margin: 2px 0 0; }
+.poe-section { margin-top: 22px; }
+@media (max-width: 1100px) { .poe-home-top { grid-template-columns: 1fr; } .poe-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .poe-directory { grid-template-columns: 1fr; } .poe-league-list { grid-template-columns: 1fr; } .poe-live .lc-grid { grid-template-columns: 1fr; } }
 .hero { position: relative; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); gap: 34px; align-items: center; padding: 38px 0 26px; }
 .hero-copy { position: relative; z-index: 1; }
 .hero-kicker { display: flex; align-items: center; gap: 10px; color: var(--gold2); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; margin-bottom: 14px; }

@@ -512,6 +512,7 @@
       '<span class="brand-text"><span class="brand-name">Broken Oath <b>Data Base</b></span><span class="brand-sub">' + (BO.LANG ? 'Unofficial companion' : '非官方中文资料库') + '</span></span></a>' +
       '<nav class="mainnav" aria-label="' + (BO.LANG ? 'Main navigation' : '主导航') + '">' + renderNav(active) + '</nav>' +
       '<div class="tools">' +
+      '<span class="server-clock" id="boServerClock" title="Broken Oath 游戏服务器时间（UTC；与公开 API 时间戳同一时区）"><small>服务器</small><b>--:--:--</b><em>UTC</em></span>' +
       '<button class="tool-btn searchbtn" id="boSearchBtn" aria-label="' + (BO.LANG ? 'Search' : '全局搜索') + '">' + BO.ico('search') +
       '<span>' + (BO.LANG ? 'Search items, skills…' : '搜索物品、技能…') + '</span><kbd>/</kbd></button>' +
       '<span class="tool-btn verbtn" title="' + (BO.LANG ? 'Game patch' : '游戏版本') + '"><span class="verchip">' + BO.esc(patch) + '</span></span>' +
@@ -527,6 +528,17 @@
 
     var ver = document.querySelector('.verchip');
     if (ver) ver.textContent = patch;
+    var clock = host.querySelector('#boServerClock b');
+    if (clock) {
+      var tick = function () {
+        var d = new Date();
+        clock.textContent = String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0') + ':' + String(d.getUTCSeconds()).padStart(2, '0');
+        var box = clock.closest('.server-clock'); if (box) box.title = '游戏服务器时间（UTC）：' + clock.textContent + ' · 本地：' + d.toLocaleTimeString('zh-CN', { hour12: false });
+      };
+      tick();
+      if (window.__boServerClock) clearInterval(window.__boServerClock);
+      window.__boServerClock = setInterval(tick, 1000);
+    }
 
     // live version patch in the footer chip (no per-visitor API call: seed/manifest only)
     BO.api.manifest().then(function (m) {
