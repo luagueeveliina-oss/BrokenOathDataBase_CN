@@ -81,7 +81,21 @@
 
 /* overview */
 .rp-doll { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-#rpDoll { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+#rpDoll.rp-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 1.15fr) minmax(0, 1fr); grid-template-rows: repeat(5, auto); gap: 8px; align-items: stretch; }
+.rp-body-cell { min-width: 0; }
+.rp-body-cell .rp-slot { width: 100%; height: 100%; }
+.rp-body-cell.head { grid-column: 2; grid-row: 1; }
+.rp-body-cell.neck { grid-column: 2; grid-row: 2; }
+.rp-body-cell.arm-l { grid-column: 1; grid-row: 2 / span 2; }
+.rp-body-cell.arm-r { grid-column: 3; grid-row: 2 / span 2; }
+.rp-body-cell.torso { grid-column: 2; grid-row: 3; }
+.rp-body-cell.hand-l { grid-column: 1; grid-row: 4; }
+.rp-body-cell.waist { grid-column: 2; grid-row: 4; }
+.rp-body-cell.ring-l { grid-column: 3; grid-row: 4; }
+.rp-body-cell.ring-r { grid-column: 1; grid-row: 5; }
+.rp-body-cell.feet { grid-column: 2; grid-row: 5; }
+.rp-rune-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 4px; }
+.rp-rune-grid .rp-slot { min-height: 76px; }
 .rp-slot { min-height: 46px; border: 1px solid var(--rp-line); border-radius: 4px; background: var(--bg2); padding: 5px 6px; cursor: pointer; text-align: left; color: inherit; position: relative; overflow: hidden; }
 .rp-slot:hover { border-color: var(--rp-accent); }
 .rp-slot.empty { border-style: dashed; color: var(--mute); }
@@ -352,7 +366,9 @@
   .rp-cell { border-left: 0; border-top: 1px solid var(--rp-line); }
   .rp-cell:first-child { border-top: 0; }
   .rp-doll { grid-template-columns: 1fr 1fr; }
-  #rpDoll { grid-template-columns: 1fr; }
+  #rpDoll.rp-body { display: block; }
+  .rp-body-cell { margin-bottom: 7px; }
+  .rp-rune-grid { grid-template-columns: 1fr; }
   .rp-stage, .rp-stage svg { min-height: 460px; height: 460px; }
   .rp-form, .rp-form2 { grid-template-columns: 1fr 1fr; }
   .rp-tools { margin-left: 0; }

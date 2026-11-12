@@ -22,7 +22,15 @@
   const SK = GD.skills, SUP = GD.supports, CLASS = GD.classes, H = GD.scaling.Hero || {};
   const RULES = GD.dragon.tree || {};
   const MILESTONES = RULES.milestones || [40, 45, 50, 55, 60, 70, 80, 90];
-  const ITEM_SLOTS = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2', 'DwarvenRune'];
+  const ITEM_SLOTS = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2'];
+  // Body layout: head, neck, torso, arms, hands, waist and feet.
+  const BODY_SLOTS = [
+    { slot: 'Helm', area: 'head' }, { slot: 'Amulet', area: 'neck' },
+    { slot: 'MainHand', area: 'arm-l' }, { slot: 'OffHand', area: 'arm-r' },
+    { slot: 'Chest', area: 'torso' }, { slot: 'Gloves', area: 'hand-l' },
+    { slot: 'Belt', area: 'waist' }, { slot: 'Ring1', area: 'ring-l' },
+    { slot: 'Ring2', area: 'ring-r' }, { slot: 'Boots', area: 'feet' },
+  ];
   const SLOT_LABEL = { MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子', Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', DwarvenRune: '矮人符文', Idol: '神像' };
   const PREFIX = 'bo_planner_ref';
   let S = null, R = null, DEF = null, PANE = 'overview', UNDO = [], TREE = null, DRAGON = null, MODAL = null;
@@ -766,7 +774,13 @@
     return S.items.findIndex(it => it.slot === slot);
   }
   function renderGear() {
-    $('rpDoll').innerHTML = ITEM_SLOTS.map(sl => slotHtml(slotItem(sl), sl, false)).join('');
+    $('rpDoll').innerHTML = BODY_SLOTS.map(x => '<div class="rp-body-cell ' + x.area + '">' + slotHtml(slotItem(x.slot), x.slot, false) + '</div>').join('');
+    const runes = S.items.map((it, i) => ({ it, i })).filter(x => x.it.slot === 'DwarvenRune');
+    if ($('rpRunes')) $('rpRunes').innerHTML = runes.length ? runes.map(x => slotHtml(x.it, 'DwarvenRune', false).replace('data-edit-slot="DwarvenRune"', 'data-edit-rune="' + x.i + '"')).join('') : '<div class="rp-hint">还没有矮人符文。矮人符文只放在天赋树的矮人符文孔中。</div>';
+    if ($('rpRuneInfo')) {
+      const sockets = (S.passives || []).filter(id => NODE[id] && NODE[id].Kind === 'Socket').length;
+      $('rpRuneInfo').textContent = '天赋树矮人符文孔 ' + sockets + ' / 9 · 已镶嵌 ' + runes.length + ' 个' + (runes.length > sockets ? ' · 超出孔洞，未生效' : '');
+    }
     $('rpIdols').innerHTML = idolBoardHtml(false);
     const idolN = S.items.filter(it => it.slot === 'Idol').length;
     if ($('rpIdolCount')) $('rpIdolCount').textContent = idolN || '';
@@ -1069,6 +1083,8 @@
     };
     $('rpIdols').onclick = idolClick;
     $('ovIdols').onclick = idolClick;
+    if ($('rpRunes')) $('rpRunes').onclick = e => { const b = e.target.closest('[data-edit-rune]'); if (b) openItemEditor('DwarvenRune', +b.dataset.editRune); };
+    if ($('rpAddRune')) $('rpAddRune').onclick = () => openItemEditor('DwarvenRune', null);
     $('rpAddIdol').onclick = () => addIdol();
   if ($('rpRelayoutIdols')) $('rpRelayoutIdols').onclick = () => { layoutIdols(S.items); done(); toast('神像已重新自动排列'); };
     $('rpSkills').onclick = e => {

@@ -256,7 +256,15 @@
       mods.push(Object.assign({ stat: m.Stat, mode: m.Mode, tags: m.Tags || [], v: v != null ? v : (m.Value || 0), v2: v2 != null ? v2 : (m.Value2 || 0), local: !!m.bLocal, src, key }, extra || {}));
     };
 
+    const runeSockets = (ch.passives || []).filter(id => (GD.nodes[id] || {}).Kind === 'Socket').length;
+    let runeSeen = 0;
     for (const it of ch.items) {
+      if (it.slot === 'DwarvenRune') {
+        if (runeSeen++ >= runeSockets) {
+          notes.push('Dwarven Rune not in an allocated Dwarven Rune Socket; it does nothing: ' + itemLabel(GD, it));
+          continue;
+        }
+      }
       const key = 'item:' + it.slot; const label = itemLabel(GD, it); const base = GD.bases[lc(it.base)];
       const rw = runewordFor(GD, it, base);
       sources.push({ key, label, group: 'Gear', detail: rw ? 'Runeword: ' + rw.Name : (it.rarity || '') });
