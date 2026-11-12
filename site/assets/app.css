@@ -1406,3 +1406,17 @@ input[type="checkbox"] { accent-color: var(--gold2); }
 .poe-version-title span { color: var(--mute); font-weight: 400; font-size: 9px; margin-left: 8px; }
 .poe-versions { display: block; }
 .poe-versions > div { display: grid; grid-template-columns: 1fr; gap: 6px; }
+
+/* PoEDB two-version news blocks */
+.poe-vblock { border: 1px solid var(--line); background: var(--bg); margin: 0 0 10px; }
+.poe-vbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 7px 10px; background: var(--panel2); border-bottom: 1px solid var(--line); }
+.poe-vbar b { color: var(--gold); font-size: 12px; font-weight: 600; }
+.poe-vbar span { color: var(--mute); font-size: 9px; }
+.poe-vbody { padding: 4px 10px 7px; }
+.poe-vrow { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.035); font-size: 9.5px; line-height: 1.75; color: var(--dim); }
+.poe-vrow:last-child { border-bottom: 0; }
+.poe-vrow > b { color: var(--gold2); font-weight: 500; font-size: 9.5px; }
+.poe-vrow a { color: var(--dim); }
+.poe-vrow a:hover { color: var(--gold); }
+.poe-vsub { color: var(--fg2); }
+.poe-vrow .poe-vsub:first-child { margin-right: 3px; }

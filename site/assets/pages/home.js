@@ -223,14 +223,14 @@
       return '<section class="poe-index-col poe-name-block"><h2>' + title + '</h2>' + rows.join('') + '</section>';
     }
     var left = section('物品', [
-      '<p><b>传奇武器</b> ' + poeList(gear.weapon, 'items.html', 18) + '</p>',
-      '<p><b>传奇护甲</b> ' + poeList(gear.armour, 'items.html', 18) + '</p>',
-      '<p><b>传奇饰品</b> ' + poeList(gear.jewel, 'items.html', 18) + '</p>',
+      '<p><b>传奇武器</b> ' + poeList(gear.weapon, 'items.html') + '</p>',
+      '<p><b>传奇护甲</b> ' + poeList(gear.armour, 'items.html') + '</p>',
+      '<p><b>传奇饰品</b> ' + poeList(gear.jewel, 'items.html') + '</p>',
       '<p><b>底材</b> ' + Object.keys(baseGroups).slice(0, 6).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(baseGroups[k], 'items.html', 7); }).join('<br>') + '</p>',
       '<p><b>神像</b> <a href="items.html#idols">全部神像</a> · <a href="planner.html#idols">模拟器神像页</a></p>',
       '<p class="poe-all"><a href="items.html">全部物品 →</a></p>'
     ]) + section('技能', [
-      '<p><b>技能宝石</b> ' + Object.keys(skillGroups).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(skillGroups[k], 'skills.html', 9); }).join('<br>') + '</p>',
+      '<p><b>技能宝石</b> ' + Object.keys(skillGroups).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(skillGroups[k], 'skills.html'); }).join('<br>') + '</p>',
       '<p><b>热门技能</b> <a href="skills.html?q=手里剑">手里剑</a> · <a href="skills.html?q=风暴火花">风暴火花</a> · <a href="skills.html?q=审判">审判</a> · <a href="skills.html?q=闪电箭">闪电箭</a> · <a href="skills.html?q=死亡缠绕">死亡缠绕</a> · <a href="skills.html?q=电弧">电弧</a></p>',
       '<p class="poe-all"><a href="skills.html">全部技能 →</a></p>'
     ]) + section('图鉴', [
@@ -239,13 +239,13 @@
       '<p class="poe-all"><a href="bestiary.html">全部图鉴 →</a></p>'
     ]);
     var right = section('辅助与符文', [
-      '<p><b>辅助宝石</b> ' + poeList(supports, 'skills.html', 24) + '</p>',
-      '<p><b>符文</b> ' + poeList(runes, 'items.html', 18) + '</p>',
-      '<p><b>符文之语</b> ' + poeList(runewords, 'items.html', 18) + '</p>',
+      '<p><b>辅助宝石</b> ' + poeList(supports, 'skills.html') + '</p>',
+      '<p><b>符文</b> ' + poeList(runes, 'items.html') + '</p>',
+      '<p><b>符文之语</b> ' + poeList(runewords, 'items.html') + '</p>',
       '<p class="poe-all"><a href="items.html#runes">全部符文 →</a></p>'
     ]) + section('关键词', [
       '<p><a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="items.html#affixes">词缀</a> · <a href="skills.html#supports">辅助</a> · <a href="items.html#runes">符文</a> · <a href="bestiary.html">守护者</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a></p>',
-      '<p><b>天赋节点</b> ' + poeList(notables, 'planner.html#tree', 18) + '</p>'
+      '<p><b>天赋节点</b> ' + poeList(notables, 'planner.html#tree') + '</p>'
     ]) + section('机制与工具', [
       '<p><a href="planner.html">模拟构筑器</a> · <a href="meta.html">环境统计</a> · <a href="builds.html">构筑库</a> · <a href="ladder.html">天梯</a> · <a href="about.html">数据说明</a></p>',
       '<p><a href="planner.html#gear">装备</a> · <a href="planner.html#skills">技能</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#defence">防御</a> · <a href="planner.html#damage">伤害</a></p>'
@@ -254,7 +254,7 @@
     if (host) { host.innerHTML = left + right; bindPoeTips(); }
   }
   function bindPoeTips() {
-    var host = el('poeDirectory'); if (!host) return;
+    var hosts = [el('poeDirectory'), el('poeVersions')].filter(Boolean); if (!hosts.length) return;
     var tip = document.getElementById('poeGlobalTip');
     if (!tip) {
       tip = document.createElement('div'); tip.id = 'poeGlobalTip'; tip.className = 'poe-tip'; document.body.appendChild(tip);
@@ -271,38 +271,75 @@
       if (y + h > window.innerHeight - 8) y = (e.clientY || 0) - h - 14;
       tip.style.left = x + 'px'; tip.style.top = y + 'px';
     }
-    host.querySelectorAll('a[data-tip]').forEach(function (a) {
+    hosts.forEach(function (host) { host.querySelectorAll('a[data-tip]').forEach(function (a) {
       a.addEventListener('mouseenter', function (e) { if (a.getAttribute('data-tip')) show(a, e); });
       a.addEventListener('mousemove', move);
       a.addEventListener('mouseleave', function () { tip.classList.remove('on'); });
-    });
+    }); });
   }
   function renderPoEVersions(leagues, version) {
     var host = el('poeVersions'); if (!host) return;
-    var N = window.BO_NAMES || {}, meta = N.meta || {}, counts = (meta.items && meta.items.counts) || {};
+    var N = window.BO_NAMES || {}, meta = N.meta || {};
     var rows = (leagues && leagues.leagues) || [];
-    var groups = [], by = {};
-    rows.forEach(function (l) {
-      var k = l.season || l.season_name || l.id;
-      if (!by[k]) { by[k] = { name: BO.seasonName(l), rows: [] }; groups.push(by[k]); }
-      by[k].rows.push(l);
+    var uniques = Object.keys(N.uniques || {}).map(function (k) { return N.uniques[k]; });
+    var bases = Object.keys(N.bases || {}).map(function (k) { return N.bases[k]; });
+    var skills = Object.keys(N.skills || {}).map(function (k) { return N.skills[k]; });
+    var supports = Object.keys(N.supports || {}).map(function (k) { return N.supports[k]; });
+    var runes = Object.keys(N.runes || {}).map(function (k) { return N.runes[k]; });
+    var runewords = Object.keys(N.runewords || {}).map(function (k) { return N.runewords[k]; });
+    var monsters = Object.keys(N.monsters || {}).map(function (k) { return [k, N.monsters[k]]; });
+    var nodes = Object.keys(N.nodes || {}).map(function (k) { return [k, N.nodes[k]]; });
+    var guardians = monsters.filter(function (x) { return /^g_/.test(x[0]); }).map(function (x) { return x[1][0]; });
+    var notables = nodes.filter(function (x) { return /Notable|Keystone/.test(String(x[1][2] || '')); }).map(function (x) { return x[1][0]; });
+    var gear = { weapon: [], armour: [], jewel: [], other: [] };
+    uniques.forEach(function (v) {
+      var slot = String(v[3] || '');
+      if (/戒指|项链|护身符|箭袋/.test(slot)) gear.jewel.push(v[0]);
+      else if (/剑|弓|斧|锤|矛|杖|匕首|爪|拳/.test(slot)) gear.weapon.push(v[0]);
+      else if (/头盔|胸甲|手套|靴子|腰带|盾|斗篷/.test(slot)) gear.armour.push(v[0]);
+      else gear.other.push(v[0]);
     });
-    if (!groups.length) groups = [{ name: 'Online Testing', rows: [] }];
+    var baseGroups = {};
+    bases.forEach(function (v) { var k = v[2] || '其他'; (baseGroups[k] = baseGroups[k] || []).push(v[0]); });
+    var skillGroups = {};
+    skills.forEach(function (v) { var k = v[2] || '其他'; (skillGroups[k] = skillGroups[k] || []).push(v[0]); });
+    function names(arr, page, sep) { return arr.map(function (n) { return poeLink(page, n); }).join(sep || ' · '); }
+    function groupList(groups, page) {
+      return Object.keys(groups).map(function (k) {
+        return '<span class="poe-vsub">' + BO.esc(k) + '</span> ' + names(groups[k], page);
+      }).join('<br>');
+    }
+    function row(label, body) { return '<div class="poe-vrow"><b>' + label + '</b><div>' + body + '</div></div>'; }
+
     var patch = (version && version.patch) || (window.BO_API_SEED && BO_API_SEED.version && BO_API_SEED.version.patch) || '0.56.8';
-    host.innerHTML = groups.map(function (g) {
-      var row = g.rows[0] || {}, status = row.id ? BO.leagueStatus(row) : 'live';
-      var dates = row.starts_at ? BO.fmtDate(row.starts_at) + ' → ' + BO.fmtDate(row.ends_at) : '—';
-      var line = function (label, page, n, extra) {
-        return '<p><b>' + label + '</b> ' + (n != null ? n + ' 项 · ' : '') + '<a href="' + page + '">查看全部</a>' + (extra ? ' · ' + extra : '') + '</p>';
-      };
-      return '<article class="poe-version"><div class="poe-version-head"><b>' + BO.esc(g.name) + ' · Patch ' + BO.esc(patch) + '</b><span>' + (row.trade ? 'SC/交易' : '赛季') + ' · ' + BO.esc(dates) + ' · ' + BO.esc(status === 'live' ? '进行中' : status === 'upcoming' ? '未开始' : '已结束') + '</span></div>' +
-        '<div class="poe-version-body">' +
-        line('物品', 'items.html', (counts.bases || 0) + (counts.uniques || 0) + (counts.affixes || 0) + (counts.runes || 0) + (counts.runewords || 0), (counts.bases || 0) + ' 底材 · ' + (counts.uniques || 0) + ' 传奇 · ' + (counts.affixes || 0) + ' 词缀 · ' + (counts.runes || 0) + ' 符文 · ' + (counts.runewords || 0) + ' 符文之语') +
-        line('技能', 'skills.html', (meta.skills || 0) + (meta.supports || 0), (meta.skills || 0) + ' 技能 · ' + (meta.supports || 0) + ' 辅助 · ' + (meta.nodes || 0) + ' 天赋 · ' + Object.keys(N.dragon || {}).length + ' 龙裔') +
-        line('图鉴', 'bestiary.html', (meta.monsters || 0) + (meta.guardians || 0), (meta.monsters || 0) + ' 怪物 · ' + (meta.guardians || 0) + ' 守护者 · 怪物词缀 · 机制') +
-        line('模拟', 'planner.html', null, '装备 · 词缀 · 神像 · 天赋 · 龙裔 · DPS · 防御') +
-        '</div></article>';
-    }).join('');
+    var current = rows.find(function (l) { return BO.leagueStatus(l) === 'live'; }) || rows[0] || null;
+    var title = (current ? BO.seasonName(current) : 'Current Version') + ' · Patch ' + patch;
+    var dates = current && current.starts_at ? BO.fmtDate(current.starts_at) + ' → ' + BO.fmtDate(current.ends_at) : '—';
+    var status = current ? BO.leagueStatus(current) : 'live';
+    var statusText = status === 'live' ? '进行中' : status === 'upcoming' ? '未开始' : '已结束';
+
+    var body = row('新闻', '<a href="about.html">版本说明</a> · <a href="ladder.html">' + BO.esc(current ? BO.seasonName(current) : '天梯') + '</a> · ' + BO.esc(dates) + ' · ' + statusText + ' · Patch ' + BO.esc(patch)) +
+      row('机制', '<a href="planner.html">模拟构筑</a> · <a href="items.html">物品</a> · <a href="skills.html">技能</a> · <a href="bestiary.html">图鉴</a> · <a href="meta.html">环境</a> · <a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a>') +
+      row('传奇', groupList({ '武器': gear.weapon, '护甲': gear.armour, '饰品': gear.jewel, '其他': gear.other }, 'items.html')) +
+      row('底材', groupList(baseGroups, 'items.html')) +
+      row('技能', groupList(skillGroups, 'skills.html') + '<br><span class="poe-vsub">辅助</span> ' + names(supports, 'skills.html') + '<br><span class="poe-vsub">天赋</span> ' + names(notables, 'planner.html#tree')) +
+      row('符文', '<span class="poe-vsub">符文</span> ' + names(runes, 'items.html') + '<br><span class="poe-vsub">符文之语</span> ' + names(runewords, 'items.html')) +
+      row('图鉴', '<span class="poe-vsub">守护者</span> ' + names(guardians, 'bestiary.html') + '<br><span class="poe-vsub">怪物</span> ' + names(monsters.map(function (x) { return x[1][0]; }), 'bestiary.html')) +
+      row('模拟', '<a href="planner.html">装备</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a>');
+    var currentHtml = '<article class="poe-vblock" data-patch="' + BO.attr(patch) + '"><div class="poe-vbar"><b>' + BO.esc(title) + '</b><span>Patch ' + BO.esc(patch) + '</span></div><div class="poe-vbody">' + body + '</div></article>';
+
+    // Keep one section per patch. The current dataset is rebuilt on every load;
+    // older patches are kept as snapshots so a new patch creates a new section
+    // instead of silently replacing the previous one.
+    var old = [];
+    try {
+      old = JSON.parse(localStorage.getItem('bo_version_blocks') || '[]') || [];
+      old = old.filter(function (x) { return x && x.patch && x.html && x.patch !== patch; }).slice(-2);
+      var next = old.concat([{ patch: patch, html: currentHtml }]).slice(-3);
+      localStorage.setItem('bo_version_blocks', JSON.stringify(next));
+    } catch (e) { old = []; }
+    host.innerHTML = currentHtml + old.slice().reverse().map(function (x) { return x.html; }).join('');
+    bindPoeTips();
   }
   function renderDbCounts() {
     var meta = (window.BO_NAMES && window.BO_NAMES.meta) || {};
