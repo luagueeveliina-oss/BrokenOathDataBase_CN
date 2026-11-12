@@ -721,8 +721,8 @@ button.chip:hover { border-color: var(--line3); color: var(--fg2); }
 .poe-league-stats b { color: var(--fg2); font-size: 12px; margin-right: 2px; }
 .poe-league-current .poe-sync { margin-top: 8px; }
 .poe-league-list-card .panel-bd { padding: 6px; }
-.poe-league-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; max-height: 126px; overflow: auto; }
-.poe-league-list .league { padding: 5px 6px; min-height: 0; font-size: 9px; gap: 2px; border-color: var(--line); background: var(--bg2); }
+.poe-league-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.poe-league-list .league { padding: 8px 8px; min-height: 62px; font-size: 10px; gap: 4px; border-color: var(--line); background: var(--bg2); }
 .poe-league-list .league-nm { font-size: 9px; gap: 4px; }
 .poe-league-list .league-meta { font-size: 8px; }
 .poe-league-list .league-tag { font-size: 7.5px; padding: 0 3px; }
@@ -736,6 +736,14 @@ button.chip:hover { border-color: var(--line3); color: var(--fg2); }
 .poe-search-link { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--dim); font: inherit; font-size: 9px; cursor: pointer; white-space: nowrap; }
 .poe-search-link:hover { color: var(--gold); }
 .poe-search-link .i { width: 12px; height: 12px; }
+.poe-covers { margin: 10px 0 6px; padding: 7px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.poe-covers h2 { margin: 0 0 4px; color: var(--gold); font-family: var(--font); font-size: 11px; font-weight: 600; }
+.poe-covers p { margin: 1px 0; color: var(--mute); font-size: 9.5px; line-height: 1.8; }
+.poe-covers p b { color: var(--fg2); font-weight: 500; }
+.poe-name-block p { line-height: 1.8; margin-bottom: 7px; }
+.poe-sub { color: var(--gold2); }
+.poe-all { margin-top: 3px !important; font-size: 9px !important; }
+.poe-all a { color: var(--gold2); }
 .poe-index-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; margin: 8px 0 10px; }
 .poe-index-col h2 { margin: 13px 0 2px; color: var(--gold); font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
 .poe-index-col h2:first-child { margin-top: 2px; }

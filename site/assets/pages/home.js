@@ -27,7 +27,9 @@
       var g = bySeason[key];
       if (!g.best || (l.trade && !l.hardcore && (!g.best.trade || g.best.hardcore)) || (g.best.hardcore && !l.hardcore)) g.best = l;
     });
-    var shown = groups.slice(0, 8);
+    // PoEDB-style header: the top row is the live league plus one featured next season.
+    var next = groups.find(function (g) { return BO.leagueStatus(g.best || g.rows[0]) === 'upcoming'; }) || groups.filter(function (g) { return BO.leagueStatus(g.best || g.rows[0]) !== 'upcoming'; })[0];
+    var shown = next ? [next] : groups.slice(0, 1);
     host.innerHTML = shown.map(function (g) {
       var best = g.best || g.rows[0];
       var status = BO.leagueStatus(best);
@@ -162,6 +164,83 @@
     host.innerHTML = picks.map(function (row) { return BO.buildCard(row, current); }).join('');
   }
 
+  function poeLink(page, label) {
+    return '<a href="' + page + '?q=' + encodeURIComponent(label) + '">' + BO.esc(label) + '</a>';
+  }
+  function poeList(items, page, max) {
+    var arr = (items || []).filter(Boolean).slice(0, max || 999);
+    return arr.map(function (x) { return poeLink(page, x); }).join(' · ');
+  }
+  function renderPoEIndex() {
+    var N = window.BO_NAMES || {};
+    var uniques = Object.keys(N.uniques || {}).map(function (k) { return N.uniques[k]; });
+    var bases = Object.keys(N.bases || {}).map(function (k) { return N.bases[k]; });
+    var skills = Object.keys(N.skills || {}).map(function (k) { return N.skills[k]; });
+    var supports = Object.keys(N.supports || {}).map(function (k) { return N.supports[k]; });
+    var runes = Object.keys(N.runes || {}).map(function (k) { return N.runes[k]; });
+    var runewords = Object.keys(N.runewords || {}).map(function (k) { return N.runewords[k]; });
+    var monsters = Object.keys(N.monsters || {}).map(function (k) { return [k, N.monsters[k]]; });
+    var nodes = Object.keys(N.nodes || {}).map(function (k) { return [k, N.nodes[k]]; });
+
+    var gear = { weapon: [], armour: [], jewel: [], other: [] };
+    uniques.forEach(function (v) {
+      var slot = String(v[3] || '');
+      if (/戒指|项链|护身符|箭袋/.test(slot)) gear.jewel.push(v[0]);
+      else if (/剑|弓|斧|锤|矛|杖|匕首|爪|拳/.test(slot)) gear.weapon.push(v[0]);
+      else if (/头盔|胸甲|手套|靴子|腰带|盾|斗篷/.test(slot)) gear.armour.push(v[0]);
+      else gear.other.push(v[0]);
+    });
+    var baseGroups = {};
+    bases.forEach(function (v) { var k = v[2] || '其他'; (baseGroups[k] = baseGroups[k] || []).push(v[0]); });
+    var skillGroups = {};
+    skills.forEach(function (v) { var k = v[2] || '其他'; (skillGroups[k] = skillGroups[k] || []).push(v[0]); });
+    var guardians = monsters.filter(function (x) { return /^g_/.test(x[0]); }).map(function (x) { return x[1][0]; });
+    var notables = nodes.filter(function (x) { return /Notable|Keystone/.test(String(x[1][2] || '')); }).map(function (x) { return x[1][0]; });
+
+    var meta = N.meta || {}, counts = (meta.items && meta.items.counts) || {};
+    var patch = (window.BO_API_SEED && BO_API_SEED.version && BO_API_SEED.version.patch) || '0.56.8';
+    var covers = '<h2>版本索引</h2>' +
+      '<p><b>' + BO.esc(patch) + '</b> · ' + (counts.bases || 465) + ' 底材 · ' + (counts.uniques || 182) + ' 传奇 · ' + (counts.affixes || 288) + ' 词缀 · ' + (counts.runes || 34) + ' 符文 · ' + (counts.runewords || 69) + ' 符文之语</p>' +
+      '<p><b>Build ' + (meta.items && meta.items.build || 69) + '</b> · ' + (meta.skills || 78) + ' 技能 · ' + (meta.supports || 93) + ' 辅助 · ' + (meta.nodes || 1242) + ' 天赋节点 · ' + (meta.monsters || 382) + ' 怪物 · ' + (meta.guardians || 28) + ' 守护者</p>' +
+      '<p><b>数据索引</b> · <a href="items.html">物品</a> · <a href="skills.html">技能</a> · <a href="bestiary.html">图鉴</a> · <a href="ladder.html">天梯</a> · <a href="meta.html">环境</a> · <a href="planner.html">模拟构筑</a></p>' +
+      '<p><b>说明</b> · <a href="about.html#sources">数据来源</a> · <a href="about.html#api">API 文档</a> · <a href="about.html#disclaimer">免责声明</a> · <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">Broken Oath public API</a></p>';
+    var coversEl = el('poeCovers');
+    if (coversEl) coversEl.innerHTML = covers;
+
+    function section(title, rows) {
+      return '<section class="poe-index-col poe-name-block"><h2>' + title + '</h2>' + rows.join('') + '</section>';
+    }
+    var left = section('物品', [
+      '<p><b>传奇武器</b> ' + poeList(gear.weapon, 'items.html', 18) + '</p>',
+      '<p><b>传奇护甲</b> ' + poeList(gear.armour, 'items.html', 18) + '</p>',
+      '<p><b>传奇饰品</b> ' + poeList(gear.jewel, 'items.html', 18) + '</p>',
+      '<p><b>底材</b> ' + Object.keys(baseGroups).slice(0, 6).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(baseGroups[k], 'items.html', 7); }).join('<br>') + '</p>',
+      '<p><b>神像</b> <a href="items.html#idols">全部神像</a> · <a href="planner.html#idols">模拟器神像页</a></p>',
+      '<p class="poe-all"><a href="items.html">全部物品 →</a></p>'
+    ]) + section('技能', [
+      '<p><b>技能宝石</b> ' + Object.keys(skillGroups).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(skillGroups[k], 'skills.html', 9); }).join('<br>') + '</p>',
+      '<p><b>热门技能</b> <a href="skills.html?q=手里剑">手里剑</a> · <a href="skills.html?q=风暴火花">风暴火花</a> · <a href="skills.html?q=审判">审判</a> · <a href="skills.html?q=闪电箭">闪电箭</a> · <a href="skills.html?q=死亡缠绕">死亡缠绕</a> · <a href="skills.html?q=电弧">电弧</a></p>',
+      '<p class="poe-all"><a href="skills.html">全部技能 →</a></p>'
+    ]) + section('图鉴', [
+      '<p><b>守护者</b> ' + poeList(guardians, 'bestiary.html') + '</p>',
+      '<p><b>怪物</b> <a href="bestiary.html">全部怪物</a> · <a href="bestiary.html#guardians">守护者</a> · <a href="bestiary.html#mechanics">机制</a></p>',
+      '<p class="poe-all"><a href="bestiary.html">全部图鉴 →</a></p>'
+    ]);
+    var right = section('辅助与符文', [
+      '<p><b>辅助宝石</b> ' + poeList(supports, 'skills.html', 24) + '</p>',
+      '<p><b>符文</b> ' + poeList(runes, 'items.html', 18) + '</p>',
+      '<p><b>符文之语</b> ' + poeList(runewords, 'items.html', 18) + '</p>',
+      '<p class="poe-all"><a href="items.html#runes">全部符文 →</a></p>'
+    ]) + section('关键词', [
+      '<p><a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="items.html#affixes">词缀</a> · <a href="skills.html#supports">辅助</a> · <a href="items.html#runes">符文</a> · <a href="bestiary.html">守护者</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a></p>',
+      '<p><b>天赋节点</b> ' + poeList(notables, 'planner.html#tree', 18) + '</p>'
+    ]) + section('机制与工具', [
+      '<p><a href="planner.html">模拟构筑器</a> · <a href="meta.html">环境统计</a> · <a href="builds.html">构筑库</a> · <a href="ladder.html">天梯</a> · <a href="about.html">数据说明</a></p>',
+      '<p><a href="planner.html#gear">装备</a> · <a href="planner.html#skills">技能</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#defence">防御</a> · <a href="planner.html#damage">伤害</a></p>'
+    ]);
+    var host = el('poeDirectory');
+    if (host) host.innerHTML = left + right;
+  }
   function renderDbCounts() {
     var meta = (window.BO_NAMES && window.BO_NAMES.meta) || {};
     var counts = (meta.items && meta.items.counts) || {};
@@ -176,6 +255,7 @@
   }
 
   BO.init('index.html', function () {
+    renderPoEIndex();
     var ps = el('poeIconSearch');
     if (ps) ps.addEventListener('click', function () { var b = document.getElementById('boSearchBtn'); if (b) b.click(); });
     var s = el('heroSearch');
