@@ -342,7 +342,7 @@
     bases.forEach(function (v) { var k = v[2] || '其他'; (baseGroups[k] = baseGroups[k] || []).push(v[0]); });
     var skillGroups = {};
     skills.forEach(function (v) { var k = v[2] || '其他'; (skillGroups[k] = skillGroups[k] || []).push(v[0]); });
-    function names(arr, page, sep) { return arr.map(function (n) { return poeLink(page, n); }).join(sep || ' · '); }
+    function names(arr, page, sep) { return arr.map(function (n) { return poeLink(page, Array.isArray(n) ? n[0] : n); }).join(sep || ' · '); }
     function groupList(groups, page) {
       return Object.keys(groups).map(function (k) {
         return '<span class="poe-vsub">' + BO.esc(k) + '</span> ' + names(groups[k], page);
@@ -360,10 +360,7 @@
     var body = row('新闻', '<a href="about.html">版本说明</a> · <a href="ladder.html">' + BO.esc(current ? cnSeason(BO.seasonName(current)) : '天梯') + '</a> · ' + BO.esc(dates) + ' · ' + statusText + ' · 补丁 ' + BO.esc(patch)) +
       row('机制', '<a href="planner.html">模拟构筑</a> · <a href="items.html">物品</a> · <a href="skills.html">技能</a> · <a href="bestiary.html">图鉴</a> · <a href="meta.html">环境</a> · <a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a>') +
       row('传奇', groupList({ '武器': gear.weapon, '护甲': gear.armour, '饰品': gear.jewel, '其他': gear.other }, 'items.html')) +
-      row('底材', groupList(baseGroups, 'items.html')) +
       row('技能', groupList(skillGroups, 'skills.html') + '<br><span class="poe-vsub">辅助</span> ' + names(supports, 'skills.html') + '<br><span class="poe-vsub">天赋</span> ' + names(notables, 'planner.html#tree')) +
-      row('符文', '<span class="poe-vsub">符文</span> ' + names(runes, 'items.html') + '<br><span class="poe-vsub">符文之语</span> ' + names(runewords, 'items.html')) +
-      row('图鉴', '<span class="poe-vsub">守护者</span> ' + names(guardians, 'bestiary.html') + '<br><span class="poe-vsub">怪物</span> ' + names(monsters.filter(function (x) { return /[\u4e00-\u9fff]/.test(x[1][0]); }).map(function (x) { return x[1][0]; }), 'bestiary.html')) +
       row('模拟', '<a href="planner.html">装备</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a>');
     var currentHtml = '<article class="poe-vblock" data-patch="' + BO.attr(patch) + '"><div class="poe-vbar"><b>' + BO.esc(title) + '</b><span>补丁 ' + BO.esc(patch) + '</span></div><div class="poe-vbody">' + body + '</div></article>';
 
