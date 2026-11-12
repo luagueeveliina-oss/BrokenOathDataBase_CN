@@ -1471,7 +1471,7 @@
     BO.mountHeader('planner.html'); BO.mountFooter(); BO.setDocumentTitle('模拟构筑', 'Build Planner');
     S = loadSaved() || P.newBuild('Warrior');
     if (!S.dragon.aspect) S.dragon.aspect = (P.tree.dragon.classAspect || {})[S.cls] || '';
-    if (!S.cfg) S.cfg = { boss: 1, shock: 0, roll: 100, rl: 80, target: 'boss', gates: 6, pinnacle: 1 };
+    if (!S.cfg) S.cfg = { boss: 1, shock: 0, roll: 100, rl: 84, target: 'boss', gates: 6, pinnacle: 1 };
     recalc();
     renderAll();
     bind();

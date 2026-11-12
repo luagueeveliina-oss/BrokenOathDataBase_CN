@@ -213,7 +213,7 @@
     },
   ];
 
-  document.getElementById('dirs').innerHTML = `<section class="board plan-board">
+  const plannerBoard = BO.PLANNER_ENABLED ? `<section class="board plan-board">
       <div class="board-head"><h3>${esc(T(['模拟构筑','Build planner']))}</h3><span class="meta">装备 11 槽 · 114 天赋点 · 93 辅助宝石 · 实时 DPS</span></div>
       <div class="board-body"><div class="dir-list">
         ${row('构筑器', [A('planner.html','打开模拟构筑 →','g'),
@@ -225,7 +225,8 @@
           '默认不计敌人抗性，另给「有效 DPS」',
           A('planner.html','计算规则说明')])}
       </div></div>
-    </section>` + BOARDS.map(b=>`
+    </section>` : '';
+  document.getElementById('dirs').innerHTML = plannerBoard + BOARDS.map(b=>`
     <section class="board">
       <div class="board-head"><h3>${esc(T(b.title))}</h3><span class="meta">${esc(b.meta)}</span></div>
       <div class="board-body"><div class="dir-list">${b.rows.join('')}</div></div>

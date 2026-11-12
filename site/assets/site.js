@@ -4,6 +4,10 @@
   const BO = window.BO = window.BO || {};
   const root = document.documentElement;
 
+  // 构筑模拟器入口开关：false = 隐藏所有构筑入口；需要恢复时改成 true。
+  BO.PLANNER_PUBLIC = false;
+  BO.PLANNER_ENABLED = !!BO.PLANNER_PUBLIC;
+
   // ---------------- language ----------------
   BO.LANG = 0; // 0 = 中文, 1 = English
   try {
@@ -112,7 +116,7 @@
     ['planner.html', ['构筑模拟', 'Planner']],
     ['bestiary.html', ['图鉴', 'Bestiary']],
     ['about.html', ['关于', 'About']],
-  ];
+  ].filter(p => p[0] !== 'planner.html' || BO.PLANNER_ENABLED);
   BO.VER = BO.VER || '0.56.5';
   BO.mountHeader = function (active) {
     const host = document.getElementById('bo-top');
@@ -166,6 +170,7 @@
     const host = document.getElementById('bo-foot');
     if (!host) return;
     const L = BO.LANG;
+    const plannerFoot = BO.PLANNER_ENABLED ? `<li><a href="planner.html">${L ? 'Build planner' : '模拟构筑'}</a></li>` : '';
     host.innerHTML = `<div class="bo-foot">
       <div class="bo-foot-in">
         <div><h5>${L ? 'Database' : '资料库'}</h5><ul>
@@ -177,7 +182,7 @@
         </ul></div>
         <div><h5>${L ? 'Mechanics' : '机制与图鉴'}</h5><ul>
           <li><a href="skills.html">${L ? 'Skills & gems' : '技能与宝石'}</a></li>
-          <li><a href="planner.html">${L ? 'Build planner' : '模拟构筑'}</a></li>
+          ${plannerFoot}
           <li><a href="bestiary.html">${L ? 'Bestiary' : '怪物图鉴'}</a></li>
           <li><a href="about.html">${L ? 'Numbers & rules' : '数值与规则'}</a></li>
         </ul></div>
