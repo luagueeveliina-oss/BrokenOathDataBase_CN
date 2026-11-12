@@ -10,90 +10,95 @@
 <link rel="stylesheet" href="assets/app.css">
 <script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
-<body>
+<body class="page-index">
 <a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
 
 <main id="main" class="wrap poe-home">
 
-  <div class="poe-home-top">
-    <section class="panel poe-live" id="liveCard" aria-live="polite">
+  <nav class="poe-iconbar" aria-label="资料分类">
+    <a href="ladder.html" title="天梯"><svg class="i"><use href="#i-trophy"/></svg></a>
+    <a href="builds.html" title="构筑库"><svg class="i"><use href="#i-users"/></svg></a>
+    <a href="items.html" title="物品"><svg class="i"><use href="#i-sword"/></svg></a>
+    <a href="skills.html" title="技能"><svg class="i"><use href="#i-spark"/></svg></a>
+    <a href="bestiary.html" title="图鉴"><svg class="i"><use href="#i-skull"/></svg></a>
+    <a href="meta.html" title="环境统计"><svg class="i"><use href="#i-chart"/></svg></a>
+    <a href="planner.html" title="模拟构筑"><svg class="i"><use href="#i-crown"/></svg></a>
+    <a href="items.html#runes" title="符文"><svg class="i"><use href="#i-rune"/></svg></a>
+    <a href="about.html" title="关于"><svg class="i"><use href="#i-book"/></svg></a>
+    <button type="button" title="搜索" id="poeIconSearch"><svg class="i"><use href="#i-search"/></svg></button>
+  </nav>
+
+  <div class="poe-league-row">
+    <section class="panel poe-league-current" id="liveCard" aria-live="polite">
       <div class="panel-hd"><span class="panel-title">当前赛季</span><span class="lc-badge"><span class="dot live"></span> LIVE</span><span class="tag gold">公开 API</span></div>
       <div class="panel-bd">
-        <div class="lc-league" id="lcLeague">Online Testing</div>
+        <div class="poe-league-title"><span class="lc-league" id="lcLeague">Online Testing</span><span class="poe-league-time" id="lcLeft">剩余 —</span></div>
         <div class="lc-sub" id="lcSub">正在载入联赛与天梯…</div>
-        <div class="lc-grid">
-          <div class="lc-cell"><b id="lcHeroes">—</b><span>天梯英雄</span></div>
-          <div class="lc-cell"><b id="lcBuilds">—</b><span>已发布构筑</span></div>
-          <div class="lc-cell"><b id="lcPatch">—</b><span>游戏补丁</span></div>
+        <div class="poe-league-stats">
+          <span><b id="lcHeroes">—</b> 天梯英雄</span>
+          <span><b id="lcBuilds">—</b> 已发布构筑</span>
+          <span><b id="lcPatch">—</b> 游戏补丁</span>
         </div>
-        <div class="lc-foot"><span id="lcLeft">剩余 —</span><a class="sec-link" href="ladder.html">进入天梯 <svg class="i"><use href="#i-arrow"/></svg></a></div>
-        <div class="poe-sync"><span id="heroPatch">Patch —</span><span id="heroSynced">同步状态读取中…</span></div>
+        <div class="poe-sync"><span id="heroPatch">Patch —</span><span id="heroSynced">同步状态读取中…</span><a href="ladder.html">进入天梯 →</a></div>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-hd"><span class="panel-title">赛季与时间</span><a class="sec-link" href="ladder.html">全部联赛 <svg class="i"><use href="#i-arrow"/></svg></a></div>
+    <section class="panel poe-league-list-card">
+      <div class="panel-hd"><span class="panel-title">赛季列表</span><a class="sec-link" href="ladder.html">全部联赛 →</a></div>
       <div class="panel-bd"><div class="poe-league-list" id="leagueRail">
-        <div class="league skeleton" style="height:50px"></div><div class="league skeleton" style="height:50px"></div>
-        <div class="league skeleton" style="height:50px"></div><div class="league skeleton" style="height:50px"></div>
+        <div class="league skeleton" style="height:38px"></div><div class="league skeleton" style="height:38px"></div>
+        <div class="league skeleton" style="height:38px"></div><div class="league skeleton" style="height:38px"></div>
       </div></div>
     </section>
   </div>
 
-  <div class="poe-shortcuts" aria-label="快捷入口">
-    <a href="ladder.html"><svg class="i"><use href="#i-crown"/></svg><span>天梯</span></a>
-    <a href="builds.html"><svg class="i"><use href="#i-scroll"/></svg><span>构筑库</span></a>
-    <a href="items.html"><svg class="i"><use href="#i-sword"/></svg><span>物品</span></a>
-    <a href="skills.html"><svg class="i"><use href="#i-spark"/></svg><span>技能</span></a>
-    <a href="bestiary.html"><svg class="i"><use href="#i-skull"/></svg><span>图鉴</span></a>
-    <a href="meta.html"><svg class="i"><use href="#i-chart"/></svg><span>环境</span></a>
-    <a href="planner.html"><svg class="i"><use href="#i-crown"/></svg><span>模拟构筑</span></a>
-    <button type="button" id="heroSearch"><svg class="i"><use href="#i-search"/></svg><span>搜索 <kbd>/</kbd></span></button>
+  <section class="poe-statline">
+    <div id="statGrid" class="poe-statline-in">
+      <span><b>—</b> 公开联赛</span><span><b>—</b> 天梯英雄</span><span><b>—</b> 官方构筑</span><span><b>—</b> 游戏补丁</span>
+    </div>
+    <button type="button" class="poe-search-link" id="heroSearch"><svg class="i"><use href="#i-search"/></svg> 搜索数据库 <kbd>/</kbd></button>
+  </section>
+
+  <div class="poe-index-grid">
+    <section class="poe-index-col">
+      <h2>物品</h2>
+      <p><a href="items.html">物品</a> · <a href="items.html#unique">传奇</a> · <a href="items.html#bases">底材</a> · <a href="items.html#affixes">词缀</a> · <a href="items.html#runes">符文</a></p>
+      <p><a href="items.html#runewords">符文之语</a> · <a href="items.html#idols">神像</a> · <a href="items.html#potions">药剂</a> · <a href="items.html#crafting">工艺</a></p>
+      <h2>技能与天赋</h2>
+      <p><a href="skills.html">技能宝石</a> · <a href="skills.html#supports">辅助宝石</a> · <a href="skills.html#vows">誓约</a> · <a href="skills.html#curses">诅咒</a></p>
+      <p><a href="planner.html#tree">天赋树</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#skills">技能栏</a> · <a href="planner.html#defence">防御</a></p>
+      <h2>天梯与构筑</h2>
+      <p><a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a> · <a href="meta.html">环境统计</a> · <a href="planner.html">模拟构筑</a></p>
+      <p><a href="ladder.html">守护者 DPS</a> · <a href="builds.html">职业分布</a> · <a href="meta.html">主技能</a> · <a href="ladder.html?league=ts1-sc-trade">Online Testing</a></p>
+    </section>
+
+    <section class="poe-index-col">
+      <h2>图鉴与机制</h2>
+      <p><a href="bestiary.html">怪物</a> · <a href="bestiary.html#guardians">守护者</a> · <a href="bestiary.html#mechanics">机制</a> · <a href="bestiary.html#affixes">怪物词缀</a></p>
+      <p><a href="bestiary.html">裂隙</a> · <a href="bestiary.html">守护者技能</a> · <a href="bestiary.html">地图</a> · <a href="bestiary.html">首领</a></p>
+      <h2>资料与工具</h2>
+      <p><a href="about.html">关于本站</a> · <a href="about.html#sources">数据来源</a> · <a href="about.html#api">公开 API</a> · <a href="about.html#disclaimer">免责声明</a></p>
+      <p><a href="planner.html">模拟构筑器</a> · <a href="meta.html">环境</a> · <a href="builds.html">构筑</a> · <a href="ladder.html">天梯</a></p>
+      <h2>关键词</h2>
+      <p><a href="items.html#affixes">词缀</a> · <a href="skills.html#supports">辅助</a> · <a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="items.html#runes">符文</a> · <a href="bestiary.html">守护者</a></p>
+      <p><a href="planner.html#gear">装备</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#skills">技能</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a></p>
+    </section>
   </div>
 
-  <section class="statgrid poe-stats" id="statGrid">
-    <div class="stat"><b>—</b><span>公开联赛</span></div>
-    <div class="stat"><b>—</b><span>天梯英雄</span></div>
-    <div class="stat"><b>—</b><span>官方构筑</span></div>
-    <div class="stat"><b>—</b><span>游戏补丁</span></div>
+  <section class="poe-newsline">
+    <div><span class="poe-kicker">DATA</span> <b id="poeSyncText">正在读取同步状态…</b></div>
+    <div class="poe-newslinks"><a href="about.html#sources">数据说明</a> · <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">公开 API</a> · <a href="about.html">关于</a></div>
   </section>
 
-  <section class="poe-directory" aria-label="资料目录">
-    <div class="panel poe-block">
-      <div class="panel-hd"><span class="panel-title">物品</span><a class="sec-link" href="items.html">全部</a></div>
-      <div class="panel-bd">
-        <p><a href="items.html">物品</a> · <a href="items.html#unique">传奇</a> · <a href="items.html#bases">底材</a> · <a href="items.html#affixes">词缀</a></p>
-        <p><a href="items.html#runes">符文</a> · <a href="items.html#runewords">符文之语</a> · <a href="items.html#idols">神像</a> · <a href="items.html#potions">药剂</a></p>
-        <p class="poe-meta">传奇、底材、词缀、符文、神像</p>
-      </div>
-    </div>
-    <div class="panel poe-block">
-      <div class="panel-hd"><span class="panel-title">技能</span><a class="sec-link" href="skills.html">全部</a></div>
-      <div class="panel-bd">
-        <p><a href="skills.html">技能宝石</a> · <a href="skills.html#supports">辅助宝石</a> · <a href="skills.html#vows">誓约</a> · <a href="skills.html#curses">诅咒</a></p>
-        <p><a href="planner.html#tree">天赋树</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#skills">技能栏</a></p>
-        <p class="poe-meta">技能、辅助、誓约、诅咒、天赋与龙裔</p>
-      </div>
-    </div>
-    <div class="panel poe-block">
-      <div class="panel-hd"><span class="panel-title">天梯与构筑</span><a class="sec-link" href="ladder.html">全部</a></div>
-      <div class="panel-bd">
-        <p><a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a> · <a href="meta.html">环境统计</a> · <a href="planner.html">模拟构筑</a></p>
-        <p><a href="ladder.html">守护者 DPS</a> · <a href="builds.html">职业分布</a> · <a href="meta.html">主技能</a></p>
-        <p class="poe-meta">公开 API 快照 · 每 15 分钟天梯刷新</p>
-      </div>
-    </div>
-    <div class="panel poe-block">
-      <div class="panel-hd"><span class="panel-title">图鉴与资料</span><a class="sec-link" href="bestiary.html">全部</a></div>
-      <div class="panel-bd">
-        <p><a href="bestiary.html">怪物</a> · <a href="bestiary.html#guardians">守护者</a> · <a href="bestiary.html#mechanics">机制</a></p>
-        <p><a href="about.html">关于</a> · <a href="about.html#sources">数据来源</a> · <a href="about.html#api">API</a></p>
-        <p class="poe-meta">怪物、守护者、裂隙机制与数据说明</p>
-      </div>
-    </div>
+  <section class="poe-updates">
+    <h2>更新与版本</h2>
+    <p><b>Patch 0.56.8</b> · 游戏 build 69 · 公开 API v1 · 天梯 15 分钟 / 构筑 60 分钟缓存</p>
+    <p><a href="about.html#sources">数据来源</a> · <a href="about.html#api">API 文档</a> · <a href="about.html">关于本站</a> · <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">Broken Oath public API</a></p>
   </section>
 
+  <details class="poe-data-fold">
+    <summary>天梯与环境数据速览 <span>Top 10、职业分布、技能环境、各职业代表作</span></summary>
   <section class="sec poe-section">
     <div class="sec-head">
       <div class="sec-left"><div class="sec-kicker">Ladder</div><h2 class="sec-title">天梯领跑者<span class="en">Top of the current league</span></h2></div>
@@ -127,6 +132,8 @@
       <div class="build-card skeleton" style="height:92px"></div>
     </div>
   </section>
+
+  </details>
 
   <section class="sec poe-section">
     <div class="panel" id="dataNote">

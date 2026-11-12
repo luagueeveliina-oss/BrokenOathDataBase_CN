@@ -696,6 +696,84 @@ button.chip:hover { border-color: var(--line3); color: var(--fg2); }
 .stat.gold b { color: var(--gold); }
 
 /* ---------- 12. hero (home) ---------- */
+
+/* ---------------------------------------------------------------- PoEDB home */
+.page-index { background: radial-gradient(ellipse at 8% 18%, rgba(29, 70, 64, .24), transparent 42%), radial-gradient(ellipse at 94% 8%, rgba(67, 52, 38, .18), transparent 38%), var(--bg); background-attachment: fixed; }
+.page-index .friends-in, .page-index .topbar-in { max-width: 960px; }
+.page-index .topbar { height: 56px; }
+.page-index .brand-name { font-size: 15px; }
+.page-index .brand-sub { display: none; }
+.page-index .brand-mark { width: 30px; height: 35px; }
+.page-index .wrap { max-width: 960px; padding-top: 12px; }
+.poe-home { max-width: 960px; }
+.poe-iconbar { display: flex; align-items: center; justify-content: center; gap: 3px; margin: 0 0 10px; padding: 4px 0 7px; border-bottom: 1px solid var(--line); }
+.poe-iconbar a, .poe-iconbar button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid transparent; border-radius: 50%; background: none; color: var(--dim); cursor: pointer; }
+.poe-iconbar a:hover, .poe-iconbar button:hover { color: var(--gold); border-color: var(--line2); background: var(--gold-dim); }
+.poe-iconbar .i { width: 16px; height: 16px; }
+.poe-league-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: start; }
+.poe-league-row .panel { margin: 0; }
+.poe-league-current .panel-bd { padding: 10px 12px; }
+.poe-league-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.poe-league-title .lc-league { font-size: 22px; line-height: 1.2; }
+.poe-league-time { color: var(--gold); font-size: 10px; white-space: nowrap; }
+.poe-league-current .lc-sub { margin-top: 2px; font-size: 10px; }
+.poe-league-stats { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 7px; color: var(--mute); font-size: 9px; }
+.poe-league-stats b { color: var(--fg2); font-size: 12px; margin-right: 2px; }
+.poe-league-current .poe-sync { margin-top: 8px; }
+.poe-league-list-card .panel-bd { padding: 6px; }
+.poe-league-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; max-height: 126px; overflow: auto; }
+.poe-league-list .league { padding: 5px 6px; min-height: 0; font-size: 9px; gap: 2px; border-color: var(--line); background: var(--bg2); }
+.poe-league-list .league-nm { font-size: 9px; gap: 4px; }
+.poe-league-list .league-meta { font-size: 8px; }
+.poe-league-list .league-tag { font-size: 7.5px; padding: 0 3px; }
+.poe-statline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 12px; padding: 6px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.poe-statline-in { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; color: var(--mute); font-size: 9px; }
+.poe-statline .stat { display: inline-flex; align-items: baseline; gap: 4px; padding: 0; border: 0; background: none; }
+.poe-statline .stat b { color: var(--fg2); font-size: 12px; }
+.poe-statline .stat span { color: var(--mute); font-size: 9px; }
+.poe-statline .stat small { display: none; }
+.poe-statline-in b { color: var(--fg2); font-size: 12px; margin-right: 3px; }
+.poe-search-link { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--dim); font: inherit; font-size: 9px; cursor: pointer; white-space: nowrap; }
+.poe-search-link:hover { color: var(--gold); }
+.poe-search-link .i { width: 12px; height: 12px; }
+.poe-index-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; margin: 8px 0 10px; }
+.poe-index-col h2 { margin: 13px 0 2px; color: var(--gold); font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.poe-index-col h2:first-child { margin-top: 2px; }
+.poe-index-col p { margin: 0 0 3px; color: var(--mute); font-size: 9.5px; line-height: 1.95; }
+.poe-index-col p a { color: var(--dim); }
+.poe-index-col p a:hover { color: var(--gold); }
+.poe-newsline { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 8px 0 16px; padding: 7px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--dim); font-size: 9px; }
+.poe-kicker { color: var(--gold2); font-size: 8px; letter-spacing: .12em; margin-right: 5px; }
+.poe-newsline b { color: var(--fg2); font-weight: 400; }
+.poe-newslinks { color: var(--mute); }
+.poe-newslinks a { color: var(--dim); }
+.poe-updates { margin: 14px 0 8px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg2); }
+.poe-updates h2 { margin: 0 0 4px; color: var(--gold); font-size: 11px; font-weight: 600; }
+.poe-updates p { margin: 2px 0; color: var(--mute); font-size: 9.5px; line-height: 1.7; }
+.poe-updates p b { color: var(--fg2); font-weight: 500; }
+.poe-data-fold { margin: 10px 0 16px; border: 1px solid var(--line); background: var(--bg2); }
+.poe-data-fold > summary { padding: 7px 10px; color: var(--dim); font-size: 9.5px; cursor: pointer; list-style: none; }
+.poe-data-fold > summary::-webkit-details-marker { display: none; }
+.poe-data-fold > summary::before { content: "▸ "; color: var(--gold2); }
+.poe-data-fold[open] > summary::before { content: "▾ "; }
+.poe-data-fold > summary span { color: var(--mute); margin-left: 6px; font-size: 8.5px; }
+.poe-data-fold .poe-section { margin: 8px 10px 14px; }
+.poe-section { margin-top: 18px; }
+.page-index .sec-head { margin-bottom: 8px; }
+.page-index .sec-kicker { font-size: 8px; margin-bottom: 2px; }
+.page-index .sec-title { font-size: 17px; }
+.page-index .sec-title .en { font-size: 8px; }
+.page-index .panel-hd { padding: 6px 10px; }
+.page-index .panel-title { font-size: 10px; }
+.page-index .panel-sub { font-size: 9px; }
+.page-index .panel-bd { padding: 9px 10px; }
+.page-index .poe-section .sec-head { margin-top: 0; }
+@media (max-width: 760px) {
+  .poe-league-row, .poe-index-grid { grid-template-columns: 1fr; }
+  .poe-league-list { grid-template-columns: 1fr 1fr; }
+  .page-index .wrap { padding-top: 8px; }
+}
+
 .poe-home { padding-top: 16px; }
 .poe-home-top { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); gap: 12px; align-items: start; margin-bottom: 12px; }
 .poe-home-top > .panel { margin: 0; }

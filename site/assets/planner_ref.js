@@ -1149,6 +1149,22 @@
     $('rpImport').onclick = openImport;
     $('rpExport').onclick = openExport;
     $('rpSave').onclick = () => { saveLocal(); toast('已保存到浏览器'); };
+    $('rpNew').onclick = () => {
+      closeModal();
+      TREE = null; DRAGON = null; GEAR_SEL = 'MainHand';
+      S = normalizeState(blankState($('rpClass').value || 'warrior', 100));
+      recalc(); renderAll(); setPane('overview');
+      toast('已新建空白构筑');
+    };
+    $('rpLoad').onclick = () => {
+      const st = loadLocal();
+      if (!st) return toast('浏览器里还没有保存的构筑', true);
+      closeModal();
+      TREE = null; DRAGON = null; GEAR_SEL = 'MainHand';
+      S = normalizeState(st);
+      recalc(); renderAll(); setPane('overview');
+      toast('已读取上次保存的构筑');
+    };
     $('rpDoll').onclick = e => { const b = e.target.closest('[data-edit-slot]'); if (b) { GEAR_SEL = b.dataset.editSlot; renderGearDetail(); } };
     if ($('rpGearDetail')) $('rpGearDetail').onclick = e => { if (e.target.closest('[data-edit-detail]')) openItemEditor(GEAR_SEL, S.items.findIndex(x => x.slot === GEAR_SEL)); };
     $('ovGear').onclick = e => { const b = e.target.closest('[data-edit-slot]'); if (b) openItemEditor(b.dataset.editSlot, S.items.findIndex(x => x.slot === b.dataset.editSlot)); };
@@ -1202,13 +1218,9 @@
       if (!quiet) modal(modalHead('已导入公开构筑') + '<div class="rp-modal-body">' + importReport(S, '公开 API') + '</div><div class="rp-modal-foot"><button class="rp-btn main" type="button" data-close>开始编辑</button></div>');
       return;
     }
-    S = loadLocal() || blankState('warrior', 100);
-    S = normalizeState(S);
-    if (!S.items.length && !S.sockets.length) {
-      // A blank plan: offer one damage skill so the damage tab is useful immediately.
-      const starter = SK.ground_slam ? 'ground_slam' : Object.values(SK).find(s => (s.Tags || []).includes('Attack'))?.Id;
-      if (starter) { S.sockets.push({ skill: lc(starter), supports: [], conduit: '' }); S.hotbar.push(lc(starter)); S.gemLevels[lc(starter)] = Math.min(20, S.level); S.mainSkill = lc(starter); S.gems.push(lc(starter)); }
-    }
+    // Always start a new session from a completely empty plan. A previously saved
+    // plan is still available through the explicit "读取保存" button.
+    S = normalizeState(blankState('warrior', 100));
     recalc(); bind(); renderAll(); setPane('overview');
     if (location.hash === '#tree') setPane('tree');
     if (location.hash === '#dragon') setPane('dragon');

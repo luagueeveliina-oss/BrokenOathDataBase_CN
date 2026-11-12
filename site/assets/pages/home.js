@@ -54,6 +54,7 @@
 
     el('heroPatch').textContent = 'Patch ' + (version.patch || '—');
     el('heroSynced').textContent = '构筑数据 ' + BO.ago(version.builds_updated_at);
+    if (el('poeSyncText')) el('poeSyncText').textContent = '数据同步于 ' + BO.ago(version.builds_updated_at) + ' · Patch ' + (version.patch || '—');
   }
 
   function renderStats(version, leagues, ladder, meta) {
@@ -175,6 +176,8 @@
   }
 
   BO.init('index.html', function () {
+    var ps = el('poeIconSearch');
+    if (ps) ps.addEventListener('click', function () { var b = document.getElementById('boSearchBtn'); if (b) b.click(); });
     var s = el('heroSearch');
     if (s) s.addEventListener('click', function () {
       var b = document.getElementById('boSearchBtn');
@@ -182,7 +185,10 @@
     });
 
     BO.api.manifest().then(function (m) {
-      if (m && m.synced_at) el('heroSynced').textContent = '同步于 ' + BO.ago(m.synced_at);
+      if (m && m.synced_at) {
+        if (el('heroSynced')) el('heroSynced').textContent = '同步于 ' + BO.ago(m.synced_at);
+        if (el('poeSyncText')) el('poeSyncText').textContent = '数据同步于 ' + BO.ago(m.synced_at) + ' · Patch ' + (m.patch || '—');
+      }
     }).catch(function () {});
 
     Promise.all([BO.api.version(), BO.api.leagues()]).then(function (res) {
