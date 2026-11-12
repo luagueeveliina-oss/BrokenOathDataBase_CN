@@ -44,6 +44,68 @@
     }
   }
 
+  function cnSeason(name) {
+    return String(name || '')
+      .replace(/Online Testing/g, '在线测试')
+      .replace(/The Bleeding Trial/g, '流血试炼')
+      .replace(/Weekend Server Bash/g, '周末服务器狂欢')
+      .replace(/Preseason Test/g, '季前测试')
+      .replace(/First Ladder[^·]*/g, '第一赛季')
+      .replace(/Second Ladder[^·]*/g, '第二赛季')
+      .replace(/Playtest 1[^·]*/g, '第一次测试')
+      .replace(/Play Test/g, '测试');
+  }
+  function renderNextSeason(leagues) {
+    var host = el('poeNextCountdown'); if (!host) return;
+    var rows = ((leagues && leagues.leagues) || []).filter(function (l) { return BO.leagueStatus(l) === 'upcoming'; });
+    rows.sort(function (a, b) { return new Date(a.starts_at) - new Date(b.starts_at); });
+    if (!rows.length || !isFinite(new Date(rows[0].starts_at))) { host.textContent = '暂无即将开始的赛季'; return; }
+    var start = new Date(rows[0].starts_at).getTime();
+    if (window.__poeNextTimer) clearInterval(window.__poeNextTimer);
+    function tick() {
+      var left = start - Date.now();
+      if (!(left > 0)) { host.textContent = '即将开始'; return; }
+      host.textContent = BO.dur(left).replace(/\s+/g, '') + '后开始';
+    }
+    tick();
+    window.__poeNextTimer = setInterval(tick, 30000);
+  }
+  function renderEndedRanks(leagues) {
+    var host = el('poeEnded'); if (!host) return;
+    var rows = ((leagues && leagues.leagues) || []).filter(function (l) { return BO.leagueStatus(l) === 'ended'; });
+    var groups = [], by = {};
+    rows.forEach(function (l) {
+      var k = l.season || l.season_name || l.id;
+      if (!by[k]) { by[k] = { name: cnSeason(BO.seasonName(l)), rows: [] }; groups.push(by[k]); }
+      by[k].rows.push(l);
+    });
+    if (!groups.length) {
+      host.innerHTML = '<h2>已结束赛季排行</h2><div class="poe-ended-empty">暂无</div>';
+      return;
+    }
+    host.innerHTML = '<h2>已结束赛季排行</h2><div class="poe-ended-grid">' + groups.map(function (g) {
+      return '<div class="poe-ended-item" data-ended="' + BO.attr(g.rows[0].id) + '"><b>' + BO.esc(g.name) + '</b><span>' + BO.esc(BO.leagueShort(g.rows[0])) + ' · ' + BO.esc(BO.fmtDate(g.rows[0].starts_at)) + ' → ' + BO.esc(BO.fmtDate(g.rows[0].ends_at)) + '</span><div class="poe-ended-data">暂无</div></div>';
+    }).join('') + '</div>';
+    Promise.all(groups.map(function (g) {
+      var row = g.rows.find(function (l) { return l.trade && !l.hardcore; }) || g.rows[0];
+      return BO.api.live('ladder/' + row.id + '.json', true).catch(function () {
+        return BO.api.load('ladder/' + row.id + '.json').catch(function () { return null; });
+      }).then(function (l) { return { g: g, row: row, l: l }; });
+    })).then(function (items) {
+      items.forEach(function (x) {
+        var item = host.querySelector('[data-ended="' + x.row.id.replace(/"/g, '\"') + '"]');
+        if (!item) return;
+        var data = item.querySelector('.poe-ended-data');
+        var l = x.l;
+        if (!l || !l.count || !(l.heroes || []).length) { data.textContent = '暂无'; return; }
+        data.innerHTML = (l.heroes || []).slice(0, 5).map(function (h) {
+          return '<a href="ladder.html?league=' + encodeURIComponent(x.row.id) + '">#' + h.rank + ' ' + BO.esc(BO.classZh(h.class)) + ' Lv' + h.level + (h.guardian_dps_median ? ' · ' + BO.num(h.guardian_dps_median) : '') + '</a>';
+        }).join(' · ');
+      });
+    }).catch(function () {
+      host.querySelectorAll('.poe-ended-data').forEach(function (d) { if (!d.textContent || d.textContent === '读取中…') d.textContent = '暂无'; });
+    });
+  }
   function renderLive(version, leagues, currentRow, ladder, meta) {
     var card = el('liveCard');
     if (!currentRow) { card.innerHTML = BO.empty('没有公开联赛', 'API 暂未返回联赛列表。'); return; }
@@ -57,7 +119,7 @@
 
     el('heroPatch').textContent = 'Patch ' + (version.patch || '—');
     el('heroSynced').textContent = '构筑数据 ' + BO.ago(version.builds_updated_at);
-    if (el('poeSyncText')) el('poeSyncText').textContent = '数据同步于 ' + BO.ago(version.builds_updated_at) + ' · Patch ' + (version.patch || '—');
+    if (el('poeSyncText')) el('poeSyncText').textContent = '数据同步于 ' + BO.ago(version.builds_updated_at) + ' · 补丁 ' + (version.patch || '—');
   }
 
   function renderStats(version, leagues, ladder, meta) {
@@ -67,7 +129,7 @@
       '<div class="stat"><b>' + (leagues.leagues || []).length + '</b><span>公开联赛</span><small>官方赛季 · 含已结束</small></div>' +
       '<div class="stat"><b>' + (ladder ? BO.num(ladder.count) : '—') + '</b><span>天梯英雄</span><small>当前联赛 · 每职业前 200</small></div>' +
       '<div class="stat gold"><b>' + (published ? BO.num(published) : '—') + '</b><span>已发布构筑</span><small>每小时更新</small></div>' +
-      '<div class="stat"><b>' + BO.esc(version.patch || '—') + '</b><span>游戏补丁</span><small>game build ' + (version.game_build || '—') + '</small></div>';
+      '<div class="stat"><b>' + BO.esc(version.patch || '—') + '</b><span>游戏补丁</span><small>游戏构建 ' + (version.game_build || '—') + '</small></div>';
   }
 
   function renderLadder(leagues, current, ladder) {
@@ -213,45 +275,22 @@
     var patch = (window.BO_API_SEED && BO_API_SEED.version && BO_API_SEED.version.patch) || '0.56.8';
     var covers = '<h2>版本索引</h2>' +
       '<p><b>' + BO.esc(patch) + '</b> · ' + (counts.bases || 465) + ' 底材 · ' + (counts.uniques || 182) + ' 传奇 · ' + (counts.affixes || 288) + ' 词缀 · ' + (counts.runes || 34) + ' 符文 · ' + (counts.runewords || 69) + ' 符文之语</p>' +
-      '<p><b>Build ' + (meta.items && meta.items.build || 69) + '</b> · ' + (meta.skills || 78) + ' 技能 · ' + (meta.supports || 93) + ' 辅助 · ' + (meta.nodes || 1242) + ' 天赋节点 · ' + (meta.monsters || 382) + ' 怪物 · ' + (meta.guardians || 28) + ' 守护者</p>' +
+      '<p><b>构建 ' + (meta.items && meta.items.build || 69) + '</b> · ' + (meta.skills || 78) + ' 技能 · ' + (meta.supports || 93) + ' 辅助 · ' + (meta.nodes || 1242) + ' 天赋节点 · ' + (meta.monsters || 382) + ' 怪物 · ' + (meta.guardians || 28) + ' 守护者</p>' +
       '<p><b>数据索引</b> · <a href="items.html">物品</a> · <a href="skills.html">技能</a> · <a href="bestiary.html">图鉴</a> · <a href="ladder.html">天梯</a> · <a href="meta.html">环境</a> · <a href="planner.html">模拟构筑</a></p>' +
       '<p><b>说明</b> · <a href="about.html#sources">数据来源</a> · <a href="about.html#api">API 文档</a> · <a href="about.html#disclaimer">免责声明</a> · <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">Broken Oath public API</a></p>';
     var coversEl = el('poeCovers');
     if (coversEl) coversEl.innerHTML = covers;
 
-    function section(title, rows) {
-      return '<section class="poe-index-col poe-name-block"><h2>' + title + '</h2>' + rows.join('') + '</section>';
-    }
-    var left = section('物品', [
-      '<p><b>传奇武器</b> ' + poeList(gear.weapon, 'items.html') + '</p>',
-      '<p><b>传奇护甲</b> ' + poeList(gear.armour, 'items.html') + '</p>',
-      '<p><b>传奇饰品</b> ' + poeList(gear.jewel, 'items.html') + '</p>',
-      '<p><b>底材</b> ' + Object.keys(baseGroups).slice(0, 6).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(baseGroups[k], 'items.html', 7); }).join('<br>') + '</p>',
-      '<p><b>神像</b> <a href="items.html#idols">全部神像</a> · <a href="planner.html#idols">模拟器神像页</a></p>',
-      '<p class="poe-all"><a href="items.html">全部物品 →</a></p>'
-    ]) + section('技能', [
-      '<p><b>技能宝石</b> ' + Object.keys(skillGroups).map(function (k) { return '<span class="poe-sub">' + BO.esc(k) + '：</span>' + poeList(skillGroups[k], 'skills.html'); }).join('<br>') + '</p>',
-      '<p><b>热门技能</b> <a href="skills.html?q=手里剑">手里剑</a> · <a href="skills.html?q=风暴火花">风暴火花</a> · <a href="skills.html?q=审判">审判</a> · <a href="skills.html?q=闪电箭">闪电箭</a> · <a href="skills.html?q=死亡缠绕">死亡缠绕</a> · <a href="skills.html?q=电弧">电弧</a></p>',
-      '<p class="poe-all"><a href="skills.html">全部技能 →</a></p>'
-    ]) + section('图鉴', [
-      '<p><b>守护者</b> ' + poeList(guardians, 'bestiary.html') + '</p>',
-      '<p><b>怪物</b> <a href="bestiary.html">全部怪物</a> · <a href="bestiary.html#guardians">守护者</a> · <a href="bestiary.html#mechanics">机制</a></p>',
-      '<p class="poe-all"><a href="bestiary.html">全部图鉴 →</a></p>'
-    ]);
-    var right = section('辅助与符文', [
-      '<p><b>辅助宝石</b> ' + poeList(supports, 'skills.html') + '</p>',
-      '<p><b>符文</b> ' + poeList(runes, 'items.html') + '</p>',
-      '<p><b>符文之语</b> ' + poeList(runewords, 'items.html') + '</p>',
-      '<p class="poe-all"><a href="items.html#runes">全部符文 →</a></p>'
-    ]) + section('关键词', [
-      '<p><a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="items.html#affixes">词缀</a> · <a href="skills.html#supports">辅助</a> · <a href="items.html#runes">符文</a> · <a href="bestiary.html">守护者</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a></p>',
-      '<p><b>天赋节点</b> ' + poeList(notables, 'planner.html#tree') + '</p>'
-    ]) + section('机制与工具', [
-      '<p><a href="planner.html">模拟构筑器</a> · <a href="meta.html">环境统计</a> · <a href="builds.html">构筑库</a> · <a href="ladder.html">天梯</a> · <a href="about.html">数据说明</a></p>',
-      '<p><a href="planner.html#gear">装备</a> · <a href="planner.html#skills">技能</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#defence">防御</a> · <a href="planner.html#damage">伤害</a></p>'
-    ]);
     var host = el('poeDirectory');
-    if (host) { host.innerHTML = left + right; bindPoeTips(); }
+    if (host) {
+      host.innerHTML = '<section class="poe-name-block poe-compact"><h2>资料索引</h2>' +
+        '<p><b>物品</b> <a href="items.html">传奇</a> · <a href="items.html">底材</a> · <a href="items.html#affixes">词缀</a> · <a href="items.html#runes">符文</a> · <a href="items.html#runewords">符文之语</a> · <a href="items.html#idols">神像</a></p>' +
+        '<p><b>技能</b> <a href="skills.html">技能宝石</a> · <a href="skills.html#supports">辅助</a> · <a href="skills.html#vows">誓约</a> · <a href="skills.html#curses">诅咒</a> · <a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a></p>' +
+        '<p><b>天梯</b> <a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a> · <a href="meta.html">环境统计</a> · <a href="planner.html">模拟构筑</a></p>' +
+        '<p><b>图鉴</b> <a href="bestiary.html">怪物</a> · <a href="bestiary.html#guardians">守护者</a> · <a href="bestiary.html#mechanics">机制</a> · <a href="about.html">数据说明</a></p>' +
+        '</section>';
+      bindPoeTips();
+    }
   }
   function bindPoeTips() {
     var hosts = [el('poeDirectory'), el('poeVersions')].filter(Boolean); if (!hosts.length) return;
@@ -313,12 +352,12 @@
 
     var patch = (version && version.patch) || (window.BO_API_SEED && BO_API_SEED.version && BO_API_SEED.version.patch) || '0.56.8';
     var current = rows.find(function (l) { return BO.leagueStatus(l) === 'live'; }) || rows[0] || null;
-    var title = (current ? BO.seasonName(current) : 'Current Version') + ' · Patch ' + patch;
+    var title = (current ? cnSeason(BO.seasonName(current)) : '当前版本') + ' · 补丁 ' + patch;
     var dates = current && current.starts_at ? BO.fmtDate(current.starts_at) + ' → ' + BO.fmtDate(current.ends_at) : '—';
     var status = current ? BO.leagueStatus(current) : 'live';
     var statusText = status === 'live' ? '进行中' : status === 'upcoming' ? '未开始' : '已结束';
 
-    var body = row('新闻', '<a href="about.html">版本说明</a> · <a href="ladder.html">' + BO.esc(current ? BO.seasonName(current) : '天梯') + '</a> · ' + BO.esc(dates) + ' · ' + statusText + ' · Patch ' + BO.esc(patch)) +
+    var body = row('新闻', '<a href="about.html">版本说明</a> · <a href="ladder.html">' + BO.esc(current ? cnSeason(BO.seasonName(current)) : '天梯') + '</a> · ' + BO.esc(dates) + ' · ' + statusText + ' · 补丁 ' + BO.esc(patch)) +
       row('机制', '<a href="planner.html">模拟构筑</a> · <a href="items.html">物品</a> · <a href="skills.html">技能</a> · <a href="bestiary.html">图鉴</a> · <a href="meta.html">环境</a> · <a href="ladder.html">天梯</a> · <a href="builds.html">构筑库</a>') +
       row('传奇', groupList({ '武器': gear.weapon, '护甲': gear.armour, '饰品': gear.jewel, '其他': gear.other }, 'items.html')) +
       row('底材', groupList(baseGroups, 'items.html')) +
@@ -326,7 +365,7 @@
       row('符文', '<span class="poe-vsub">符文</span> ' + names(runes, 'items.html') + '<br><span class="poe-vsub">符文之语</span> ' + names(runewords, 'items.html')) +
       row('图鉴', '<span class="poe-vsub">守护者</span> ' + names(guardians, 'bestiary.html') + '<br><span class="poe-vsub">怪物</span> ' + names(monsters.map(function (x) { return x[1][0]; }), 'bestiary.html')) +
       row('模拟', '<a href="planner.html">装备</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#tree">天赋</a> · <a href="planner.html#dragon">龙裔</a> · <a href="planner.html#damage">DPS</a> · <a href="planner.html#defence">防御</a>');
-    var currentHtml = '<article class="poe-vblock" data-patch="' + BO.attr(patch) + '"><div class="poe-vbar"><b>' + BO.esc(title) + '</b><span>Patch ' + BO.esc(patch) + '</span></div><div class="poe-vbody">' + body + '</div></article>';
+    var currentHtml = '<article class="poe-vblock" data-patch="' + BO.attr(patch) + '"><div class="poe-vbar"><b>' + BO.esc(title) + '</b><span>补丁 ' + BO.esc(patch) + '</span></div><div class="poe-vbody">' + body + '</div></article>';
 
     // Keep one section per patch. The current dataset is rebuilt on every load;
     // older patches are kept as snapshots so a new patch creates a new section
@@ -367,7 +406,7 @@
     BO.api.manifest().then(function (m) {
       if (m && m.synced_at) {
         if (el('heroSynced')) el('heroSynced').textContent = '同步于 ' + BO.ago(m.synced_at);
-        if (el('poeSyncText')) el('poeSyncText').textContent = '数据同步于 ' + BO.ago(m.synced_at) + ' · Patch ' + (m.patch || '—');
+        if (el('poeSyncText')) el('poeSyncText').textContent = '数据同步于 ' + BO.ago(m.synced_at) + ' · 补丁 ' + (m.patch || '—');
       }
     }).catch(function () {});
 
@@ -376,7 +415,8 @@
       var leagues = res[1] || { leagues: [] };
       var current = (window.BO_API_SEED && BO_API_SEED.current) || BO.currentLeague(leagues);
       var currentRow = (leagues.leagues || []).find(function (l) { return l.id === current; }) || null;
-      renderLeagues(leagues, current);
+      renderNextSeason(leagues);
+      renderEndedRanks(leagues);
       renderDbCounts();
 
       Promise.all([
@@ -400,7 +440,6 @@
       });
     }).catch(function (e) {
       el('liveCard').innerHTML = BO.errorBox(e.message);
-      el('leagueRail').innerHTML = BO.empty('无法读取联赛', '请检查网络后刷新；本站已内置一份同步快照。');
       el('topLadder').innerHTML = BO.empty('无法读取天梯', 'API 数据暂不可用。');
     });
   });

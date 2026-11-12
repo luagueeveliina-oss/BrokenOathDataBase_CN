@@ -44,12 +44,8 @@
       </div>
     </section>
 
-    <section class="panel poe-league-list-card">
-      <div class="panel-hd"><span class="panel-title">下一赛季</span><a class="sec-link" href="ladder.html">全部联赛 →</a></div>
-      <div class="panel-bd"><div class="poe-league-list" id="leagueRail">
-        <div class="league skeleton" style="height:38px"></div><div class="league skeleton" style="height:38px"></div>
-        <div class="league skeleton" style="height:38px"></div><div class="league skeleton" style="height:38px"></div>
-      </div></div>
+    <section class="panel poe-next" aria-live="polite">
+      <div class="poe-next-time" id="poeNextCountdown">读取赛季时间…</div>
     </section>
   </div>
 
@@ -59,6 +55,8 @@
     </div>
     <button type="button" class="poe-search-link" id="heroSearch"><svg class="i"><use href="#i-search"/></svg> 搜索数据库 <kbd>/</kbd></button>
   </section>
+
+  <section class="poe-ended" id="poeEnded"></section>
 
   <section class="poe-covers" id="poeCovers"></section>
 
