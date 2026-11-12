@@ -48,8 +48,8 @@
     <section class="rp-main">
       <div class="rp-status">
         <div class="rp-cell who"><span>构筑</span><b id="stName">新构筑</b><small id="stWho">战士 · 100</small></div>
-        <div class="rp-cell"><span>Boss DPS · 模型</span><b id="stDps">—</b><small>对当前敌人</small></div>
-        <div class="rp-cell"><span>面板 DPS</span><b id="stPanel">—</b><small>无敌人</small></div>
+        <div class="rp-cell best"><span>最高技能 DPS · 模型</span><div class="rp-best-inline"><span id="stBestIcon"></span><b id="stDps">—</b></div><small id="stBestSkill">—</small></div>
+        <div class="rp-cell"><span>最高技能面板 DPS</span><b id="stPanel">—</b><small>无敌人</small></div>
         <div class="rp-cell"><span>生命 / 魔力</span><b id="stLife">—</b><small id="stEs">—</small></div>
         <div class="rp-cell"><span>力量 / 敏捷 / 智力</span><b id="stAttr">—</b><small>—</small></div>
       </div>
@@ -58,8 +58,10 @@
         <section class="rp-pane on" id="pane-overview">
           <div class="rp-intro">
             <div><div class="rp-kicker">BUILD OVERVIEW</div><h1>构筑总览</h1><p>按 Broken Oath Builder 的模型计算：面板、敌人、命中、暴击、异常、誓言保留与每秒魔力。</p></div>
-            <div class="rp-intro-actions"><button class="rp-btn main" data-go="tree">去点天赋</button><button class="rp-btn" data-go="skills">选技能</button></div>
+            <div class="rp-intro-actions"><label class="rp-target"><span>目标</span><select id="rpTarget" class="rp-input"><option value="boss">Guardian (Boss)</option><option value="rare">Rare / Unique</option><option value="normal">普通怪物</option></select></label><button class="rp-btn main" data-go="tree">去点天赋</button><button class="rp-btn" data-go="skills">选技能</button></div>
           </div>
+          <div class="rp-hero" id="ovBest"></div>
+          <div class="rp-card"><div class="rp-card-head"><h2>技能 DPS 排行</h2><button class="rp-link" data-go="skills">管理技能 →</button></div><div id="ovSkillRank"></div></div>
           <div id="ovOfficial" class="rp-official" hidden></div>
           <div class="rp-cols">
             <div class="rp-card"><div class="rp-card-head"><h2>装备</h2><button class="rp-link" data-go="gear">编辑装备 →</button></div><div id="ovGear" class="rp-doll"></div></div>
@@ -96,7 +98,7 @@
           <div class="rp-toolbar">
             <div class="rp-tabs"><button data-tree-tab="tree">天赋树</button><button class="on" data-tree-tab="dragon">龙裔</button></div>
             <div class="rp-aspects" id="rpAspects"></div>
-            <div class="rp-tools"><label class="rp-mini">额外点 <input id="rpDragonExtra" class="rp-input" type="number" min="0" max="40" value="0"></label><button class="rp-btn small" id="rpDragonClear">清空</button></div>
+            <div class="rp-tools"><label class="rp-mini">额外点 <input id="rpDragonExtra" class="rp-input" type="number" min="0" max="13" value="0"></label><button class="rp-btn small" id="rpDragonClear">清空</button></div>
           </div>
           <div class="rp-tree-body">
             <div class="rp-stage dragon" id="rpDragonStage"><svg id="rpDragonSvg" role="img" aria-label="龙裔树"></svg><div class="rp-stage-hint" id="rpDragonStatus"></div></div>
@@ -106,7 +108,7 @@
 
         <section class="rp-pane" id="pane-gear">
           <div class="rp-intro small"><div><div class="rp-kicker">GEAR</div><h1>装备</h1><p>底材固定词缀自动生效；稀有/魔法装备可逐条选择词缀品阶与 roll；传奇有 roll 滑块。神像已移到左侧独立的「神像」页。</p></div></div>
-          <div class="rp-card"><div class="rp-card-head"><h2>装备</h2><span class="rp-note">点击槽位编辑 · 神像 <b id="rpGearIdolN">0</b> 件在左侧「神像」页</span></div><div id="rpDoll" class="rp-body"></div></div>
+          <div class="rp-gear-wrap"><div class="rp-card"><div class="rp-card-head"><h2>装备</h2><span class="rp-note">点击槽位查看 · 神像 <b id="rpGearIdolN">0</b> 件在左侧「神像」页</span></div><div id="rpDoll" class="rp-body"></div></div><div class="rp-card rp-gear-detail-card"><div class="rp-card-head"><h2>装备详情</h2><span class="rp-note">点击左侧槽位切换</span></div><div id="rpGearDetail"></div></div></div>
           <div class="rp-card"><div class="rp-card-head"><h2>矮人符文</h2><span class="rp-tools"><span class="rp-note" id="rpRuneInfo">天赋树矮人符文孔 0 / 9</span><button class="rp-link" id="rpAddRune">+ 添加符文</button></span></div><div id="rpRunes" class="rp-rune-grid"></div><div class="rp-hint">矮人符文只镶嵌在天赋树中点亮后的「Dwarven Rune Socket」节点；不是普通装备槽。API 导入会保留多个符文。</div></div>
         </section>
 

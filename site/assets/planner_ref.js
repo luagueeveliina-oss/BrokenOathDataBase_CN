@@ -33,7 +33,7 @@
   ];
   const SLOT_LABEL = { MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子', Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', DwarvenRune: '矮人符文', Idol: '神像' };
   const PREFIX = 'bo_planner_ref';
-  let S = null, R = null, DEF = null, PANE = 'overview', UNDO = [], TREE = null, DRAGON = null, MODAL = null;
+  let S = null, R = null, DEF = null, RANK = [], GEAR_SEL = 'MainHand', PANE = 'overview', UNDO = [], TREE = null, DRAGON = null, MODAL = null;
 
   const zh = (m, id, fallback) => (m && m[lc(id)]) || fallback || id;
   const skillName = id => SKILL_ZH[lc(id)] || zh(ZH.skill, id, SK[lc(id)] ? SK[lc(id)].Name : id);
@@ -107,6 +107,7 @@
     };
   }
   function realNode(id) { return NODE[id] ? id : (GD.moved && GD.moved[id]) || id; }
+  const MAX_PASSIVE_POINTS = 112, MAX_BONUS_POINTS = 13, MAX_DRAGON_POINTS = 13;
   const IDOL_W = 5, IDOL_H = 5;
   function idolSize(it) {
     const b = it && BASE[it.base];
@@ -194,6 +195,11 @@
     }
     return { id, tier, v: Math.round(v * 100) / 100, v2: v2 == null ? 0 : Math.round(v2 * 100) / 100, oath: !!(a.oath || a.bOath83), crafted: !!(a.crafted || a.bCrafted) };
   }
+  function isTwoHandBase(baseId) {
+    const b = BASE[lc(baseId)];
+    return !!(b && (b.bTwoHanded || (b.Tags || []).includes('TwoHand') || b.Class === 'DualBlades'));
+  }
+  function mainIsTwoHand() { const m = (S.items || []).find(it => it.slot === 'MainHand'); return !!m && isTwoHandBase(m.base); }
   function normItem(raw) {
     if (!raw) return null;
     let slot = raw.slot || raw.s || '';
@@ -221,7 +227,7 @@
     st.name = raw.name || raw.title || raw.t || st.name;
     st.classId = CLASS[lc(raw.classId || raw.cls)] ? lc(raw.classId || raw.cls) : 'warrior';
     st.level = clamp(n(raw.level || raw.l) || 1, 1, 100);
-    st.bonusPoints = Math.max(0, n(raw.bonusPoints != null ? raw.bonusPoints : raw.bonus));
+    st.bonusPoints = Math.min(MAX_BONUS_POINTS, Math.max(0, n(raw.bonusPoints != null ? raw.bonusPoints : raw.bonus)));
     st.items = (raw.items || []).map(normItem).filter(Boolean);
     const seen = {};
     st.items = st.items.filter(it => {
@@ -230,6 +236,11 @@
       if (seen[it.slot]) return false;
       seen[it.slot] = 1; return true;
     }).slice(0, 60);
+    if ((st.items || []).some(it => it.slot === 'MainHand' && isTwoHandBase(it.base)) && (st.items || []).some(it => it.slot === 'OffHand')) {
+      st.items = st.items.filter(it => it.slot !== 'OffHand');
+      st._importWarnings = (st._importWarnings || []).slice();
+      st._importWarnings.push('主手是双手武器，副手装备已忽略。');
+    }
     layoutIdols(st.items);
     st.passives = (raw.passives || raw.p || []).map(realNode).filter((id, i, a) => NODE[id] && a.indexOf(id) === i);
     normalizePassives(st);
@@ -243,9 +254,16 @@
     st.weaponId = raw.weaponId || '';
     st.dragonNodes = (raw.dragonNodes || raw.dn || []).map(String).filter(id => (GD.dragon.classes[st.classId] || {})[id]);
     st.dragonAspect = raw.dragonAspect || raw.da || '';
-    st.dragonExtra = raw.dragonExtra != null ? clamp(n(raw.dragonExtra), 0, 40) : 0;
+    st.dragonExtra = raw.dragonExtra != null ? clamp(n(raw.dragonExtra), 0, MAX_DRAGON_POINTS) : 0;
     const dbaseNow = MILESTONES.filter(l => st.level >= l).length + (RULES.hatch || 0);
-    if ((st.dragonNodes || []).length > dbaseNow + st.dragonExtra) st.dragonExtra = Math.min(40, (st.dragonNodes || []).length - dbaseNow);
+    const maxDragonExtra = Math.max(0, MAX_DRAGON_POINTS - dbaseNow);
+    if ((st.dragonNodes || []).length > dbaseNow + st.dragonExtra) st.dragonExtra = Math.min(maxDragonExtra, (st.dragonNodes || []).length - dbaseNow);
+    st.dragonExtra = Math.min(maxDragonExtra, Math.max(0, st.dragonExtra));
+    if ((st.dragonNodes || []).length > MAX_DRAGON_POINTS) {
+      st._importWarnings = (st._importWarnings || []).slice();
+      st._importWarnings.push('龙裔点超过上限 ' + MAX_DRAGON_POINTS + '，多余的 ' + ((st.dragonNodes || []).length - MAX_DRAGON_POINTS) + ' 点已忽略');
+      st.dragonNodes = st.dragonNodes.slice(0, MAX_DRAGON_POINTS);
+    }
     st.mainSkill = lc(raw.mainSkill || '');
     if (!SK[st.mainSkill]) {
       const first = st.sockets[0] ? st.sockets[0].skill : (st.hotbar.find(x => SK[x]) || '');
@@ -270,7 +288,7 @@
   }
   function setDragonExtraForImport(st) {
     const base = MILESTONES.filter(l => st.level >= l).length + (RULES.hatch || 0);
-    st.dragonExtra = Math.max(0, (st.dragonNodes || []).length - base);
+    st.dragonExtra = Math.min(Math.max(0, MAX_DRAGON_POINTS - base), Math.max(0, (st.dragonNodes || []).length - base));
   }
 
   /* --------------------------------------------------------------- adapters */
@@ -450,7 +468,22 @@
       console.error(e); R = { error: e.message, notes: [], totalDps: 0, panelDps: 0 };
     }
     DEF = R && !R.error ? computeDefence(R) : null;
+    rankSkills();
   }
+  function rankSkills() {
+    const seen = new Set(), out = [];
+    const ids = skillRows().map(x => x.skill).concat(S.gems || []);
+    for (const id of ids) {
+      if (!id || seen.has(id) || !SK[id]) continue;
+      seen.add(id);
+      const rr = calcFor(S, id);
+      if (rr && !rr.error && !rr.unsupported && isFinite(rr.totalDps) && rr.totalDps > 0) out.push({ id, rr });
+    }
+    out.sort((a, b) => b.rr.totalDps - a.rr.totalDps);
+    RANK = out;
+  }
+  function bestSkill() { return RANK.length ? RANK[0] : null; }
+
   function computeDefence(R) {
     const mods = R.mods || [], attr = R.attr || {};
     const get = st => { try { return SIM.defenceTotal(GD, S, mods, attr, st); } catch (e) { return 0; } };
@@ -528,7 +561,7 @@
   }
   function pointsBudget() {
     const per = n(H.PassivePointsPerLevel) || 1;
-    return Math.max(0, Math.round((S.level - 1) * per + (S.bonusPoints || 0)));
+    return Math.min(MAX_PASSIVE_POINTS, Math.max(0, Math.round((S.level - 1) * per + (S.bonusPoints || 0))));
   }
   function pointsUsed() { return (S.passives || []).filter(id => NODE[id] && NODE[id].Kind !== 'Start').length; }
 
@@ -560,8 +593,11 @@
     const name = S.name || (classLabel(S.classId) + ' 计划');
     $('stName').textContent = name;
     $('stWho').textContent = classLabel(S.classId) + ' · ' + S.level;
-    $('stDps').textContent = R && !R.error && isFinite(R.totalDps) ? big(R.totalDps) : '—';
-    $('stPanel').textContent = R && isFinite(R.panelDps) ? big(R.panelDps) : '—';
+    const best = bestSkill();
+    $('stDps').textContent = best ? big(best.rr.totalDps) : (R && !R.error && isFinite(R.totalDps) ? big(R.totalDps) : '—');
+    $('stPanel').textContent = best && isFinite(best.rr.panelDps) ? big(best.rr.panelDps) : (R && isFinite(R.panelDps) ? big(R.panelDps) : '—');
+    if ($('stBestIcon')) $('stBestIcon').innerHTML = best ? skillIcon(best.id, true) : '';
+    if ($('stBestSkill')) $('stBestSkill').textContent = best ? skillName(best.id) : '没有可用伤害技能';
     let life = '—', mana = '—';
     try { life = big(SIM.heroMaxLife(GD, S, R ? R.mods : [], R ? R.attr : {})); } catch (e) {}
     if (R && R.mana && !R.mana.skip) mana = big(R.mana.max);
@@ -571,6 +607,7 @@
     $('rpName').value = S.name || '';
     $('rpClass').value = S.classId;
     $('rpLevel').value = S.level;
+    if ($('rpTarget')) $('rpTarget').value = (S.enemy && S.enemy.rarity) || 'boss';
     $('rpPoints').textContent = '天赋点 ' + pointsUsed() + ' / ' + pointsBudget() + ' · 龙裔 ' + (S.dragonNodes || []).length + ' / ' + dragonPoints();
     $('rpData').innerHTML = '伤害模型：Broken Oath Builder<br>游戏数据：<b>' + esc(GD.filesAt ? String(GD.filesAt).slice(0, 10) : '本地') + '</b> · 被动树 v' + esc(GD.treeVersion) + '<br>' + Object.keys(SK).length + ' 技能 · ' + NODES.length + ' 天赋节点';
   }
@@ -639,6 +676,18 @@
       (lines.length ? '<span class="rp-slot-mods">' + lines.slice(0, compact ? 1 : 99).map(esc).join('<br>') + '</span>' : '') + '</button>';
   }
   function renderOverview() {
+    const best = bestSkill();
+    if ($('ovBest')) {
+      $('ovBest').innerHTML = best ? '<div class="rp-hero-skill">' + skillIcon(best.id, true) + '<div><span class="rp-kicker">TOP SKILL</span><b>' + esc(skillName(best.id)) + '</b><small>' + esc((SK[best.id] || {}).Kind || '') + ' · Lv ' + (S.gemLevels[best.id] || 20) + ' · ' + ((S.sockets.find(x => x.skill === best.id) || {}).supports || []).length + ' 辅助</small></div></div>' +
+        '<div class="rp-hero-dps"><span>最高技能 DPS</span><b>' + big(best.rr.totalDps) + '</b><small>Boss 模型</small></div>' +
+        '<div class="rp-hero-actions"><button class="rp-btn small" data-use-best>设为当前主技能</button><span class="rp-link" data-go="skills">技能详情 →</span></div>' :
+        '<div class="rp-hint">还没有可计算的伤害技能。</div>';
+    }
+    if ($('ovSkillRank')) {
+      const rankRows = RANK.slice(0, 6).map((x, i) => '<button type="button" class="rp-rank-row' + (S.mainSkill === x.id ? ' on' : '') + '" data-rank-main="' + attr(x.id) + '"><span class="rp-rank-n">' + (i + 1) + '</span>' + skillIcon(x.id) + '<span class="rp-rank-name"><b>' + esc(skillName(x.id)) + '</b><small>' + esc((SK[x.id] || {}).Kind || '') + '</small></span><span class="rp-rank-dps">' + big(x.rr.totalDps) + '<small>' + (x.rr.panelDps ? '面板 ' + big(x.rr.panelDps) : '') + '</small></span></button>').join('');
+      $('ovSkillRank').innerHTML = rankRows || '<div class="rp-hint">没有可比较的技能。</div>';
+    }
+
     const off = S.official && S.official.dps;
     const offEl = $('ovOfficial');
     if (offEl) {
@@ -646,7 +695,7 @@
       offEl.innerHTML = off ? '<span>公开 API · 游戏实测中位 DPS（守护者）</span><b>' + big(off) + '</b><span>来自守护者实战，不是本页 Boss DPS；两种口径不同。</span>' : '';
     }
     $('ovGear').innerHTML = ITEM_SLOTS.map(sl => slotHtml(slotItem(sl), sl, true)).join('');
-    $('ovIdols').innerHTML = S.items.some(it => it.slot === 'Idol') ? idolBoardHtml(false) : '<div class="rp-hint">还没有神像。</div>';
+    $('ovIdols').innerHTML = S.items.some(it => it.slot === 'Idol') ? idolBoardHtml(true) : '<div class="rp-hint">还没有神像。</div>';
     if ($('ovDefence')) $('ovDefence').innerHTML = DEF ? statRow('生命', num(Math.round(DEF.life))) + statRow('护甲', num(Math.round(DEF.armour))) + statRow('闪避', num(Math.round(DEF.evasion))) + statRow('火焰 / 冰霜 / 闪电 / 毒素抗性', [DEF.res.Fire, DEF.res.Cold, DEF.res.Lightning, DEF.res.Poison].map(x => (x > 0 ? '+' : '') + Math.round(x) + '%').join(' / ')) + statRow('格挡', (DEF.block || 0).toFixed(1) + '%') : '<div class="rp-hint">选择主技能后显示防御。</div>';
     const rows = skillRows();
     $('ovSkills').innerHTML = rows.length ? rows.map(x => {
@@ -678,10 +727,10 @@
     for (const id of S.hotbar || []) if (id && id !== 'move' && SK[id] && !out.some(x => x.skill === id)) out.push({ skill: id, supports: [], socket: null });
     return out;
   }
-  function skillIcon(id) {
-    const key = 'sk:' + lc(id);
-    if (window.BO_ICONS && window.BO_ICONS[key]) return '<span class="ico ico-img" style="--ico:#1ba29b;width:28px;height:32px"><img src="' + attr(window.BO_ICONS[key]) + '" alt=""></span>';
-    return '<span class="ico" style="--ico:#1ba29b;width:28px;height:32px"><svg viewBox="0 0 24 24"><path d="M12 2 4 13h7l-1 9 9-12h-7z"/></svg></span>';
+  function skillIcon(id, big) {
+    const key = 'sk:' + lc(id), w = big ? 58 : 28, h = big ? 66 : 32;
+    if (window.BO_ICONS && window.BO_ICONS[key]) return '<span class="ico ico-img" style="--ico:#1ba29b;width:' + w + 'px;height:' + h + 'px"><img src="' + attr(window.BO_ICONS[key]) + '" alt=""></span>';
+    return '<span class="ico" style="--ico:#1ba29b;width:' + w + 'px;height:' + h + 'px"><svg viewBox="0 0 24 24"><path d="M12 2 4 13h7l-1 9 9-12h-7z"/></svg></span>';
   }
   function renderSkills() {
     const rows = skillRows();
@@ -774,7 +823,11 @@
     return S.items.findIndex(it => it.slot === slot);
   }
   function renderGear() {
-    $('rpDoll').innerHTML = BODY_SLOTS.map(x => '<div class="rp-body-cell ' + x.area + '">' + slotHtml(slotItem(x.slot), x.slot, false) + '</div>').join('');
+    $('rpDoll').innerHTML = BODY_SLOTS.map(x => {
+      if (x.slot === 'OffHand' && mainIsTwoHand()) return '<div class="rp-body-cell ' + x.area + '"><div class="rp-slot empty locked"><span class="rp-slot-label">副手</span><b>双手武器</b><small>已占用</small></div></div>';
+      return '<div class="rp-body-cell ' + x.area + '">' + slotHtml(slotItem(x.slot), x.slot, true) + '</div>';
+    }).join('');
+    renderGearDetail();
     const runes = S.items.map((it, i) => ({ it, i })).filter(x => x.it.slot === 'DwarvenRune');
     if ($('rpRunes')) $('rpRunes').innerHTML = runes.length ? runes.map(x => slotHtml(x.it, 'DwarvenRune', false).replace('data-edit-slot="DwarvenRune"', 'data-edit-rune="' + x.i + '"')).join('') : '<div class="rp-hint">还没有矮人符文。矮人符文只放在天赋树的矮人符文孔中。</div>';
     if ($('rpRuneInfo')) {
@@ -787,6 +840,24 @@
     if ($('rpGearIdolN')) $('rpGearIdolN').textContent = idolN;
     if ($('rpIdolAffixes')) $('rpIdolAffixes').innerHTML = idolAffixesHtml();
     if ($('rpIdolEmpty')) $('rpIdolEmpty').hidden = !!idolN;
+  }
+  function renderGearDetail() {
+    if (!$('rpGearDetail')) return;
+    const it = slotItem(GEAR_SEL), label = SLOT_LABEL[GEAR_SEL] || GEAR_SEL;
+    if (GEAR_SEL === 'OffHand' && mainIsTwoHand()) {
+      $('rpGearDetail').innerHTML = '<div class="rp-gear-detail-head"><span class="rp-kicker">OFF HAND</span><h2>副手</h2><small>双手武器占用</small></div><div class="rp-hint">主手是双手武器时不能装备副手。换一把单手武器后即可选择副手。</div>';
+      return;
+    }
+    if (!it) {
+      $('rpGearDetail').innerHTML = '<div class="rp-gear-detail-head"><span class="rp-kicker">EQUIPMENT</span><h2>' + esc(label) + '</h2><small>空槽位</small></div><div class="rp-hint">这个槽位还没有装备。</div><button type="button" class="rp-btn main" data-edit-detail>选择' + esc(label) + '</button>';
+      return;
+    }
+    const b = BASE[it.base], lines = itemModLines(it, 99);
+    const runes = (it.runes || []).map(r => (GD.runes[r] || {}).Name || r).filter(Boolean);
+    $('rpGearDetail').innerHTML = '<div class="rp-gear-detail-head">' + itemIcon(it, true) + '<div><span class="rp-kicker">' + esc(label) + '</span><h2>' + esc(itemName(it)) + '</h2><small>' + esc(b ? b.Name : it.base) + ' · ilvl ' + it.level + ' · ' + esc(it.rarity) + (it.sockets != null ? ' · ' + it.sockets + ' 孔' : '') + '</small></div></div>' +
+      '<div class="rp-gear-detail-mods">' + (lines.length ? lines.map(x => '<div>' + esc(x) + '</div>').join('') : '<div class="rp-hint">没有词缀。</div>') + '</div>' +
+      (runes.length ? '<div class="rp-hint">符文：' + esc(runes.join(' / ')) + '</div>' : '') +
+      '<div class="rp-gear-detail-actions"><button type="button" class="rp-btn main" data-edit-detail>编辑此槽位</button></div>';
   }
   function idolBoardHtml(compact) {
     layoutIdols(S.items);
@@ -848,6 +919,7 @@
   }
   let EDIT = null;
   function openItemEditor(slot, idx, cell) {
+    if (slot === 'OffHand' && mainIsTwoHand()) { toast('主手是双手武器，不能再装备副手', true); return; }
     idx = idx == null ? -1 : +idx;
     const existing = idx >= 0 ? S.items[idx] : null;
     EDIT = { slot, idx, cell: cell || null, item: existing ? JSON.parse(JSON.stringify(existing)) : { slot, base: '', rarity: 'Normal', unique: 'None', name: '', level: 84, quality: 0, affixes: [], runes: [] }, tab: 'base', q: '' };
@@ -985,6 +1057,8 @@
     const save = root.querySelector('#rpEditSave');
     if (save) save.onclick = () => {
       if (!EDIT.item.base) return toast('先选择底材', true);
+      if (EDIT.slot === 'OffHand' && mainIsTwoHand()) return toast('主手是双手武器，不能再装备副手', true);
+      if (EDIT.slot === 'MainHand' && isTwoHandBase(EDIT.item.base)) S.items = S.items.filter(it => it.slot !== 'OffHand');
       if (EDIT.slot === 'Idol' && EDIT.cell) {
         const b = BASE[EDIT.item.base], w = Math.max(1, n(b && b.Width) || 1), h = Math.max(1, n(b && b.Height) || 1);
         const test = S.items.filter(it => it !== EDIT.item && it.slot === 'Idol');
@@ -1070,11 +1144,13 @@
     $('rpClass').onchange = () => {
       S.classId = $('rpClass').value; S.passives = []; S.dragonNodes = []; S.dragonAspect = ''; S.mainSkill = ''; TREE = null; DRAGON = null; done();
     };
-    $('rpLevel').onchange = () => { S.level = clamp(n($('rpLevel').value) || 1, 1, 100); S.enemy.level = S.level; done(); };
+    $('rpLevel').onchange = () => { S.level = clamp(n($('rpLevel').value) || 1, 1, 100); S.enemy.level = S.level; normalizePassives(S); clampDragonPoints(); done(); };
+  if ($('rpTarget')) $('rpTarget').onchange = () => { S.enemy.rarity = $('rpTarget').value; done(); };
     $('rpImport').onclick = openImport;
     $('rpExport').onclick = openExport;
     $('rpSave').onclick = () => { saveLocal(); toast('已保存到浏览器'); };
-    $('rpDoll').onclick = e => { const b = e.target.closest('[data-edit-slot]'); if (b) openItemEditor(b.dataset.editSlot, S.items.findIndex(x => x.slot === b.dataset.editSlot)); };
+    $('rpDoll').onclick = e => { const b = e.target.closest('[data-edit-slot]'); if (b) { GEAR_SEL = b.dataset.editSlot; renderGearDetail(); } };
+    if ($('rpGearDetail')) $('rpGearDetail').onclick = e => { if (e.target.closest('[data-edit-detail]')) openItemEditor(GEAR_SEL, S.items.findIndex(x => x.slot === GEAR_SEL)); };
     $('ovGear').onclick = e => { const b = e.target.closest('[data-edit-slot]'); if (b) openItemEditor(b.dataset.editSlot, S.items.findIndex(x => x.slot === b.dataset.editSlot)); };
     const idolClick = e => {
       const c = e.target.closest('[data-idol-cell]');
@@ -1086,6 +1162,8 @@
     if ($('rpRunes')) $('rpRunes').onclick = e => { const b = e.target.closest('[data-edit-rune]'); if (b) openItemEditor('DwarvenRune', +b.dataset.editRune); };
     if ($('rpAddRune')) $('rpAddRune').onclick = () => openItemEditor('DwarvenRune', null);
     $('rpAddIdol').onclick = () => addIdol();
+  if ($('ovBest')) $('ovBest').onclick = e => { const g = e.target.closest('[data-go]'); if (g) return setPane(g.dataset.go); if (e.target.closest('[data-use-best]') && RANK[0]) { S.mainSkill = RANK[0].id; done(); toast('已把最高技能设为主技能：' + skillName(RANK[0].id)); } };
+  if ($('ovSkillRank')) $('ovSkillRank').onclick = e => { const b = e.target.closest('[data-rank-main]'); if (b) { S.mainSkill = b.dataset.rankMain; done(); } };
   if ($('rpRelayoutIdols')) $('rpRelayoutIdols').onclick = () => { layoutIdols(S.items); done(); toast('神像已重新自动排列'); };
     $('rpSkills').onclick = e => {
       let b = e.target.closest('[data-main]'); if (b) { const x = skillRows()[+b.dataset.main]; if (x) { S.mainSkill = x.skill; done(); } return; }
@@ -1425,7 +1503,14 @@
         visited.add(v); out.push(v); walk(v);
       }
     })(start);
-    st.passives = out.filter((id, i, a) => a.indexOf(id) === i);
+    let passives = out.filter((id, i, a) => a.indexOf(id) === i);
+    const maxPassive = Math.min(MAX_PASSIVE_POINTS, (st.level - 1) * (n(H.PassivePointsPerLevel) || 1) + (st.bonusPoints || 0));
+    if (passives.length > maxPassive) {
+      st._importWarnings = (st._importWarnings || []).slice();
+      st._importWarnings.push('天赋点超过上限 ' + Math.round(maxPassive) + '，多余的 ' + (passives.length - maxPassive) + ' 点已忽略');
+      passives = passives.slice(0, Math.round(maxPassive));
+    }
+    st.passives = passives;
     if (dropped.length) {
       st._importWarnings = (st._importWarnings || []).slice();
       st._importWarnings.push('导入了 ' + dropped.length + ' 个与职业起点不相连的天赋点，已忽略：' + dropped.slice(0, 8).join('、') + (dropped.length > 8 ? '…' : ''));
@@ -1486,7 +1571,14 @@
   function dragonTree() { return GD.dragon.classes[lc(S.classId)] || {}; }
   function dragonPoints() {
     const base = MILESTONES.filter(l => S.level >= l).length + (RULES.hatch || 0);
-    return base + clamp(n(S.dragonExtra), 0, 40);
+    return Math.min(MAX_DRAGON_POINTS, base + clamp(n(S.dragonExtra), 0, Math.max(0, MAX_DRAGON_POINTS - base)));
+  }
+  function clampDragonPoints() {
+    const max = dragonPoints();
+    if ((S.dragonNodes || []).length > max) {
+      S.dragonNodes = S.dragonNodes.slice(0, max);
+      toast('龙裔点上限为 ' + max + '，多余节点已移除', true);
+    }
   }
   function dragonTaken() { return new Set((S.dragonNodes || []).filter(id => dragonTree()[id])); }
   function dragonAdj() {
@@ -1634,7 +1726,7 @@
   function applyImported(st, how) {
     S = normalizeState(st);
     const base = MILESTONES.filter(l => S.level >= l).length + (RULES.hatch || 0);
-    if ((S.dragonNodes || []).length > base + (S.dragonExtra || 0)) S.dragonExtra = Math.max(0, (S.dragonNodes || []).length - base);
+    if ((S.dragonNodes || []).length > base + (S.dragonExtra || 0)) S.dragonExtra = Math.min(Math.max(0, MAX_DRAGON_POINTS - base), Math.max(0, (S.dragonNodes || []).length - base));
     TREE = null; DRAGON = null; closeModal(); done(); saveLocal();
     const idolN = (S.items || []).filter(it => it.slot === 'Idol').length;
     if (idolN) { setPane('overview'); toast('已导入 ' + idolN + ' 个神像，已自动摆放；可在左侧「神像」页查看或调整。'); }
@@ -1711,7 +1803,7 @@
     const b = e.target.closest('[data-aspect]'); if (!b) return;
     S.dragonAspect = b.dataset.aspect; done();
   });
-  $('rpDragonExtra').onchange = () => { S.dragonExtra = clamp(n($('rpDragonExtra').value), 0, 40); done(); };
+  $('rpDragonExtra').onchange = () => { const base = MILESTONES.filter(l => S.level >= l).length + (RULES.hatch || 0); S.dragonExtra = clamp(n($('rpDragonExtra').value), 0, Math.max(0, MAX_DRAGON_POINTS - base)); clampDragonPoints(); done(); };
   $('rpDragonClear').onclick = () => { S.dragonNodes = []; done(); };
   $('rpTreeBest').onclick = showBestTree;
   $('rpTreeFit').onclick = () => fitTree(false);
