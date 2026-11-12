@@ -70,42 +70,6 @@
     tick();
     window.__poeNextTimer = setInterval(tick, 30000);
   }
-  function renderEndedRanks(leagues) {
-    var host = el('poeEnded'); if (!host) return;
-    var rows = ((leagues && leagues.leagues) || []).filter(function (l) { return BO.leagueStatus(l) === 'ended'; });
-    var groups = [], by = {};
-    rows.forEach(function (l) {
-      var k = l.season || l.season_name || l.id;
-      if (!by[k]) { by[k] = { name: cnSeason(BO.seasonName(l)), rows: [] }; groups.push(by[k]); }
-      by[k].rows.push(l);
-    });
-    if (!groups.length) {
-      host.innerHTML = '<h2>已结束赛季排行</h2><div class="poe-ended-empty">暂无</div>';
-      return;
-    }
-    host.innerHTML = '<h2>已结束赛季排行</h2><div class="poe-ended-grid">' + groups.map(function (g) {
-      return '<div class="poe-ended-item" data-ended="' + BO.attr(g.rows[0].id) + '"><b>' + BO.esc(g.name) + '</b><span>' + BO.esc(BO.leagueShort(g.rows[0])) + ' · ' + BO.esc(BO.fmtDate(g.rows[0].starts_at)) + ' → ' + BO.esc(BO.fmtDate(g.rows[0].ends_at)) + '</span><div class="poe-ended-data">暂无</div></div>';
-    }).join('') + '</div>';
-    Promise.all(groups.map(function (g) {
-      var row = g.rows.find(function (l) { return l.trade && !l.hardcore; }) || g.rows[0];
-      return BO.api.live('ladder/' + row.id + '.json', true).catch(function () {
-        return BO.api.load('ladder/' + row.id + '.json').catch(function () { return null; });
-      }).then(function (l) { return { g: g, row: row, l: l }; });
-    })).then(function (items) {
-      items.forEach(function (x) {
-        var item = host.querySelector('[data-ended="' + x.row.id.replace(/"/g, '\"') + '"]');
-        if (!item) return;
-        var data = item.querySelector('.poe-ended-data');
-        var l = x.l;
-        if (!l || !l.count || !(l.heroes || []).length) { data.textContent = '暂无'; return; }
-        data.innerHTML = (l.heroes || []).slice(0, 5).map(function (h) {
-          return '<a href="ladder.html?league=' + encodeURIComponent(x.row.id) + '">#' + h.rank + ' ' + BO.esc(BO.classZh(h.class)) + ' Lv' + h.level + (h.guardian_dps_median ? ' · ' + BO.num(h.guardian_dps_median) : '') + '</a>';
-        }).join(' · ');
-      });
-    }).catch(function () {
-      host.querySelectorAll('.poe-ended-data').forEach(function (d) { if (!d.textContent || d.textContent === '读取中…') d.textContent = '暂无'; });
-    });
-  }
   function renderLive(version, leagues, currentRow, ladder, meta) {
     var card = el('liveCard');
     if (!currentRow) { card.innerHTML = BO.empty('没有公开联赛', 'API 暂未返回联赛列表。'); return; }
@@ -413,7 +377,6 @@
       var current = (window.BO_API_SEED && BO_API_SEED.current) || BO.currentLeague(leagues);
       var currentRow = (leagues.leagues || []).find(function (l) { return l.id === current; }) || null;
       renderNextSeason(leagues);
-      renderEndedRanks(leagues);
       renderDbCounts();
 
       Promise.all([
