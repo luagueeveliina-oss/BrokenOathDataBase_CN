@@ -25,7 +25,7 @@
   const ITEM_SLOTS = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2', 'DwarvenRune'];
   const SLOT_LABEL = { MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子', Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', DwarvenRune: '矮人符文', Idol: '神像' };
   const PREFIX = 'bo_planner_ref';
-  let S = null, R = null, PANE = 'overview', UNDO = [], TREE = null, DRAGON = null, MODAL = null;
+  let S = null, R = null, DEF = null, PANE = 'overview', UNDO = [], TREE = null, DRAGON = null, MODAL = null;
 
   const zh = (m, id, fallback) => (m && m[lc(id)]) || fallback || id;
   const skillName = id => SKILL_ZH[lc(id)] || zh(ZH.skill, id, SK[lc(id)] ? SK[lc(id)].Name : id);
@@ -218,7 +218,7 @@
     const seen = {};
     st.items = st.items.filter(it => {
       if (!it) return false;
-      if (it.slot === 'Idol') return true;
+      if (it.slot === 'Idol' || it.slot === 'DwarvenRune') return true;
       if (seen[it.slot]) return false;
       seen[it.slot] = 1; return true;
     }).slice(0, 60);
@@ -337,6 +337,7 @@
     setDragonExtraForImport(st);
     st.mainSkill = lc(main || b.main_skill || (st.sockets[0] && st.sockets[0].skill) || '');
     st.enemy.level = st.level;
+    st.enemy.rarity = 'boss';
     st.official = { dps: api.measured && api.measured.guardian_dps_median, window: api.measured && api.measured.window_days, source: 'api', hero: api.hero || '' };
     st.name = (st.official.dps ? 'API · ' : '') + (classLabel(st.classId)) + ' Lv ' + st.level;
     return normalizeState(st);
@@ -423,6 +424,8 @@
       enemyRarity: (S.enemy && S.enemy.rarity) || 'rare',
       guardianElement: (S.enemy && S.enemy.element) || undefined,
       curses: activeCurses(),
+      enemyHallowedGround: (S.hotbar || []).includes('consecrated_ground'),
+      charges: { insight: (S.hotbar || []).includes('death_sentence') ? 3 : 0 },
     }, extra || {});
   }
   function mainSkill() {
@@ -438,6 +441,79 @@
     } catch (e) {
       console.error(e); R = { error: e.message, notes: [], totalDps: 0, panelDps: 0 };
     }
+    DEF = R && !R.error ? computeDefence(R) : null;
+  }
+  function computeDefence(R) {
+    const mods = R.mods || [], attr = R.attr || {};
+    const get = st => { try { return SIM.defenceTotal(GD, S, mods, attr, st); } catch (e) { return 0; } };
+    const armour = get('Armour'), evasion = get('Evasion'), es = get('EnergyShield'), block = get('Block');
+    const life = R.heroLife || SIM.heroMaxLife(GD, S, mods, attr);
+    const mana = R.mana || {};
+    const baseCap = n(H.ResistCap) || 75, hardCap = n(H.ResistHardCap) || 85;
+    const res = { Fire: 0, Cold: 0, Lightning: 0, Poison: 0 }, maxRes = { Fire: baseCap, Cold: baseCap, Lightning: baseCap, Poison: baseCap };
+    const addRes = (tags, v) => {
+      const t = (tags || []).map(lc);
+      if (t.includes('fire')) res.Fire += v;
+      if (t.includes('cold')) res.Cold += v;
+      if (t.includes('lightning')) res.Lightning += v;
+      if (t.includes('poison')) res.Poison += v;
+      if (t.includes('elemental')) { res.Fire += v; res.Cold += v; res.Lightning += v; }
+    };
+    const addMax = (tags, v) => {
+      const t = (tags || []).map(lc);
+      if (t.includes('fire')) maxRes.Fire += v;
+      if (t.includes('cold')) maxRes.Cold += v;
+      if (t.includes('lightning')) maxRes.Lightning += v;
+      if (t.includes('poison')) maxRes.Poison += v;
+      if (t.includes('elemental')) { maxRes.Fire += v; maxRes.Cold += v; maxRes.Lightning += v; }
+    };
+    let lifeRegenFlat = 0, lifeRegenPct = 0;
+    for (const m of mods) {
+      if (m.stat === 'Resist' && m.mode === 'Flat') addRes(m.tags, n(m.v) || 0);
+      if (m.stat === 'MaxResist' && m.mode === 'Flat') addMax(m.tags, n(m.v) || 0);
+      if (m.stat === 'LifeRegen') lifeRegenFlat += n(m.v) || 0;
+      if (m.stat === 'LifeRegenPct') lifeRegenPct += n(m.v) || 0;
+    }
+    for (const k of Object.keys(maxRes)) maxRes[k] = Math.max(0, maxRes[k]);
+    const af = n(H.ArmourFactor75) || n(H.ArmourFactor) || 5;
+    const physRed = Math.max(0, Math.min(n(H.ArmourMaxReduction) || 80, 100 * armour / (armour + af * 1000)));
+    const penalty = n(H.ResistPenaltyMax) || 50;
+    return { armour, evasion, es, block, life, mana, res, maxRes, baseCap, hardCap, penalty, physRed,
+      lifeRegen: lifeRegenFlat + life * lifeRegenPct / 100, lifeRegenFlat, lifeRegenPct,
+      manaRegen: mana.regen || 0, esRecharge: n(H.EsRechargePct) || 0, esDelay: n(H.EsRechargeDelay) || 0 };
+  }
+  function renderDefence() {
+    const d = DEF;
+    if (!d) {
+      ['defVitals', 'defResists', 'defMitigation', 'defRecovery'].forEach(id => { if ($(id)) $(id).innerHTML = '<div class="rp-hint">选择主技能后显示防御。</div>'; });
+      return;
+    }
+    if ($('defVitals')) $('defVitals').innerHTML =
+      statRow('生命', num(Math.round(d.life))) +
+      statRow('魔力', d.mana && !d.mana.skip ? num(Math.round(d.mana.max)) + (d.mana.spend ? ' · 耗魔 ' + num(d.mana.spend, 1) + '/秒' : '') : '—') +
+      statRow('能量护盾', num(Math.round(d.es))) +
+      statRow('护甲', num(Math.round(d.armour))) +
+      statRow('闪避', num(Math.round(d.evasion))) +
+      statRow('格挡率', (d.block || 0).toFixed(1) + '%');
+    if ($('defResists')) $('defResists').innerHTML = ['Fire', 'Cold', 'Lightning', 'Poison'].map((k, i) => {
+      const name = ['火焰抗性', '冰霜抗性', '闪电抗性', '毒素抗性'][i];
+      const eff = Math.min(d.res[k], d.maxRes[k], d.hardCap);
+      const over = d.res[k] - d.maxRes[k];
+      const late = Math.min(d.res[k] - d.penalty, d.maxRes[k], d.hardCap);
+      return statRow(name, (d.res[k] > 0 ? '+' : '') + d.res[k].toFixed(0) + '% / 上限 ' + d.maxRes[k].toFixed(0) + '%' + (over > 0 ? ' · 溢出 ' + over.toFixed(0) + '%' : '') + ' · 当前有效 ' + eff.toFixed(0) + '% · 终局 -' + d.penalty + '% 后 ' + Math.max(0, late).toFixed(0) + '%');
+    }).join('');
+    if ($('defMitigation')) $('defMitigation').innerHTML =
+      statRow('护甲', num(Math.round(d.armour))) +
+      statRow('闪避', num(Math.round(d.evasion))) +
+      statRow('能量护盾', num(Math.round(d.es))) +
+      statRow('格挡', (d.block || 0).toFixed(1) + '%') +
+      statRow('物理减伤（对 1,000 命中）', '~' + Math.max(0, d.physRed).toFixed(1) + '%') +
+      statRow('物理减伤上限', (n(H.ArmourMaxReduction) || 80) + '%');
+    if ($('defRecovery')) $('defRecovery').innerHTML =
+      statRow('生命回复/秒', num(d.lifeRegen, 1) + (d.lifeRegenPct ? '（' + d.lifeRegenPct.toFixed(0) + '%/秒）' : '')) +
+      statRow('魔力回复/秒', num(d.manaRegen, 1)) +
+      statRow('护盾回复', d.esRecharge ? d.esRecharge + '%/秒 · ' + d.esDelay + ' 秒后' : '—') +
+      statRow('生命', num(Math.round(d.life)));
   }
   function calcFor(ch, skillId) {
     try { return SIM.calcSkill(GD, ch, skillId, opts()); } catch (e) { return null; }
@@ -454,6 +530,7 @@
     document.querySelectorAll('#rpNav [data-pane]').forEach(b => b.classList.toggle('on', b.dataset.pane === p));
     document.querySelectorAll('.rp-pane').forEach(el => el.classList.toggle('on', el.id === 'pane-' + p));
     if (p === 'idols' || p === 'gear') renderGear();
+    if (p === 'defence') renderDefence();
     if (p === 'tree') { buildTreeIfNeeded(); paintTree(); }
     if (p === 'dragon') renderDragon();
   }
@@ -540,7 +617,7 @@
     const key = it.rarity === 'Unique' && it.unique && it.unique !== 'None' ? 'u:' + it.unique : 'b:' + it.base;
     const src = window.BO_ICONS[key] || window.BO_ICONS['b:' + it.base];
     if (!src) return '';
-    const w = big ? 52 : 24, h = big ? 62 : 28;
+    const w = big ? 72 : 24, h = big ? 84 : 28;
     return '<span class="ico ico-img" style="--ico:#d8c9a8;width:' + w + 'px;height:' + h + 'px"><img src="' + attr(src) + '" alt=""></span>';
   }
   function slotHtml(it, slot, compact) {
@@ -562,6 +639,7 @@
     }
     $('ovGear').innerHTML = ITEM_SLOTS.map(sl => slotHtml(slotItem(sl), sl, true)).join('');
     $('ovIdols').innerHTML = S.items.some(it => it.slot === 'Idol') ? idolBoardHtml(false) : '<div class="rp-hint">还没有神像。</div>';
+    if ($('ovDefence')) $('ovDefence').innerHTML = DEF ? statRow('生命', num(Math.round(DEF.life))) + statRow('护甲', num(Math.round(DEF.armour))) + statRow('闪避', num(Math.round(DEF.evasion))) + statRow('火焰 / 冰霜 / 闪电 / 毒素抗性', [DEF.res.Fire, DEF.res.Cold, DEF.res.Lightning, DEF.res.Poison].map(x => (x > 0 ? '+' : '') + Math.round(x) + '%').join(' / ')) + statRow('格挡', (DEF.block || 0).toFixed(1) + '%') : '<div class="rp-hint">选择主技能后显示防御。</div>';
     const rows = skillRows();
     $('ovSkills').innerHTML = rows.length ? rows.map(x => {
       const sk = SK[x.skill], rr = calcFor(S, x.skill);
@@ -711,7 +789,7 @@
     const items = idols.filter(x => x.it.gx >= 0).map(x => {
       const it = x.it, b = BASE[it.base], w = it.gw || 1, h = it.gh || 1;
       const lines = itemModLines(it, compact ? 0 : 2);
-      return '<button type="button" class="rp-idol-item' + (compact ? ' compact' : '') + '" data-edit-idol="' + x.i + '" style="' + pos(it.gx, it.gy, w, h) + '" title="' + attr(itemName(it) + ' · ' + w + '×' + h + (b ? ' · ' + b.Name : '')) + '">' +
+      return '<button type="button" class="rp-idol-item w' + w + ' h' + h + (compact ? ' compact' : '') + '" data-edit-idol="' + x.i + '" style="' + pos(it.gx, it.gy, w, h) + '" title="' + attr(itemName(it) + ' · ' + w + '×' + h + (b ? ' · ' + b.Name : '')) + '">' +
         itemIcon(it, true) + '<b>' + esc(itemName(it)) + '</b><small>' + w + '×' + h + (b ? ' · ' + esc(b.Name) : '') + '</small>' + (lines.length ? '<span>' + esc(lines[0]) + '</span>' : '') + '<em class="rp-idol-size">' + w + '×' + h + '</em></button>';
     }).join('');
     const lost = idols.filter(x => x.it.gx < 0);
@@ -961,7 +1039,7 @@
   /* ------------------------------------------------------------------ boot */
   function renderAll() {
     recalc();
-    renderStatus(); renderOverview(); renderSkills(); renderDamage(); renderGear();
+    renderStatus(); renderOverview(); renderSkills(); renderDamage(); renderGear(); renderDefence();
     if (PANE === 'tree') { buildTreeIfNeeded(); paintTree(); }
     if (PANE === 'dragon') renderDragon();
   }
@@ -992,6 +1070,7 @@
     $('rpIdols').onclick = idolClick;
     $('ovIdols').onclick = idolClick;
     $('rpAddIdol').onclick = () => addIdol();
+  if ($('rpRelayoutIdols')) $('rpRelayoutIdols').onclick = () => { layoutIdols(S.items); done(); toast('神像已重新自动排列'); };
     $('rpSkills').onclick = e => {
       let b = e.target.closest('[data-main]'); if (b) { const x = skillRows()[+b.dataset.main]; if (x) { S.mainSkill = x.skill; done(); } return; }
       b = e.target.closest('[data-rem-skill]'); if (b) { const x = skillRows()[+b.dataset.remSkill]; if (x) { S.sockets = S.sockets.filter(s => s.skill !== x.skill); S.hotbar = S.hotbar.filter(h => h !== x.skill); if (S.mainSkill === x.skill) S.mainSkill = ''; done(); } return; }
@@ -1011,9 +1090,17 @@
     cls.innerHTML = Object.keys(CLASS).map(id => '<option value="' + attr(id) + '">' + esc(classLabel(id)) + '</option>').join('');
     let pending = null;
     try { pending = JSON.parse(localStorage.getItem('bo_pending_build') || 'null'); } catch (e) {}
+    if (!pending) { try { pending = JSON.parse(sessionStorage.getItem('bo_pending_build') || 'null'); } catch (e) {} }
+    if (!pending) {
+      try {
+        if (String(window.name || '').indexOf('bo_pending_build:') === 0) { pending = JSON.parse(String(window.name).slice('bo_pending_build:'.length)); window.name = ''; }
+      } catch (e) {}
+    }
     if (location.hash === '#import=api' && pending && pending.api) {
       S = fromApi(pending.api, pending.main);
       try { localStorage.removeItem('bo_pending_build'); } catch (e) {}
+      try { sessionStorage.removeItem('bo_pending_build'); } catch (e) {}
+      try { window.name = ''; } catch (e) {}
       recalc(); bind(); renderAll(); setPane('overview'); saveLocal();
       let quiet = false, pane = '';
       try { const qp = new URLSearchParams(location.search); quiet = qp.get('noreport') === '1'; pane = qp.get('pane') || ''; } catch (e) {}
@@ -1033,6 +1120,7 @@
     if (location.hash === '#dragon') setPane('dragon');
     if (location.hash === '#gear') setPane('gear');
     if (location.hash === '#idols') setPane('idols');
+    if (location.hash === '#defence') setPane('defence');
     if (location.hash === '#skills') setPane('skills');
     if (location.hash === '#damage') setPane('damage');
     const h = decodeURIComponent(location.hash || '');
@@ -1236,6 +1324,7 @@
     for (const c of $('rpTreeSvg').querySelectorAll('circle.tn')) {
       const id = c.dataset.id, nd = NODE[id], on = have.has(id) || id === s0;
       c.classList.toggle('alloc', on); c.classList.toggle('next', !on && next.has(id)); c.classList.toggle('sel', id === TREE.sel);
+      c.style.opacity = on ? '1' : (next.has(id) ? '.85' : '.3');
       const ic = TREE.icons.get(id);
       if (ic) { const want = on ? ic.key : dimKey(ic.key); if (ic.cur !== want) { ic.el.setAttribute('viewBox', iconBox(want)); ic.cur = want; }
         ic.el.style.opacity = on ? '1' : (next.has(id) ? '.72' : '.22'); }

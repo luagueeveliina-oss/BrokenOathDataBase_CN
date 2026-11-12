@@ -33,6 +33,7 @@
         <button type="button" data-pane="dragon"><span>龙裔</span><em>Dragonling</em></button>
         <button type="button" data-pane="gear"><span>装备</span><em>Gear</em></button>
         <button type="button" data-pane="idols"><span>神像</span><em>Idols</em><b class="rp-nav-count" id="rpIdolCount"></b></button>
+        <button type="button" data-pane="defence"><span>防御</span><em>Defences</em></button>
         <button type="button" data-pane="skills"><span>技能</span><em>Skills</em></button>
         <button type="button" data-pane="damage"><span>伤害</span><em>Damage</em></button>
       </nav>
@@ -65,6 +66,7 @@
             <div class="rp-card"><div class="rp-card-head"><h2>神像</h2><button class="rp-link" data-go="idols">编辑神像 →</button></div><div id="ovIdols" class="rp-idol-wrap"></div></div>
           </div>
           <div class="rp-card"><div class="rp-card-head"><h2>技能</h2><button class="rp-link" data-go="skills">管理技能 →</button></div><div id="ovSkills"></div></div>
+          <div class="rp-card"><div class="rp-card-head"><h2>防御</h2><button class="rp-link" data-go="defence">查看防御 →</button></div><div id="ovDefence"></div></div>
           <div class="rp-cols">
             <div class="rp-card"><div class="rp-card-head"><h2>关键天赋</h2><span id="ovTreeN" class="rp-note"></span></div><div id="ovTree"></div></div>
             <div class="rp-card"><div class="rp-card-head"><h2>龙裔</h2><span id="ovDragonN" class="rp-note"></span></div><div id="ovDragon"></div></div>
@@ -110,7 +112,7 @@
         <section class="rp-pane" id="pane-idols">
           <div class="rp-intro small"><div><div class="rp-kicker">IDOLS</div><h1>神像</h1><p>5×5 格子，按底材尺寸占用；四角不可用，放得下即可，不限制数量。导入时自动摆放。</p></div></div>
           <div class="rp-card">
-            <div class="rp-card-head"><h2>神像格子</h2><button class="rp-link" id="rpAddIdol">+ 添加神像</button></div>
+            <div class="rp-card-head"><h2>神像格子</h2><span class="rp-tools"><button class="rp-link" id="rpRelayoutIdols">重新自动排列</button><button class="rp-link" id="rpAddIdol">+ 添加神像</button></span></div>
             <div class="rp-idols-body">
               <div id="rpIdols" class="rp-idol-grid"></div>
               <div id="rpIdolEmpty" class="rp-hint" hidden>还没有神像。天梯构筑请用「在模拟器中打开」导入完整 API 构筑；<code>BO1.</code> 代码本身不含装备和神像。</div>
@@ -132,6 +134,19 @@
               </div>
             </div>
           </div>
+        </section>
+
+        <section class="rp-pane" id="pane-defence">
+          <div class="rp-intro small"><div><div class="rp-kicker">DEFENCES</div><h1>防御与抗性</h1><p>生命、护甲、闪避、护盾、格挡与元素抗性。数值由当前装备、天赋和属性估算；抗性同时列出终局 -50% 后的有效值。</p></div></div>
+          <div class="rp-cols">
+            <div class="rp-card"><div class="rp-card-head"><h2>生存</h2><span class="rp-note">估算值</span></div><div id="defVitals"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>抗性</h2><span class="rp-note">上限 75%</span></div><div id="defResists"></div><div class="rp-hint">抗性为装备、天赋、符文与神像的合计；另列「终局 -50%」后的有效值。溢出部分不计入减伤。</div></div>
+          </div>
+          <div class="rp-cols">
+            <div class="rp-card"><div class="rp-card-head"><h2>减伤与格挡</h2></div><div id="defMitigation"></div><div class="rp-hint">护甲对 1,000 点物理命中的估算减伤；实际会随命中大小变化。</div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>回复</h2></div><div id="defRecovery"></div></div>
+          </div>
+          <div class="rp-card"><div class="rp-card-head"><h2>说明</h2></div><div class="rp-hint">防御值来自 Broken Oath Builder 的 defenceTotal 估算规则：底材防御 + 局部固定值，乘以局部/全局百分比与属性加成。抗性按词缀标签 Fire / Cold / Lightning / Poison / Elemental 汇总。它不是游戏内角色面板的逐帧实录，但用于比较构筑的生存能力足够。</div></div>
         </section>
 
         <section class="rp-pane" id="pane-skills">

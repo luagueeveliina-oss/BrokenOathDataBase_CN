@@ -693,6 +693,13 @@
     if (totemAttack) for (const s of res.supports) if (s.ok && !(o.off && o.off.has(s.key)) && ['trap_support', 'skyfall'].includes(lc(s.id))) ctx.tags.add(SHAPE_TAG[lc(s.id)]);
     // Dragonling Ascendancy rules that change combat but not the stat sheet.
     const ascFlag = f => mods.some(m => m.stat === 'Dragonling' && (m.tags || []).includes(f));
+    // Eye of the Hurricane (Stormblade capstone): up to 40% more for channelling.
+    if (ascFlag('Asc71_Hurricane') && ctx.tags.has('channelling')) {
+      mods.push({ stat: 'Damage', mode: 'More', tags: [], v: 40, v2: 0, local: false, src: 'Dragonling · Eye of the Hurricane', key: 'dragon:hurricane' });
+      res.notes.push('Eye of the Hurricane: counted at 40% more (4% per second, capped after 10 seconds of channelling).');
+    }
+    // Consecrated Ground is an enemy-side debuff: apply it after the panel, not as a global More.
+    if (o.enemyHallowedGround) res.notes.push('Hallowed Ground: 20% more damage taken and +8% critical chance (Consecrated Ground on the bar).');
     const virulence = ascFlag('Asc71_Virulence') ? (GD.dragon.rules || {}).Virulence || { Cap: 60, DurMult: 0.75 } : null;
     // Mark of the Siege (ascended Watch Wyrm): "Your Ballistas deal 30% more damage to the enemy you last hit
     // yourself". Counted as if you keep hitting the target; its "own hits 10% less" is left out (the 76 rules drop it).
@@ -876,7 +883,8 @@
       }
       weapon = weaponStats(GD, mainItem, mainBase, mods, use, lifeBase);
       const [fullB, fadedB] = bonusSplit(bonus);
-      const levelFactor = (1 + (G.AttackEffectivenessPerLevel || 0) * (own - 1)) * (G.BonusLevelAttackMore > 0 ? Math.pow(G.BonusLevelAttackMore, fullB) : 1 + (G.AttackEffectivenessPerLevel || 0) * fullB) * Math.pow(BONUS_FADE_ATTACK, fadedB);
+      // build68: attack bonus levels do not fade after +5; every bonus level is BonusLevelAttackMore.
+    const levelFactor = (1 + (G.AttackEffectivenessPerLevel || 0) * (own - 1)) * (G.BonusLevelAttackMore > 0 ? Math.pow(G.BonusLevelAttackMore, fullB + fadedB) : 1 + (G.AttackEffectivenessPerLevel || 0) * (fullB + fadedB));
       attackMult = effAt(sk.Effectiveness != null ? sk.Effectiveness : 1) * levelFactor;
       for (const d of DT) addPart(d, weapon.dmg[d][0] * attackMult, weapon.dmg[d][1] * attackMult);
       res.base = { kind: 'attack', weapon, effectiveness: attackMult, levelFactor };
@@ -1112,7 +1120,8 @@
       if (m.mode === 'Flat') critFlat += m.v; else if (m.mode === 'Inc') critInc += m.v; else if (m.mode === 'More') critMore *= 1 + m.v / 100; use(m);
     }
     for (const m of pickMods(mods, 'CritMulti', 'Flat')) if (applies(ctx, m)) { multi += m.v; use(m); }
-    const critChance = clamp((baseCrit + critFlat) * (1 + critInc / 100) * critMore, 0, 95);
+    let critChance = clamp((baseCrit + critFlat) * (1 + critInc / 100) * critMore, 0, 95);
+    if (o.enemyHallowedGround) critChance = Math.min(95, critChance + 8);
     multi = Math.max(100, multi);
     // Elemental Overload (keystone, tooltip 9 Nov 2026): "Critical strikes grant 60% more elemental damage for 8 seconds.
     // Price: Your critical strike multiplier is 100%." The data line has no stat mods, only the text.
@@ -1677,7 +1686,7 @@
     const golemB = golemBlessing(GD, ch, sk, o);
     const golemTaken = golemB && golemB.stat === 'EnemyTaken' ? 1 + golemB.v / 100 : 1;
     if (golemTaken !== 1) res.notes.push('Your ' + golemB.name + ' makes enemies near it take ' + golemB.v + '% more damage (counted as if it is always within 9 m of the enemy).');
-    const extraTaken = (1 + (o.extraTakenPct || 0) / 100) * (1 + markPct / 100) * golemTaken;
+    const extraTaken = (1 + (o.extraTakenPct || 0) / 100) * (1 + markPct / 100) * golemTaken * (o.enemyHallowedGround ? 1.2 : 1);
     // Maim (support): the skill's hits make the enemy take X% more Physical damage from you. The game's skill
     // panel counts it on the physical part of the hit, not on the bleed (Split Shot tooltip 1 Nov: 1,140 DPS =
     // hits x1.10 + 216 bleeding). Counted on hits only here too.
@@ -1926,7 +1935,8 @@
     }
     res.poisonDps = poisonDps; res.igniteDps = igniteDps; res.bleedDps = bleedDps;
     // What the in-game skill panel shows: hits + ailments to one enemy, before its resistances and curses.
-    res.panelDps = res.sheetHitDps * (1 + (hit.Physical ? hit.Physical.avg / (hitAvg || 1) : 0) * maimPct / 100) +(ail.poison ? ail.poison.perStack * ail.poison.panelStacks : 0) + (ail.ignite ? ail.ignite.dps1 * ail.ignite.burning : 0) + (ail.bleed ? ail.bleed.dps1 * ail.bleed.uptime : 0);
+    // The game's skill tooltip is the hit sheet; ailments are shown separately below it.
+    res.panelDps = res.sheetHitDps;
     // ----- Executioner (LowLifeMore, CullingStrike) -----
     // X% more damage below T% of life, and hits kill below C%. Against one enemy fought from full life this is a
     // fight average: the kill takes (1 - T) + (T - C) / (1 + X) of the plain time (Executioner: 25% / 35% / 10% =
@@ -2614,10 +2624,10 @@
   // at own level + bonus gear levels. attack: levelFactor (effectiveness not included); spell: spellGrowth.
   function gemLevelGrowth(GD, kind, own, bonus) {
     const G = GD.scaling.Gem;
-    if (kind === 'attack') { const [fullB, fadedB] = bonusSplit(bonus); return (1 + (G.AttackEffectivenessPerLevel || 0) * (own - 1)) * (G.BonusLevelAttackMore > 0 ? Math.pow(G.BonusLevelAttackMore, fullB) : 1 + (G.AttackEffectivenessPerLevel || 0) * fullB) * Math.pow(BONUS_FADE_ATTACK, fadedB); }
+    if (kind === 'attack') { const [fullB, fadedB] = bonusSplit(bonus); return (1 + (G.AttackEffectivenessPerLevel || 0) * (own - 1)) * (G.BonusLevelAttackMore > 0 ? Math.pow(G.BonusLevelAttackMore, fullB + fadedB) : 1 + (G.AttackEffectivenessPerLevel || 0) * (fullB + fadedB)); }
     return spellLevelGrowth(G.DamageGrowth || 1.19, own, bonus, spellFade(GD));
   }
-  const api = { heroMaxLife, gemLevelGrowth, vowShare,cocSource, cocAttacks, freePoints, wardAt, guardianVariantResist, counted, damageStat: stat => HANDLED.has(stat) && !['Str', 'Dex', 'Int', 'Attributes'].includes(stat), extractCharacter, characterFromCode, conduitHost, conduitInterval, collectMods, calcSkill, listSkills, weaponStats: (GD, item, base, mods) => weaponStats(GD, item, base, mods, () => {}), statWeights, modText, splitTags, DT, supportSearch, supportChoices, ownedSupports, socketsFor, arrangeShapes, NO_SINGLE_TARGET };
+  const api = { heroMaxLife, defenceTotal, gemLevelGrowth, vowShare,cocSource, cocAttacks, freePoints, wardAt, guardianVariantResist, counted, damageStat: stat => HANDLED.has(stat) && !['Str', 'Dex', 'Int', 'Attributes'].includes(stat), extractCharacter, characterFromCode, conduitHost, conduitInterval, collectMods, calcSkill, listSkills, weaponStats: (GD, item, base, mods) => weaponStats(GD, item, base, mods, () => {}), statWeights, modText, splitTags, DT, supportSearch, supportChoices, ownedSupports, socketsFor, arrangeShapes, NO_SINGLE_TARGET };
   root.BOSim = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

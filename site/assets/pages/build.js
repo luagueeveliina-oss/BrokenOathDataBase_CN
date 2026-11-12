@@ -192,8 +192,8 @@
         '<span class="sk-lv">Lv ' + (level == null ? '—' : level) + '</span></div>' +
         '<div class="sk-sups">' + supChips + (hidden ? '<span class="sup-chip empty">辅助被隐藏</span>' : '') + '</div>' +
         (dps != null ? (dps > 1e9
-          ? '<div class="sk-dps"><span>游戏记录的技能伤害</span><b class="muted">—</b><span class="tiny mute">官方字段溢出，已隐藏</span></div>'
-          : '<div class="sk-dps"><span>游戏记录的技能伤害</span><b>' + BO.num(dps) + '</b></div>') : '') +
+          ? '<div class="sk-dps"><span title="API 的 skill_damage 字段，不是每秒 DPS">游戏记录技能伤害（非 DPS）</span><b class="muted">—</b><span class="tiny mute">API 字段数值异常/溢出，已隐藏；它不是每秒 DPS</span></div>'
+          : '<div class="sk-dps"><span title="API 的 skill_damage 字段，不是每秒 DPS">游戏记录技能伤害（非 DPS）</span><b>' + BO.num(dps) + '</b></div>') : '') +
         '</div>';
     }).join('');
   }
@@ -372,12 +372,13 @@
     $('buildBody').innerHTML = html;
     $('copyRaw').addEventListener('click', function () { BO.copy(JSON.stringify(b, null, 2)); });
     $('openPlanner').addEventListener('click', function () {
-      try {
-        localStorage.setItem('bo_pending_build', JSON.stringify({ api: b, main: main, league: league, at: Date.now() }));
-        location.href = 'planner.html#import=api';
-      } catch (e) {
-        BO.toast('浏览器存储不可用，无法打开模拟器：' + e.message, true);
-      }
+      var payload = JSON.stringify({ api: b, main: main, league: league, at: Date.now() });
+      var stored = false;
+      try { localStorage.setItem('bo_pending_build', payload); stored = true; } catch (e) {}
+      if (!stored) { try { sessionStorage.setItem('bo_pending_build', payload); stored = true; } catch (e) {} }
+      // file:// and private-mode fallbacks: window.name survives the same-tab navigation.
+      try { window.name = 'bo_pending_build:' + payload; } catch (e) {}
+      location.href = 'planner.html#import=api';
     });
   }
 

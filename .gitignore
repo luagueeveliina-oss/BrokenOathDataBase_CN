@@ -15,6 +15,9 @@ site/assets/api/
 PoEDB/
 .ref/
 
+# 本地参考项目（仅本机使用，不随仓库发布）
+Broked-db-planner/
+
 # 发布产物
 *.zip
 
