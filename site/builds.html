@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>构筑库 · Broken Oath Data Base</title>
+<meta name="description" content="《破誓》官方构筑库：按联赛与职业浏览玩家公开的构筑，含主技能、辅助、等级、裂隙等级与守护者实测 DPS。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+<header id="bo-top"></header>
+
+<main id="main" class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">首页</a><span class="sep">/</span><a href="ladder.html">天梯</a><span class="sep">/</span><span>构筑库</span></div>
+    <div class="ph-kicker">Published builds</div>
+    <div class="ph-row">
+      <div>
+        <h1 class="ph-title">构筑库 <span class="thin">Builds</span></h1>
+        <p class="ph-sub">每个职业前 50 名公开构筑。点开任意一份，查看完整装备、词缀、技能、天赋与游戏实测的守护者数据。</p>
+      </div>
+      <div class="ph-actions"><span class="tag gold" id="buildSync">同步快照</span></div>
+    </div>
+  </header>
+
+  <section class="league-picker">
+    <div class="field" style="flex:1 1 320px">
+      <label for="leagueSel">联赛</label>
+      <select class="sel" id="leagueSel" style="width:100%"></select>
+    </div>
+    <div class="meta"><span id="buildCount">—</span><a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener" class="tiny">Data: Broken Oath public API</a></div>
+  </section>
+
+  <div class="class-tabs" id="classTabs"></div>
+
+  <div class="filters">
+    <div class="searchbox">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="搜索主技能、辅助或职业…" aria-label="搜索构筑">
+      <kbd>/</kbd>
+    </div>
+    <select class="sel" id="sortSel" aria-label="排序">
+      <option value="rank">按天梯排名</option>
+      <option value="dps">按守护者 DPS</option>
+      <option value="level">按等级</option>
+      <option value="rl">按裂隙等级</option>
+    </select>
+    <span class="spacer"></span>
+    <span class="tiny muted" id="resultCount">—</span>
+  </div>
+
+  <div id="buildsBody"><div class="loading"><span class="spinner"></span>正在载入构筑库…</div></div>
+  <div id="buildsPager"></div>
+</main>
+
+<div id="bo-foot"></div>
+
+<script src="assets/icons/manifest.js"></script>
+<script src="assets/data/names.js"></script>
+<script src="assets/data/api_seed.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/builds.js"></script>
+</body>
+</html>

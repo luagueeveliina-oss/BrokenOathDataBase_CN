@@ -2,216 +2,62 @@
 <html lang="zh-CN" data-lang="zh">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>技能与宝石 · 破誓资料库</title>
-<meta name="description" content="《破誓》技能宝石、辅助宝石、誓约与灾祸的完整数据：伤害类型、效率、魔力消耗、逐级成长与机制说明。">
-<link rel="stylesheet" href="assets/site.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>技能与宝石 · Broken Oath Data Base</title>
+<meta name="description" content="《破誓》技能数据库：78 个技能宝石、93 个辅助宝石、33 个誓约、14 个灾祸，以及 18 份开荒构筑指南。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body class="page-skills">
+<a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
-<div class="wrap">
-  <section class="hero" style="padding-bottom:12px">
-    <div class="hero-kicker">SKILLS &amp; GEMS</div>
-    <h1>技能与宝石</h1>
-    <p>六大职业共 78 个技能、93 颗辅助宝石，以及誓约、先驱与灾祸。伤害效率为「武器伤害百分比」或「法术基础伤害」，逐级成长按游戏数据的每级 19% 复利计算。</p>
-  </section>
-  <nav class="tabs" id="tabs" role="tablist"></nav>
+
+<main id="main" class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">首页</a><span class="sep">/</span><span>数据库</span><span class="sep">/</span><span>技能</span></div>
+    <div class="ph-kicker">Gems &amp; skills</div>
+    <div class="ph-row">
+      <div>
+        <h1 class="ph-title">技能与宝石 <span class="thin">Skills</span></h1>
+        <p class="ph-sub">技能宝石、辅助宝石、誓约与灾祸的完整数值与标签，附 18 份官方开荒构筑指南，可一键送入模拟器。</p>
+      </div>
+      <div class="ph-actions"><span class="tag gold" id="skillVer">本地数据</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="技能分类"></nav>
+
   <div class="toolbar">
-    <div class="search">
-      <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
-      <input id="q" type="search" autocomplete="off" placeholder="搜索技能、辅助、机制关键词…（按 / 聚焦）">
-      <span class="kbd">/</span>
+    <div class="searchbox">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="搜索技能、辅助、标签…（按 / 聚焦）" aria-label="搜索技能">
+      <kbd>/</kbd>
     </div>
-    <select class="sel" id="cls"></select>
-    <select class="sel" id="sort"></select>
+    <select class="sel" id="sort" aria-label="排序">
+      <option value="name">按名称</option>
+      <option value="lvl">按等级需求</option>
+      <option value="cls">按职业</option>
+    </select>
+    <span class="spacer"></span>
+    <span class="tiny muted" id="resultCount">—</span>
   </div>
-  <div class="layout">
-    <aside class="side" id="side"></aside>
-    <div class="results">
-      <div class="reshead"><div class="count" id="count"></div></div>
+
+  <div class="db-layout">
+    <aside class="facets" id="side" aria-label="筛选项"></aside>
+    <section class="results" aria-live="polite">
+      <div class="results-head"><div id="count"></div><div class="tiny mute">点击卡片查看完整数值</div></div>
       <div id="list"></div>
-    </div>
+    </section>
   </div>
-</div>
+</main>
+
 <div id="bo-foot"></div>
 
-<script src="assets/site.js"></script>
 <script src="assets/icons/manifest.js"></script>
 <script src="assets/data/skills.js"></script>
-<script>
-(function(){
-  const SK = window.BO_SKILLS, T = BO.T, esc = BO.esc, num = BO.num, hl = BO.hl;
-  BO.mountHeader('skills.html'); BO.mountFooter(); BO.setDocumentTitle('技能与宝石','Skills');
-  const S = { cat:'skills', q:'', cls:'', sort:'lvl', f:{} };
-  const $ = id => document.getElementById(id);
-  const arrOf = k => k==='skills'?SK.skills.filter(s=>s.group!=='blessing') : k==='supports'?SK.supports : k==='vows'?SK.blessings : SK.curses;
-  const ATTR_TINT = {Str:'#d07c6f', Dex:'#7fce9b', Int:'#8fb0e8'};
-  const CATS = [
-    {k:'skills', zh:'技能宝石', en:'Skill gems'},
-    {k:'supports', zh:'辅助宝石', en:'Support gems'},
-    {k:'vows', zh:'誓约与先驱', en:'Vows & Heralds'},
-    {k:'curses', zh:'灾祸与判决', en:'Woes & Sentences'},
-  ];
-  // 支持 #分类 与 #分类?cls=Warrior&attr=力量&tag=攻击&q=技能名
-  function readHash(){
-    const raw = decodeURIComponent(location.hash.slice(1));
-    const qi = raw.indexOf('?');
-    const path = qi < 0 ? raw : raw.slice(0, qi);
-    const qs = qi < 0 ? '' : raw.slice(qi + 1);
-    if (path && !CATS.some(c => c.k === path)) return false;
-    if (path) S.cat = path;
-    S.f = {};
-    S.q = '';
-    if (qs) {
-      const p = new URLSearchParams(qs);
-      if (p.get('cls')) S.cls = p.get('cls');
-      if (p.has('q')) S.q = (p.get('q') || '').trim();
-      ['attr','tag','req','kind'].forEach(k => {
-        const val = p.get(k);
-        if (val) S.f[k] = new Set([val]);
-      });
-    }
-    const qi2 = document.getElementById('q');
-    if (qi2) qi2.value = S.q;
-    return true;
-  }
-  readHash();
-  window.addEventListener('hashchange', () => {
-    if (!readHash()) return;
-    render();
-  });
-  arrOf('skills').concat(SK.supports, SK.blessings, SK.curses).forEach(r=>{ if(!r._s) r._s = JSON.stringify(r).toLowerCase(); });
-
-  const dmgTable = s => {
-    if (!s.rows || !s.rows.length) return '';
-    const rows = s.rows;
-    const isSpell = !!s.spell;
-    return `<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--dim);font-size:.8rem">逐级成长 1–${rows.length}（${isSpell?'法术基础伤害':'武器伤害效率 %'}）</summary>
-      <div class="tiers" style="margin-top:6px;border-radius:8px;border:1px solid var(--line)"><table>
-      <thead><tr><th>宝石等级</th><th>${isSpell?'基础伤害':'伤害效率'}</th><th>${isSpell?'（对比 1 级）':'备注'}</th></tr></thead><tbody>
-      ${rows.map(r=>`<tr><td class="mono">${r[0]}</td><td class="mono">${isSpell?r[1]+'–'+r[2]:r[1]+'%'}</td><td class="mono" style="color:var(--dim)">${isSpell?('×'+(r[1]/rows[0][1]).toFixed(2)):(r[0]===1?'基准':'')}</td></tr>`).join('')}
-      </tbody></table></div></details>`;
-  };
-
-  const skillCard = s => {
-    const tags = (s.tags||[]).map(t=>`<span class="tag">${esc(T(t))}</span>`).join('');
-    const meta = [];
-    if (s.mana!==undefined && s.mana!==null) meta.push(`魔力 ${s.mana}`);
-    if (s.cast) meta.push(`施法 ${s.cast}s`);
-    if (s.cd) meta.push(`冷却 ${s.cd}s`);
-    if (s.radius) meta.push(`半径 ${s.radius}`);
-    if (s.proj) meta.push(`投射物 ${s.proj}`);
-    if (s.chains) meta.push(`连锁 ${s.chains}`);
-    if (s.pierce) meta.push(`穿透 ${s.pierce}`);
-    const eff = s.eff ? `效率 ${Math.round(s.eff*100)}%${s.effLate?` → ${Math.round(s.effLate*100)}%（${s.lateFrom}–${s.lateAt} 级）`:''}` : '';
-    return `<article class="card">
-      <div class="card-head">${BO.icon('sk:' + s.id, 'gem', ATTR_TINT[s.attr] || '#9fb4d8')}<h3>${esc(T(s.n))}</h3><span class="lvl">${esc(T([s.kindZh,s.kind]))}</span></div>
-      <div class="sub"><b>${esc(T([s.clsZh,s.cls]))}</b> · ${esc(T([s.attrZh,s.attr]))} · ${esc(T([s.deliveryZh,s.delivery]))} · ${esc(T([s.dmgTypeZh,s.dmgType]))}</div>
-      <div class="card-foot" style="border:0;padding:0;margin:0 0 8px">
-        ${eff?`<span class="tag hi">${esc(eff)}</span>`:''}
-        ${meta.map(m=>`<span class="tag">${esc(m)}</span>`).join('')}
-      </div>
-      <div style="color:var(--fg2);font-size:.9rem">${hl(T(s.desc))}</div>
-      ${s.spell?`<ul class="mods imp"><li>基础伤害 ${s.spell[0]}–${s.spell[1]}（每级 +${Math.round((SK.gemGrowth-1)*100)}%）</li></ul>`:''}
-      ${dmgTable(s)}
-      <div style="margin-top:9px">${tags}</div>
-    </article>`;
-  };
-
-  const supportCard = s => `<article class="card">
-      <div class="card-head">${BO.icon('sp:' + s.id, 'support', '#b4b4ff')}<h3>${esc(T(s.n))}</h3><span class="lvl">魔力 ×${s.mana}</span></div>
-      <div class="sub"><b>${esc(T([s.attrZh,s.attr]))}</b> · 掉落权重 ${s.weight}</div>
-      <div style="color:var(--fg2);font-size:.9rem">${hl(T(s.desc))}</div>
-      ${s.mods.length?`<ul class="mods imp">${s.mods.map(m=>`<li>${hl(T(m))}</li>`).join('')}</ul>`:''}
-      <div class="card-foot">
-        ${s.req.length?`<span>可用于：${s.req.map(r=>esc(T(r))).join(', ')}</span>`:'<span>可用于任意技能</span>'}
-        ${s.excl.length?`<span>不可与：${s.excl.map(r=>esc(T(r))).join(', ')}</span>`:''}
-      </div>
-    </article>`;
-
-  const vowCard = b => `<article class="card">
-      <div class="card-head"><h3>${esc(T(b.n))}</h3><span class="lvl">${esc(T([b.kindZh,b.kind]))}</span></div>
-      <div class="sub">${b.resFlat?`保留 ${b.resFlat} 魔力${b.resFlatPer?`（每级 +${b.resFlatPer}）`:''}`:''}${b.resPct?`保留 ${b.resPct}% 魔力`:''}</div>
-      <div style="color:var(--fg2);font-size:.9rem">${hl(T(b.text))}</div>
-      <ul class="mods">${b.mods.map(m=>`<li>${hl(T(m.line))}${m.per?`<span style="color:var(--dim);font-size:.78rem">（每级 +${m.per}${m.top?`，20 级 ${m.top}`:''}）</span>`:''}</li>`).join('')}</ul>
-      ${b.vb && b.vb.text && b.vb.text[1]?`<div style="margin-top:9px"><span class="tag hi">破誓</span><div style="color:var(--fg2);font-size:.87rem;margin-top:5px">${esc(T(b.vb.text))}${b.vb.sec?`（${b.vb.sec}s）`:''}</div></div>`:''}
-    </article>`;
-
-  const curseCard = c => `<article class="card">
-      <div class="card-head"><h3>${esc(T(c.n))}</h3><span class="lvl">${esc(T([c.kindZh,c.kind]))}</span></div>
-      <div class="sub">${c.dur?`持续 ${c.dur}s`:''}${c.boss!==undefined&&c.boss!==null?` · 对首领效果 ${Math.round((c.boss||0)*100)}%`:''}</div>
-      <div style="color:var(--fg2);font-size:.92rem">${hl(T(c.text))}</div>
-      ${c.dread && c.dread.Cap?`<ul class="mods"><li>恐惧上限 ${c.dread.Cap}（每层 +${c.dread.EffectPct}% 灾祸效果，每秒衰减 ${c.dread.DecayPerSec}）</li></ul>`:''}
-    </article>`;
-
-  const RENDER = {skills:skillCard, supports:supportCard, vows:vowCard, curses:curseCard};
-
-  function facetPool(){
-    const a = arrOf(S.cat);
-    return a.filter(r=>{
-      if (S.q){ const ts=S.q.toLowerCase().split(/\s+/).filter(Boolean); if(!ts.every(t=>r._s.includes(t))) return false; }
-      if (S.cls && (r.cls||'')!==S.cls) return false;
-      return true;
-    });
-  }
-
-  function render(){
-    BO.setTerms(S.q);
-    $('tabs').innerHTML = CATS.map(c=>`<button class="tab" role="tab" data-k="${c.k}" aria-selected="${c.k===S.cat}">${esc(T([c.zh,c.en]))}<i>${arrOf(c.k).length}</i></button>`).join('');
-    $('cls').style.display = S.cat==='skills' ? '' : 'none';
-    $('cls').innerHTML = `<option value="">全部职业</option>` + [...new Set(SK.skills.map(s=>s.cls).filter(Boolean))]
-      .map(c=>`<option value="${c}"${S.cls===c?' selected':''}>${esc(T([(SK.skills.find(x=>x.cls===c)||{}).clsZh,c]))}</option>`).join('');
-    $('sort').innerHTML = `<option value="lvl">等级 / 默认</option><option value="name">名称</option>`.replace('value="lvl"', `value="lvl"${S.sort==='lvl'?' selected':''}`).replace('value="name"', `value="name"${S.sort==='name'?' selected':''}`);
-
-    // facets: for skills show tags + attribute; supports show attribute + works-with
-    let gs = [];
-    const pool = facetPool();
-    const countBy = (fn)=>{ const m=new Map(); pool.forEach(r=>fn(r).forEach(v=>m.set(v,(m.get(v)||0)+1))); return m; };
-    if (S.cat==='skills'){
-      gs.push({id:'attr', label:'属性', values:countBy(r=>[T([r.attrZh,r.attr])]), selected:new Set()});
-      gs.push({id:'tag', label:'标签', values:countBy(r=>(r.tags||[]).map(t=>T(t))), selected:new Set()});
-    } else if (S.cat==='supports'){
-      gs.push({id:'attr', label:'属性', values:countBy(r=>[T([r.attrZh,r.attr])]), selected:new Set()});
-      gs.push({id:'req', label:'可用于', values:countBy(r=>(r.req||[]).map(t=>T(t))), selected:new Set()});
-    } else if (S.cat==='vows'){
-      gs.push({id:'kind', label:'类型', values:countBy(r=>[T([r.kindZh,r.kind])]), selected:new Set()});
-    }
-    // local filters kept separately so they don't fight with search
-    if (!S.f) S.f = {};
-    gs = gs.map(g=>({...g, selected:S.f[g.id]||new Set()}));
-    BO.renderFacets($('side'), gs, (gid,val)=>{
-      const m = S.f[gid]||(S.f[gid]=new Set());
-      if (val===null) delete S.f[gid]; else m.has(val)?m.delete(val):m.add(val);
-      render();
-    });
-
-    let arr = pool.slice();
-    for (const k of Object.keys(S.f)){
-      const set = S.f[k]; if(!set.size) continue;
-      arr = arr.filter(r=>{
-        if (k==='attr') return set.has(T([r.attrZh,r.attr]));
-        if (k==='tag') return (r.tags||[]).some(t=>set.has(T(t)));
-        if (k==='req') return (r.req||[]).some(t=>set.has(T(t)));
-        if (k==='kind') return set.has(T([r.kindZh,r.kind]));
-        return true;
-      });
-    }
-    if (S.sort==='name') arr.sort((a,b)=>T(a.n).localeCompare(T(b.n)));
-    else arr.sort((a,b)=>{ if(a.cls!==b.cls) return String(a.cls||'').localeCompare(String(b.cls||'')); return (a.order||0)-(b.order||0)||T(a.n).localeCompare(T(b.n)); });
-
-    $('count').innerHTML = `<b>${arr.length}</b> 条${esc(T([CATS.find(c=>c.k===S.cat).zh, CATS.find(c=>c.k===S.cat).en]))}${S.q?` · 匹配 “${esc(S.q)}”`:''}`;
-    if(!arr.length){ $('list').innerHTML = BO.empty('没有匹配的结果。'); return; }
-    $('list').innerHTML = `<div class="grid">${arr.map(RENDER[S.cat]).join('')}</div>`;
-    BO.collapseSide();
-  }
-
-  $('tabs').addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(!b)return; S.cat=b.dataset.k; S.f={}; S.cls=''; render(); });
-  $('q').addEventListener('input', BO.debounce(e=>{ S.q=e.target.value.trim(); render(); },140));
-  $('cls').addEventListener('change', e=>{ S.cls=e.target.value; render(); });
-  $('sort').addEventListener('change', e=>{ S.sort=e.target.value; render(); });
-  document.addEventListener('keydown', e=>{ if(e.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$('q').focus();} });
-  render();
-})();
-</script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/skills.js"></script>
 </body>
 </html>

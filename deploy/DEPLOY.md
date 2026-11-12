@@ -1,6 +1,6 @@
 # 发布指南 · 破誓中文资料库
 
-站点是**纯静态**的：`site/` 目录里没有任何后端、没有外部 CDN、没有构建步骤（数据已预生成为 `assets/data/*.js`）。
+站点是**纯静态**的：`site/` 目录里没有后端、没有外部 CDN。内容数据已预生成为 `assets/data/*.js`；天梯/构筑的 API 快照在发布前用 `python tools/sync_api.py` 同步（GitHub Actions 已自动执行）。
 所以"发布"= 把这个目录放到任何能提供 HTTP 静态文件的地方。
 
 ---
@@ -15,7 +15,7 @@
 | 协议没禁止，但开发商可能不喜欢数据站 | 可以发布，但：不收费、不挂广告、页脚保留免责声明、收到请求就配合下架 |
 | 想公开但还没想清楚 | 先发"未列出"链接（`robots.txt` 禁爬 + 不在社区宣传），随时可以撤 |
 
-另外重申本站的一个好习惯：**只发布整理后的数值与文本，不打包、不重分发游戏本体资源**（图标我们本来就没放）。这是粉丝站最安全的形态。
+另外重申本站的一个好习惯：**只发布整理后的数值与文本，不打包、不重分发游戏本体**。物品/技能图标是游戏美术资源，仅用于非商业资料展示；权利人要求时会移除。这是粉丝站最安全的形态。
 
 ---
 
@@ -62,6 +62,11 @@ git push -u origin main
 
 把 `deploy/github-pages.yml` 复制成仓库里的 `.github/workflows/pages.yml`，push 后自动发布，
 得到 `https://<账号>.github.io/<仓库名>/`。
+
+> 这份工作流包含两步：先运行 `python3 tools/sync_api.py --depth 3` 拉取最新天梯/构筑快照，
+> 再发布 `site/`；同时有 `schedule: */15`。**只有把这份工作流 push 到默认分支 `main` 后，
+> 定时更新才会生效。** 如果只 push 页面而不 push 工作流，线上天梯会一直停在旧快照。
+> 可以在 Actions 页面手动 Run workflow 验证一次；GitHub 的 cron 可能延迟数分钟。
 
 > 分支直发模式（Deploy from a branch）只支持根目录 `/` 或 `/docs`，**不能选 `site/`**。
 > 如果你不想用 Actions：把 `site` 里的内容复制到一个叫 `docs` 的目录再提交，源目录选 `/docs`。
@@ -126,7 +131,7 @@ db.yourdomain.com {
 
 | 方式 | 做法 |
 |---|---|
-| 直接发压缩包 | `Compress-Archive -Path site\* -DestinationPath brokenoath-db.zip`，对方解压双击 `index.html` 即可（站点完全自包含，离线可用） |
+| 直接发压缩包 | `Compress-Archive -Path site\* -DestinationPath brokenoath-db.zip`，对方解压双击 `index.html` 即可（当前联赛使用内置 API 种子，可离线查看） |
 | 局域网共享 | 你在自己电脑上跑 `cd site; python -m http.server 8080`，朋友访问 `http://<你的内网IP>:8080` |
 | 私有仓库 + 邀请 | GitHub 私有仓库，Pages 允许私有仓库发布（Pro 账号） |
 | 网盘 | 可以，但网盘里的 HTML 不会渲染，必须下载解压 |
@@ -135,7 +140,7 @@ db.yourdomain.com {
 
 ## 5. 上线前 5 分钟检查清单
 
-- [ ] **能离线打开**：双击 `site/index.html`，六个页面都能切换、搜索能出结果（已自包含，无外链依赖）
+- [ ] **能离线打开**：双击 `site/index.html`，首页、天梯、物品、技能、图鉴、模拟器都能切换；搜索能出结果（当前联赛使用内置种子）
 - [ ] **压缩生效**：`curl -H "Accept-Encoding: gzip" -sI https://你的域名/assets/data/items.js | findstr Content-Encoding` 应看到 `gzip`
 - [ ] **缓存头**：`.html` 用 `no-cache`，`/assets/` 用 `max-age=3600`（`site/_headers` 已写好，Nginx 见 `deploy/nginx.conf`）
 - [ ] **中文不乱码**：`Content-Type: text/html; charset=utf-8`

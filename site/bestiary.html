@@ -2,204 +2,64 @@
 <html lang="zh-CN" data-lang="zh">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>怪物图鉴 · 破誓资料库</title>
-<meta name="description" content="《破誓》382 种怪物与 28 位守护者的生命、伤害、经验、抗性与攻击模式，以及裂隙首领机制。">
-<link rel="stylesheet" href="assets/site.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>怪物图鉴 · Broken Oath Data Base</title>
+<meta name="description" content="《破誓》382 种怪物、28 位守护者与裂隙首领机制：生命、伤害、经验、抗性、变体与阶段。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
-<body class="page-bestiary">
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
-<div class="wrap">
-  <section class="hero" style="padding-bottom:12px">
-    <div class="hero-kicker">BESTIARY</div>
-    <h1>怪物图鉴</h1>
-    <p id="lede"></p>
-  </section>
-  <nav class="tabs" id="tabs" role="tablist"></nav>
+
+<main id="main" class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">首页</a><span class="sep">/</span><span>数据库</span><span class="sep">/</span><span>图鉴</span></div>
+    <div class="ph-kicker">Bestiary</div>
+    <div class="ph-row">
+      <div>
+        <h1 class="ph-title">怪物图鉴 <span class="thin">Bestiary</span></h1>
+        <p class="ph-sub">382 种怪物、28 位守护者，以及裂隙里会遇见的首领机制。生命、伤害、经验与抗性均来自游戏数据文件。</p>
+      </div>
+      <div class="ph-actions"><span class="tag gold" id="mobVer">本地数据</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="图鉴分类"></nav>
+
   <div class="toolbar">
-    <div class="search">
-      <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
-      <input id="q" type="search" autocomplete="off" placeholder="搜索怪物、守护者…（按 / 聚焦）">
-      <span class="kbd">/</span>
+    <div class="searchbox">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="搜索怪物、守护者、机制…（按 / 聚焦）" aria-label="搜索图鉴">
+      <kbd>/</kbd>
     </div>
-    <select class="sel" id="sort"></select>
+    <select class="sel" id="sort" aria-label="排序">
+      <option value="life">生命：高到低</option>
+      <option value="dmg">伤害：高到低</option>
+      <option value="xp">经验：高到低</option>
+      <option value="name">名称</option>
+    </select>
+    <span class="spacer"></span>
+    <span class="tiny muted" id="resultCount">—</span>
   </div>
-  <div class="layout">
-    <aside class="side" id="side"></aside>
-    <div class="results">
-      <div class="reshead"><div class="count" id="count"></div></div>
+
+  <div class="db-layout">
+    <aside class="facets" id="side" aria-label="筛选项"></aside>
+    <section class="results" aria-live="polite">
+      <div class="results-head"><div id="count"></div><div class="tiny mute" id="hint"></div></div>
       <div id="list"></div>
-    </div>
+      <div id="pager"></div>
+    </section>
   </div>
-</div>
+</main>
+
 <div id="bo-foot"></div>
 
-<script src="assets/site.js"></script>
+<script src="assets/icons/manifest.js"></script>
 <script src="assets/data/bestiary.js"></script>
-<script>
-(function(){
-  const M = window.BO_MOBS, T = BO.T, esc = BO.esc, num = BO.num, hl = BO.hl;
-  BO.mountHeader('bestiary.html'); BO.mountFooter(); BO.setDocumentTitle('怪物图鉴','Bestiary');
-  const $ = id => document.getElementById(id);
-  const S = { cat:'mobs', q:'', sort:'life', f:{} };
-  M.monsters.concat(M.guardians, M.tiers).forEach(r=>{ if(!r._s) r._s = JSON.stringify(r).toLowerCase(); });
-
-  const CATS = [
-    {k:'mobs', zh:'怪物', en:'Monsters'},
-    {k:'bosses', zh:'守护者', en:'Guardians'},
-    {k:'mech', zh:'首领机制', en:'Guardian modifiers'},
-  ];
-  const arrOf = k => k==='mobs'?M.monsters : k==='bosses'?M.guardians : M.tiers;
-
-  // 支持 #分类 与 #分类?type=守护者&role=bruiser
-  function readHash(){
-    const raw = decodeURIComponent(location.hash.slice(1));
-    const qi = raw.indexOf('?');
-    const path = qi < 0 ? raw : raw.slice(0, qi);
-    const qs = qi < 0 ? '' : raw.slice(qi + 1);
-    if (path && !CATS.some(c => c.k === path)) return false;
-    if (path) S.cat = path;
-    S.sort = S.cat === 'mobs' ? 'life' : S.cat === 'mech' ? 'rl' : 'name';
-    S.f = {};
-    S.q = '';
-    if (qs) {
-      const p = new URLSearchParams(qs);
-      if (p.has('q')) S.q = (p.get('q') || '').trim();
-      ['type','role'].forEach(k => {
-        const val = p.get(k);
-        if (val) S.f[k] = new Set([val]);
-      });
-    }
-    const qi2 = document.getElementById('q');
-    if (qi2) qi2.value = S.q;
-    return true;
-  }
-  readHash();
-  window.addEventListener('hashchange', () => {
-    if (!readHash()) return;
-    render();
-  });
-
-  const dmgOf = m => m.dmin!=null ? `${m.dmin}–${m.dmax}` : '—';
-  const maxLife = Math.max(...M.monsters.map(m=>m.life||0)) || 1;
-  const isGuardianMob = m => /^g_/.test(m.id);
-  const SIDE = { f:{} };
-
-  const mobCard = m => `
-    <article class="mob">
-      <h3>${hl(T(m.n))}<span>${m.life?num(m.life)+' 生命':''}</span></h3>
-      <div class="mob-stats">
-        <div class="stat"><b>${dmgOf(m)}</b><span>伤害</span></div>
-        <div class="stat"><b>${m.xp??'—'}</b><span>经验</span></div>
-        <div class="stat"><b>${num(m.walk)}</b><span>移速</span></div>
-      </div>
-      <div class="bar"><i style="width:${Math.max(2,(m.life||0)/maxLife*100)}%"></i></div>
-      <div class="card-foot" style="border:0;padding:0;margin-top:8px">
-        ${m.nAtk?`<span class="tag">${m.nAtk} 种攻击</span>`:''}
-        ${m.armour?`<span class="tag">护甲 ${m.armour}</span>`:''}
-        ${m.role?`<span class="tag">${esc(facetDisplay(m.role))}</span>`:''}
-        ${m.aggro?`<span class="tag">仇恨 ${m.aggro}</span>`:''}
-      </div>
-    </article>`;
-
-  const bossCard = g => `
-    <article class="boss" style="margin-bottom:14px">
-      <h3>${hl(T(g.n))}</h3>
-      <div class="lore">${hl(T(g.lore))}</div>
-      <div class="card-foot" style="border:0;padding:0;margin:0 0 10px">
-        <span class="tag tier">生命占比 ${g.life}×</span>
-        ${g.variants.map(v=>`<span class="tag hi">${esc(T(v.n))}${v.element?` · ${esc(v.element)}`:''}</span>`).join('')}
-      </div>
-      ${g.variants.length?`<div class="tiers" style="border:1px solid var(--line);border-radius:8px"><table>
-        <thead><tr><th>变体</th><th>元素</th><th>抗性</th><th>体型</th></tr></thead><tbody>
-        ${g.variants.map(v=>`<tr><td>${esc(T(v.n))}</td><td>${esc(v.element||'—')}</td><td class="mono">${Object.entries(v.resist||{}).map(([k,x])=>k+' +'+x+'%').join(', ')||'—'}</td><td class="mono">${v.scale??'—'}</td></tr>`).join('')}
-        </tbody></table></div>`:''}
-    </article>`;
-
-  const mechCard = t => {
-    const every = t.every ? `每 ${t.every} 个裂隙等级出现` : '按裂隙等级出现';
-    const layers = t.count ? ` · ${t.count} 层` : '';
-    const bodyText = T(t.text);
-    const showBody = bodyText && bodyText !== T(t.n);
-    return `
-    <article class="card">
-      <div class="card-head"><h3>${hl(T(t.n))}</h3><span class="lvl">RL ${t.fromRL}+</span></div>
-      <div class="sub">${esc(every)}${esc(layers)}${t.pinnacle?' · 巅峰':''}</div>
-      ${showBody?`<div style="color:var(--fg2);font-size:.9rem">${hl(bodyText)}</div>`:''}
-      <div class="card-foot"><span>伤害系数 ${t.damage==null?'—':t.damage}</span></div>
-    </article>`;
-  };
-
-  const ROLE_ZH = {bruiser:'猛攻', leaper:'跃击', charger:'冲锋', pulser:'脉冲', caster:'施法', swarm:'虫群',
-    shield:'持盾', archer:'弓手', summoner:'召唤', stalker:'潜行', flyer:'飞行', brute:'蛮力'};
-  const FACET_DEFS = {
-    mobs: [
-      ['type','类型', m=>[isGuardianMob(m)?'守护者':'普通怪物']],
-      ['role','角色', m=>m.role?[m.role]:[]],
-    ],
-    bosses: [],
-    mech: [],
-  };
-  const facetDisplay = v => ROLE_ZH[v] || v;
-
-  function render(){
-    BO.setTerms(S.q);
-    $('tabs').innerHTML = CATS.map(c=>`<button class="tab" role="tab" data-k="${c.k}" aria-selected="${c.k===S.cat}">${esc(T([c.zh,c.en]))}<i>${arrOf(c.k).length}</i></button>`).join('');
-    $('sort').innerHTML = S.cat==='mobs'
-      ? `<option value="life">生命：高到低</option><option value="dmg">伤害：高到低</option><option value="xp">经验：高到低</option><option value="name">名称</option>`
-      : S.cat==='mech' ? `<option value="rl">按裂隙等级</option><option value="name">名称</option>`
-      : `<option value="name">名称</option>`;
-    $('sort').value = S.sort;
-
-    // facets
-    if (!S.f) S.f = {};
-    const fdefs = FACET_DEFS[S.cat] || [];
-    const all = arrOf(S.cat);
-    const qPool = all.filter(r=>{
-      if(!S.q) return true;
-      const ts = S.q.toLowerCase().split(/\s+/).filter(Boolean);
-      return ts.every(t=>r._s.includes(t));
-    });
-    const gs = fdefs.map(([id,label,fn])=>{
-      const counts = new Map();
-      qPool.forEach(r=>fn(r).forEach(v=>counts.set(v,(counts.get(v)||0)+1)));
-      return {id,label,values:counts,selected:S.f[id]||new Set(),display:id==='role'?facetDisplay:(v=>v)};
-    });
-    BO.renderFacets($('side'), gs, (gid,val)=>{
-      if (val===null) delete S.f[gid];
-      else { const s=S.f[gid]||(S.f[gid]=new Set()); s.has(val)?s.delete(val):s.add(val); }
-      render();
-    });
-
-    let arr = qPool.slice();
-    for (const [fid,,fn] of fdefs){
-      const set = S.f[fid];
-      if (set && set.size) arr = arr.filter(r=>fn(r).some(v=>set.has(v)));
-    }
-    if (S.cat==='mobs'){
-      if (S.sort==='life') arr.sort((a,b)=>(b.life||0)-(a.life||0));
-      else if (S.sort==='dmg') arr.sort((a,b)=>(b.dmax||0)-(a.dmax||0));
-      else if (S.sort==='xp') arr.sort((a,b)=>(b.xp||0)-(a.xp||0));
-      else arr.sort((a,b)=>T(a.n).localeCompare(T(b.n)));
-    } else if (S.cat==='mech'){
-      arr.sort((a,b)=>S.sort==='name'?T(a.n).localeCompare(T(b.n)):(a.fromRL||0)-(b.fromRL||0));
-    } else arr.sort((a,b)=>T(a.n).localeCompare(T(b.n)));
-
-    $('count').innerHTML = `<b>${arr.length}</b> 条${esc(T([CATS.find(c=>c.k===S.cat).zh,CATS.find(c=>c.k===S.cat).en]))}${S.q?` · 匹配 “${esc(S.q)}”`:''}`;
-    if (!arr.length){ $('list').innerHTML = BO.empty('没有匹配的结果。'); BO.collapseSide(); return; }
-    if (S.cat==='mobs') $('list').innerHTML = `<div class="mob-grid">${arr.map(mobCard).join('')}</div>`;
-    else if (S.cat==='bosses') $('list').innerHTML = `<div class="grid" style="grid-template-columns:1fr">${arr.map(bossCard).join('')}</div>`;
-    else $('list').innerHTML = `<div class="grid">${arr.map(mechCard).join('')}</div>`;
-    $('lede').textContent = `382 种怪物与 28 位守护者；生命、伤害与经验为游戏数据中的基础值（随怪物等级按全局曲线成长）。`;
-    BO.collapseSide();
-  }
-
-  $('tabs').addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(!b)return; S.cat=b.dataset.k; S.f={}; S.sort = S.cat==='mobs'?'life':S.cat==='mech'?'rl':'name'; render(); });
-  $('q').addEventListener('input', BO.debounce(e=>{ S.q=e.target.value.trim(); render(); },140));
-  $('sort').addEventListener('change', e=>{ S.sort=e.target.value; render(); });
-  document.addEventListener('keydown', e=>{ if(e.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$('q').focus();} });
-  render();
-})();
-</script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/bestiary.js"></script>
 </body>
 </html>

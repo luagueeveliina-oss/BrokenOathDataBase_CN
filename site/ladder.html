@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>天梯 · Broken Oath Data Base</title>
+<meta name="description" content="《破誓》官方天梯：每个公开联赛、每个职业前 200 名英雄，含裂隙等级、主技能、守护者实测 DPS 与构筑入口。每 15 分钟同步公开 API。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+<header id="bo-top"></header>
+
+<main id="main" class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">首页</a><span class="sep">/</span><span>天梯</span></div>
+    <div class="ph-kicker">Official ladder</div>
+    <div class="ph-row">
+      <div>
+        <h1 class="ph-title">天梯 <span class="thin">Ladder</span></h1>
+        <p class="ph-sub">每个公开联赛、每个职业前 200 名。名次按最佳裂隙等级排序；主技能、辅助与守护者实测 DPS 来自公开 API，构筑入口直达完整配装。</p>
+      </div>
+      <div class="ph-actions">
+        <span class="tag gold" id="syncTag">同步快照</span>
+        <button class="btn btn-sm" id="refreshBtn"><svg class="i"><use href="#i-refresh"/></svg> 检查更新</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="league-picker">
+    <div class="field" style="flex:1 1 320px">
+      <label for="leagueSel">联赛</label>
+      <select class="sel" id="leagueSel" style="width:100%"></select>
+    </div>
+    <div class="meta">
+      <span id="leagueRange">—</span>
+      <span id="leagueUpdated">—</span>
+      <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener" class="tiny">Data: Broken Oath public API</a>
+    </div>
+  </section>
+
+  <div class="class-tabs" id="classTabs"></div>
+
+  <div class="filters">
+    <div class="searchbox">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="搜索职业、龙相、主技能或辅助…（按 / 聚焦）" aria-label="搜索天梯">
+      <kbd>/</kbd>
+    </div>
+    <select class="sel" id="sortSel" aria-label="排序">
+      <option value="rank">按总排名</option>
+      <option value="level">按等级</option>
+      <option value="rl">按裂隙等级</option>
+      <option value="dps">按守护者 DPS</option>
+    </select>
+    <label class="chip" style="cursor:pointer"><input type="checkbox" id="onlyBuild" style="margin:0 4px 0 0"> 只看有构筑</label>
+    <span class="spacer"></span>
+    <span class="tiny muted" id="resultCount">—</span>
+  </div>
+
+  <div id="ladderBody">
+    <div class="loading"><span class="spinner"></span>正在载入天梯…</div>
+  </div>
+  <div id="ladderPager"></div>
+
+  <section class="sec">
+    <div class="panel">
+      <div class="panel-bd">
+        <div class="spread">
+          <div>
+            <div class="sec-kicker">About this ladder</div>
+            <div class="panel-title">这些数字是什么</div>
+            <p class="small muted" style="margin:6px 0 0;max-width:900px">「裂隙等级」是官方天梯的排名依据；「守护者 DPS」是游戏自己记录的中位数，只对已发布构筑的英雄显示。英雄 id 是不可逆的匿名哈希，本站不会、也无法把英雄对应到任何玩家。天梯每 15 分钟刷新，构筑每小时刷新。</p>
+          </div>
+          <a class="btn btn-sm" href="builds.html">构筑库</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="bo-foot"></div>
+
+<script src="assets/icons/manifest.js"></script>
+<script src="assets/data/names.js"></script>
+<script src="assets/data/api_seed.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/ladder.js"></script>
+</body>
+</html>

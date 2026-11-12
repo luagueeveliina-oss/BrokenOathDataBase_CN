@@ -43,10 +43,27 @@
   var NODE = P.NODE = idx(TR.nodes, 'i');
   var CLS = P.CLS = idx(CORE.classes, 'id');
 
-  P.slotList = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2', 'Idol'];
-  P.slotBase = { Ring1: 'Ring', Ring2: 'Ring' };
-  P.slotZh = { MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子', Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', Idol: '神像' };
-  P.slotGlyph = { MainHand: 'weapon', OffHand: 'shield', Helm: 'helm', Chest: 'chest', Gloves: 'gloves', Boots: 'boots', Belt: 'belt', Amulet: 'amulet', Ring1: 'ring', Ring2: 'ring', Idol: 'idol' };
+  P.IDOL_SLOTS = [];
+  for (var _si = 1; _si <= 8; _si++) P.IDOL_SLOTS.push('Idol' + _si);
+  P.slotList = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2', 'DwarvenRune'].concat(P.IDOL_SLOTS);
+  P.slotBase = { Ring1: 'Ring', Ring2: 'Ring', DwarvenRune: 'DwarvenRune' };
+  P.slotZh = {
+    MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子',
+    Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', DwarvenRune: '矮人符文',
+    Idol1: '神像 1', Idol2: '神像 2', Idol3: '神像 3', Idol4: '神像 4',
+    Idol5: '神像 5', Idol6: '神像 6', Idol7: '神像 7', Idol8: '神像 8'
+  };
+  P.slotGlyph = {
+    MainHand: 'weapon', OffHand: 'shield', Helm: 'helm', Chest: 'chest', Gloves: 'gloves', Boots: 'boots',
+    Belt: 'belt', Amulet: 'amulet', Ring1: 'ring', Ring2: 'ring', DwarvenRune: 'rune',
+    Idol1: 'idol', Idol2: 'idol', Idol3: 'idol', Idol4: 'idol', Idol5: 'idol', Idol6: 'idol', Idol7: 'idol', Idol8: 'idol'
+  };
+  for (var _sj = 0; _sj < P.IDOL_SLOTS.length; _sj++) P.slotBase[P.IDOL_SLOTS[_sj]] = 'Idol';
+  function gameSlot(slot) {
+    if (/^Idol\d+$/.test(slot)) return 'Idol';
+    if (slot === 'Ring1') return 'Ring';
+    return slot;
+  }
   P.rarityZh = { Normal: '普通', Magic: '魔法', Rare: '稀有', Unique: '传奇' };
   P.rarityColor = { Normal: 'var(--base)', Magic: 'var(--magic)', Rare: 'var(--rare)', Unique: 'var(--uniq)' };
 
@@ -421,10 +438,27 @@
   };
 
   // ================================================================ 物品
-  P.slotList = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2', 'Idol'];
-  P.slotBase = { Ring1: 'Ring', Ring2: 'Ring' };
-  P.slotZh = { MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子', Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', Idol: '神像' };
-  P.slotGlyph = { MainHand: 'weapon', OffHand: 'shield', Helm: 'helm', Chest: 'chest', Gloves: 'gloves', Boots: 'boots', Belt: 'belt', Amulet: 'amulet', Ring1: 'ring', Ring2: 'ring', Idol: 'idol' };
+  P.IDOL_SLOTS = [];
+  for (var _si = 1; _si <= 8; _si++) P.IDOL_SLOTS.push('Idol' + _si);
+  P.slotList = ['MainHand', 'OffHand', 'Helm', 'Chest', 'Gloves', 'Boots', 'Belt', 'Amulet', 'Ring1', 'Ring2', 'DwarvenRune'].concat(P.IDOL_SLOTS);
+  P.slotBase = { Ring1: 'Ring', Ring2: 'Ring', DwarvenRune: 'DwarvenRune' };
+  P.slotZh = {
+    MainHand: '主手', OffHand: '副手', Helm: '头盔', Chest: '胸甲', Gloves: '手套', Boots: '靴子',
+    Belt: '腰带', Amulet: '项链', Ring1: '戒指 1', Ring2: '戒指 2', DwarvenRune: '矮人符文',
+    Idol1: '神像 1', Idol2: '神像 2', Idol3: '神像 3', Idol4: '神像 4',
+    Idol5: '神像 5', Idol6: '神像 6', Idol7: '神像 7', Idol8: '神像 8'
+  };
+  P.slotGlyph = {
+    MainHand: 'weapon', OffHand: 'shield', Helm: 'helm', Chest: 'chest', Gloves: 'gloves', Boots: 'boots',
+    Belt: 'belt', Amulet: 'amulet', Ring1: 'ring', Ring2: 'ring', DwarvenRune: 'rune',
+    Idol1: 'idol', Idol2: 'idol', Idol3: 'idol', Idol4: 'idol', Idol5: 'idol', Idol6: 'idol', Idol7: 'idol', Idol8: 'idol'
+  };
+  for (var _sj = 0; _sj < P.IDOL_SLOTS.length; _sj++) P.slotBase[P.IDOL_SLOTS[_sj]] = 'Idol';
+  function gameSlot(slot) {
+    if (/^Idol\d+$/.test(slot)) return 'Idol';
+    if (slot === 'Ring1') return 'Ring';
+    return slot;
+  }
   P.rarityZh = { Normal: '普通', Magic: '魔法', Rare: '稀有', Unique: '传奇' };
   P.rarityColor = { Normal: 'var(--base)', Magic: 'var(--magic)', Rare: 'var(--rare)', Unique: 'var(--uniq)' };
 
@@ -1914,7 +1948,7 @@
       rows.push(r);
       for (var w = 0; w < r.warnings.length; w++) warnings.push(P.T(SK[r.id].n) + '：' + r.warnings[w]);
     }
-    if (rows.length > 6) warnings.push('技能栏最多 6 个技能（现在 ' + rows.length + ' 个）');
+    if (rows.length > 13) warnings.push('技能栏最多 13 个技能（现在 ' + rows.length + ' 个）');
     rows.sort(function (a, b) { return b.totalDps - a.totalDps; });
     // 去掉重复提示
     var seenW = {}, uniq = [];
@@ -1995,7 +2029,7 @@
     for (var i = 0; i < P.slotList.length; i++) {
       var slot = P.slotList[i], it = st.gear[slot];
       if (!it || !it.b) continue;
-      var g = { s: slot === 'Ring1' ? 'Ring' : slot === 'Ring2' ? 'Ring2' : slot, b: it.b, r: it.r || 'Normal' };
+      var g = { s: gameSlot(slot), b: it.b, r: it.r || 'Normal' };
       if (it.r === 'Unique' && it.u) g.u = it.u;
       obj.g.push(g);
     }
@@ -2047,19 +2081,29 @@
       else if (!SK[k]) st._importWarnings.push('未知技能已跳过：' + k);
     });
     skills.forEach(function (s) { if (s && SK[s.k] && order.indexOf(s.k) < 0) order.push(s.k); });
-    st.bar = order.map(function (k) {
+    st.vows = {}; st.curses = {};
+    st.bar = [];
+    order.forEach(function (k) {
+      if (BL[k] && /^vow_/.test(k)) { st.vows[k] = 1; return; }
+      if (CU[k]) { st.curses[k] = 1; return; }
       var s = byId[k] || { l: P.gemAt(st.level) };
       var sups = (s.u || []).filter(function (x) { return SUP[x]; });
       if ((s.u || []).length !== sups.length) st._importWarnings.push(P.T(SK[k].n) + '：有未知辅助被跳过');
       var sock = P.socketsAt(n(s.l) || 1);
       if (sups.length > sock) st._importWarnings.push(P.T(SK[k].n) + '：辅助数 ' + sups.length + ' 超过插槽 ' + sock);
-      return { id: k, lv: clamp(n(s.l) || P.gemAt(st.level), 1, 40), sup: sups };
+      st.bar.push({ id: k, lv: clamp(n(s.l) || P.gemAt(st.level), 1, 40), sup: sups });
     });
     if (!st.bar.length) st.bar = [];
     var gear = P.emptyGear();
     (obj.g || []).forEach(function (g) {
       if (!g || !g.b) return;
-      var slot = g.s === 'Ring' ? (gear.Ring1.b ? 'Ring2' : 'Ring1') : g.s;
+      var slot = g.s;
+      if (slot === 'Ring') slot = gear.Ring1.b ? 'Ring2' : 'Ring1';
+      else if (slot === 'Idol') {
+        slot = '';
+        for (var iz = 1; iz <= 8; iz++) if (!gear['Idol' + iz].b) { slot = 'Idol' + iz; break; }
+        if (!slot) { st._importWarnings.push('神像槽已满，跳过一件神像'); return; }
+      }
       if (!gear[slot]) { st._importWarnings.push('未知装备槽位已跳过：' + g.s); return; }
       var it = gear[slot];
       it.b = g.b;
@@ -2083,11 +2127,12 @@
     // 本站扩展
     if (obj.x) {
       var x = obj.x;
-      for (var slot2 in (x.a || {})) if (st.gear[slot2]) st.gear[slot2].a = (x.a[slot2] || []).filter(function (a) { return a && AFF[a.i]; });
-      for (var slot3 in (x.so || {})) if (st.gear[slot3]) st.gear[slot3].so = (x.so[slot3] || []).filter(function (r) { return RUNE[r]; });
-      for (var slot4 in (x.ur || {})) if (st.gear[slot4]) st.gear[slot4].ur = clamp(n(x.ur[slot4]), 0, 100);
-      for (var slot5 in (x.q || {})) if (st.gear[slot5]) st.gear[slot5].q = clamp(n(x.q[slot5]), 0, n(K.qualityMax) || 20);
-      for (var slot6 in (x.il || {})) if (st.gear[slot6]) st.gear[slot6].il = clamp(n(x.il[slot6]) || 84, 1, 100);
+      function xslot(k) { return k === 'Idol' ? 'Idol1' : k; }
+      for (var slot2 in (x.a || {})) if (st.gear[xslot(slot2)]) st.gear[xslot(slot2)].a = (x.a[slot2] || []).filter(function (a) { return a && AFF[a.i]; });
+      for (var slot3 in (x.so || {})) if (st.gear[xslot(slot3)]) st.gear[xslot(slot3)].so = (x.so[slot3] || []).filter(function (r) { return RUNE[r]; });
+      for (var slot4 in (x.ur || {})) if (st.gear[xslot(slot4)]) st.gear[xslot(slot4)].ur = clamp(n(x.ur[slot4]), 0, 100);
+      for (var slot5 in (x.q || {})) if (st.gear[xslot(slot5)]) st.gear[xslot(slot5)].q = clamp(n(x.q[slot5]), 0, n(K.qualityMax) || 20);
+      for (var slot6 in (x.il || {})) if (st.gear[xslot(slot6)]) st.gear[xslot(slot6)].il = clamp(n(x.il[slot6]) || 84, 1, 100);
       st.tree.socket = x.ts || {};
       st.tree.choice = x.ch || {};
       st.vows = x.vw || {};

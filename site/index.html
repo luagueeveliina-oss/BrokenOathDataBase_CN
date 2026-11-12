@@ -2,251 +2,136 @@
 <html lang="zh-CN" data-lang="zh">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Broken Oath · 中文资料库 — Broken Oath Database</title>
-<meta name="description" content="《Broken Oath》Playtest 中文资料库：传奇物品、底材、神像、词缀、符文与符文之语、技能宝石、怪物图鉴与数值机制，全部由游戏数据文件直接生成。">
-<link rel="stylesheet" href="assets/site.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Broken Oath Data Base · 破誓中文资料库</title>
+<meta name="description" content="《破誓 / Broken Oath》非官方中文资料库：官方天梯、构筑库、环境统计、物品、技能宝石与怪物图鉴。天梯与构筑数据来自 Broken Oath public API。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
-<body class="page-home">
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
 
-<div class="wrap">
+<main id="main" class="wrap">
+
   <section class="hero">
-    <div class="hero-kicker">BROKEN OATH · PLAYTEST DATABASE</div>
-    <h1>破誓 <em>中文资料库</em></h1>
-    <p>直接从游戏数据文件读取的完整中文数据库：每一条词缀、每一个符文、每一件传奇、每一个技能宝石与神像，都带有真实的数值与说明。版本 <span class="num" id="ver">—</span>。</p>
-    <div class="hero-stats" id="stats"></div>
+    <div class="hero-copy">
+      <div class="hero-kicker">Broken Oath · 非官方中文资料库</div>
+      <h1 class="hero-title">破誓者<em>数据库</em><span class="en">Ladder · Builds · Items · Bestiary</span></h1>
+      <p class="hero-lede">把 <b>官方天梯</b>、<b>玩家构筑</b>、<b>环境统计</b> 与游戏里的每一件装备放在同一个地方。天梯每 15 分钟、构筑每小时由本站同步公开 API，直接查、直接看、直接抄作业。</p>
+      <div class="hero-actions">
+        <a class="btn btn-gold btn-lg" href="ladder.html">查看天梯 <svg class="i"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-lg" href="builds.html">浏览构筑库</a>
+        <button class="btn btn-ghost btn-lg" id="heroSearch">搜索数据库 <kbd>/</kbd></button>
+      </div>
+      <div class="hero-meta">
+        <span><span class="dot live"></span> Online Testing 进行中</span>
+        <span id="heroPatch">Patch 0.56.8</span>
+        <span id="heroSynced">正在读取同步状态…</span>
+      </div>
+    </div>
+
+    <aside class="livecard" id="liveCard" aria-live="polite">
+      <div class="lc-top"><span class="lc-badge"><span class="dot live"></span> LIVE</span><span class="tag gold">公开 API</span></div>
+      <div class="lc-league" id="lcLeague">Online Testing</div>
+      <div class="lc-sub" id="lcSub">正在载入联赛与天梯…</div>
+      <div class="lc-grid">
+        <div class="lc-cell"><b id="lcHeroes">—</b><span>天梯英雄</span></div>
+        <div class="lc-cell"><b id="lcBuilds">—</b><span>已发布构筑</span></div>
+        <div class="lc-cell"><b id="lcPatch">—</b><span>游戏补丁</span></div>
+      </div>
+      <div class="lc-foot"><span id="lcLeft">剩余 —</span><a class="sec-link" href="ladder.html">进入天梯 <svg class="i"><use href="#i-arrow"/></svg></a></div>
+    </aside>
   </section>
 
-  <div id="version"></div>
+  <section class="sec" aria-labelledby="leaguesTitle">
+    <div class="sec-head">
+      <div class="sec-left"><div class="sec-kicker">Public leagues</div><h2 class="sec-title" id="leaguesTitle">当前联赛<span class="en">Every public league, live first</span></h2></div>
+      <a class="sec-link" href="ladder.html">全部联赛 <svg class="i"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="leagues" id="leagueRail">
+      <div class="league skeleton" style="height:74px"></div><div class="league skeleton" style="height:74px"></div>
+      <div class="league skeleton" style="height:74px"></div><div class="league skeleton" style="height:74px"></div>
+    </div>
+  </section>
 
-  <div class="dir-grid" id="dirs"></div>
+  <section class="statgrid mt24" id="statGrid">
+    <div class="stat"><b>—</b><span>公开联赛</span></div>
+    <div class="stat"><b>—</b><span>天梯英雄</span></div>
+    <div class="stat"><b>—</b><span>官方构筑</span></div>
+    <div class="stat"><b>—</b><span>游戏补丁</span></div>
+  </section>
 
-  <div class="section-title"><h2>代表性传奇</h2><a href="items.html#uniques">进入物品库 →</a></div>
-  <div class="grid" id="feat"></div>
-</div>
-<div id="bo-foot"></div>
-
-<script src="assets/site.js"></script>
-<script src="assets/icons/manifest.js"></script>
-<script src="assets/data/items.js"></script>
-<script src="assets/data/skills.js"></script>
-<script src="assets/data/bestiary.js"></script>
-<script src="assets/data/mechanics.js"></script>
-<script>
-(function(){
-  const IT = window.BO_ITEMS, SK = window.BO_SKILLS, M = window.BO_MECH || {}, B = window.BO_MOBS || {};
-  BO.VER = '0.56.5';
-  BO.mountHeader('index.html');
-  BO.mountFooter();
-  BO.setDocumentTitle('中文资料库','Broken Oath Database');
-  document.getElementById('ver').textContent = '0.56.5';
-  const T = BO.T, esc = BO.esc, num = BO.num;
-  const gemSkills = SK.skills.filter(s=>s.group!=='blessing');
-
-  /* ---------- hero: 数据规模 ---------- */
-  const stat = (v,zh,en)=>`<div class="hero-stat"><b>${num(v)}</b><span>${esc(T([zh,en]))}</span></div>`;
-  document.getElementById('stats').innerHTML =
-    stat(IT.bases.length,'底材','Base items')+stat(IT.uniques.length,'传奇','Uniques')+
-    stat(IT.affixes.length,'词缀','Affixes')+stat(IT.runewords.length,'符文之语','Runewords')+
-    stat(gemSkills.length+SK.supports.length,'技能与辅助','Skills & supports')+
-    stat(IT.cube.length+IT.forge.length,'制作配方','Recipes');
-
-  /* ---------- 目录（照 poedb 首页 card + itemList：灰标签 + • 分隔的行内链接） ---------- */
-  const enc = encodeURIComponent;
-  const A = (href, text, cls) => `<a href="${href}"${cls?` class="${cls}"`:''}>${esc(text)}</a>`;
-  const item  = (cat, text, cls) => A('items.html#' + cat, text, cls);
-  const itemF = (cat, facet, val, text) => A(`items.html#${cat}?${facet}=${enc(val)}`, text);
-  const skillF = (tab, facet, val, text) => A(`skills.html#${tab}?${facet}=${enc(val)}`, text);
-  const mobF  = (facet, val, text) => A(`bestiary.html#mobs?${facet}=${enc(val)}`, text);
-  const row = (label, parts) =>
-    `<div class="dir-row"><span class="lbl">${esc(label)}</span><span class="sep">•</span>${parts.filter(Boolean).join('<span class="sep">•</span>')}</div>`;
-  const v = x => `<span class="v">${esc(String(x))}</span>`;
-  const tipName = (href, text, key) => `<a href="${href}" data-tip="${key}">${esc(text)}</a>`;
-
-  const sc = (M.scaling||{}), gem = (sc.gem||{}), cube = (M.cubeRules||{}), meta = IT.meta || {};
-  const drop = sc.dropWeights || {};
-
-  /* ---------- 悬浮信息（poedb / PoE 物品信息风格） ---------- */
-  const tipMods = (arr, n) => !arr || !arr.length ? '' :
-    `<ul class="t-mods">${arr.slice(0, n).map(m => `<li>${esc(T(m))}</li>`).join('')}</ul>` +
-    (arr.length > n ? `<div class="t-more">另有 ${arr.length - n} 条</div>` : '');
-  const tipUnique = u => `<div class="t-head">${BO.icon('u:' + u.id, BO.glyphFor(u), '#cd8f52')}<div class="t-title"><span class="t-name u">${esc(T(u.n))}</span></div><span class="t-lvl">Lv ${u.lvl}</span></div>
-    <div class="t-sub">${esc(T(u.base))} · ${esc(T([u.clsZh, u.cls]))}</div>
-    ${tipMods(u.mods, 6)}
-    ${u.flav && u.flav[1] ? `<div class="t-flav">${esc(T(u.flav))}</div>` : ''}`;
-  const RUNE_BY_NAME = new Map(IT.runes.map(r => [T(r.n), r.id]));
-  const tipRuneword = w => {
-    const runeId = (w.runes || []).map(r => RUNE_BY_NAME.get(T(r))).find(Boolean);
-    return `<div class="t-head">${BO.icon(runeId ? 'r:' + runeId : 'w:' + w.id, 'rune', '#c9a06a')}<div class="t-title"><span class="t-name r">${esc(T(w.n))}</span></div><span class="t-lvl">Lv ${w.lvl}</span></div>
-    <div class="t-sub">${esc(T([w.clsZh, w.cls]))} · ${w.sockets} 孔 · ${w.bases.map(b => esc(T(b))).join(' / ')}</div>
-    <div class="t-runes">${w.runes.map(r => esc(T(r))).join(' · ')}</div>
-    ${tipMods(w.mods, 5)}
-    ${w.power && w.power.length ? `<div class="t-more">注入奖励 ${w.power.length} 条</div>` : ''}
-    ${w.flav && w.flav[1] ? `<div class="t-flav">${esc(T(w.flav))}</div>` : ''}`;
-  };
-  const tipSkill = (s, isSupport) => {
-    const ATTR_TINT = {Str: '#d07c6f', Dex: '#7fce9b', Int: '#8fb0e8'};
-    const head = isSupport ? `魔力 ×${s.mana}` : T([s.kindZh, s.kind]);
-    const sub = [T([s.clsZh, s.cls]), T([s.attrZh, s.attr])].filter(Boolean).join(' · ');
-    const foot = isSupport
-      ? [(s.req || []).length ? '可用于 ' + s.req.map(r => T(r)).join('、') : '',
-         (s.excl || []).length ? '不可与 ' + s.excl.map(r => T(r)).join('、') : ''].filter(Boolean).join(' · ')
-      : [s.mana != null ? '魔力 ' + s.mana : '', s.cast ? '施法 ' + s.cast + 's' : '',
-         s.cd ? '冷却 ' + s.cd + 's' : ''].filter(Boolean).join(' · ');
-    const ico = isSupport
-      ? BO.icon('sp:' + s.id, 'support', '#b4b4ff')
-      : BO.icon('sk:' + s.id, 'gem', ATTR_TINT[s.attr] || '#9fb4d8');
-    return `<div class="t-head">${ico}<div class="t-title"><span class="t-name g">${esc(T(s.n))}</span></div><span class="t-lvl">${esc(head || '')}</span></div>
-      ${sub ? `<div class="t-sub">${esc(sub)}</div>` : ''}
-      <div class="t-desc">${esc(T(s.desc))}</div>
-      ${tipMods(s.mods, 3)}
-      ${foot ? `<div class="t-foot">${esc(foot)}</div>` : ''}`;
-  };
-  const tipGuardian = g => `<div class="t-head">${BO.icon('g:' + g.id, 'skull', '#e3a470')}<div class="t-title"><span class="t-name m">${esc(T(g.n))}</span></div><span class="t-lvl">生命 ×${g.life}</span></div>
-    <div class="t-desc t-lore">${esc(T(g.lore))}</div>
-    <div class="t-foot">${g.variants.length} 种变体${(g.phases || []).length ? ` · ${g.phases.length} 个阶段` : ''}</div>`;
-  const tipMech = t => {
-    const body = T(t.text);
-    return `<div class="t-head">${BO.icon('t:' + (t.id || ''), 'seal', '#b9a06a')}<div class="t-title"><span class="t-name">${esc(T(t.n))}</span></div><span class="t-lvl">RL ${t.fromRL}+</span></div>
-      ${body && body !== T(t.n) ? `<div class="t-desc">${esc(body)}</div>` : ''}
-      <div class="t-foot">伤害系数 ${t.damage == null ? '—' : t.damage}${t.count ? ` · ${t.count} 层` : ''}</div>`;
-  };
-
-  BO.tips = BO.tips || {};
-  IT.uniques.forEach(u => { BO.tips['u:' + u.id] = () => tipUnique(u); });
-  IT.runewords.forEach(w => { BO.tips['w:' + w.id] = () => tipRuneword(w); });
-  gemSkills.forEach(s => { BO.tips['sk:' + s.id] = () => tipSkill(s, false); });
-  SK.supports.forEach(s => { BO.tips['sp:' + s.id] = () => tipSkill(s, true); });
-  B.guardians.forEach(g => { BO.tips['g:' + g.id] = () => tipGuardian(g); });
-  (B.tiers || []).forEach((t, i) => { BO.tips['t:' + i] = () => tipMech(t); });
-  BO.mountTips();
-
-  /* ---------- 版本卡（对应 poedb 首页的「赛季介绍卡」：标题 + 直接列出该版本内容的名字） ---------- */
-  document.getElementById('version').innerHTML = `
-    <section class="board version-board">
-      <div class="board-head">
-        <h3>PlayTest 0.56.5</h3>
-        <span class="meta">当前版本 · 数据 ${esc(meta.version || 'r92')} · build ${esc(meta.build || '65')}</span>
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-left"><div class="sec-kicker">Ladder</div><h2 class="sec-title">天梯领跑者<span class="en">Top of the current league</span></h2></div>
+      <a class="sec-link" href="ladder.html">完整天梯 <svg class="i"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="home-split">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-title">Top 10</span><span class="panel-sub" id="topLadderSub">—</span></div>
+        <div class="panel-bd flush"><div id="topLadder"><div class="loading"><span class="spinner"></span>正在载入天梯…</div></div></div>
       </div>
-      <div class="board-body">
-        <div class="dir-list">
-          ${row('传奇', IT.uniques.map(u =>
-            tipName('items.html#uniques?q=' + encodeURIComponent(T(u.n)), T(u.n), 'u:' + u.id)))}
-          ${row('符文之语', IT.runewords.map(w =>
-            tipName('items.html#runewords?q=' + encodeURIComponent(T(w.n)), T(w.n), 'w:' + w.id)))}
-          ${row('技能宝石', gemSkills.map(s =>
-            tipName('skills.html#skills?q=' + encodeURIComponent(T(s.n)), T(s.n), 'sk:' + s.id)))}
-          ${row('辅助宝石', SK.supports.map(s =>
-            tipName('skills.html#supports?q=' + encodeURIComponent(T(s.n)), T(s.n), 'sp:' + s.id)))}
-          ${row('守护者', B.guardians.map(g =>
-            tipName('bestiary.html#bosses?q=' + encodeURIComponent(T(g.n)), T(g.n), 'g:' + g.id)))}
-          ${row('首领机制', (B.tiers || []).map((t, i) =>
-            tipName('bestiary.html#mech?q=' + encodeURIComponent(T(t.n)), T(t.n), 't:' + i)))}
-          ${row('数值', [
-            A('about.html','数值与规则'),
-            '宝石等级上限 ' + v(gem.MaxLevel || 20),
-            '每级伤害 ' + v('+' + Math.round(((gem.DamageGrowth || 1.19) - 1) * 100) + '%'),
-            '裂隙等级上限 ' + v((sc.rift || {}).MapMaxLevel || 80),
-            '魔方 ' + v((cube.GridW || 3) + ' × ' + (cube.GridH || 4)),
-          ])}
+      <div class="home-side">
+        <div class="panel">
+          <div class="panel-hd"><span class="panel-title">职业分布</span><span class="panel-sub">已发布构筑</span></div>
+          <div class="panel-bd"><div id="classShare" class="donut-wrap"><div class="loading"><span class="spinner"></span>载入中…</div></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><span class="panel-title">技能环境</span><span class="panel-sub">主技能占比</span></div>
+          <div class="panel-bd"><div id="skillShare" class="bars"><div class="loading"><span class="spinner"></span>载入中…</div></div></div>
         </div>
       </div>
-    </section>`;
+    </div>
+  </section>
 
-  const BOARDS = [
-    {
-      title: ['物品库','Item database'],
-      meta: `${num(IT.uniques.length)} 传奇 · ${num(IT.bases.length)} 底材 · ${num(IT.bases.filter(b=>b.slot==='Idol').length)} 神像底材 · ${num(IT.affixes.length)} 词缀`,
-      rows: [
-        row('物品', [item('uniques','传奇','u'), item('bases','底材'), item('idols','神像'), item('affixes','词缀'), item('mythic','神话词条')]),
-        row('单手', ['单手剑','单手斧','单手锤','匕首','利爪','拳套','魔杖']
-          .map(c => itemF('bases','cls',c,c))),
-        row('双手', ['巨剑','法杖','弓','镰刀','双刃','锤盾']
-          .map(c => itemF('bases','cls',c,c))),
-        row('副手', ['盾牌','箭袋','魔典'].map(c => itemF('bases','cls',c,c))),
-        row('护甲', ['头盔','胸甲','手套','靴子'].map(s => itemF('bases','slot',s,s))),
-        row('饰品', ['项链','戒指','腰带'].map(s => itemF('bases','slot',s,s))),
-        row('符文', [item('runes','符文'), item('jewels','珠宝'), item('runewords','符文之语','r')]),
-        row('药剂', ['生命','魔力','功能'].map(r => itemF('potions','role',r,r))),
-        row('制作', [item('cube','魔方配方'), item('forge','锻造')]),
-      ],
-    },
-    {
-      title: ['技能与宝石','Skills & gems'],
-      meta: `${num(gemSkills.length)} 技能 · ${num(SK.supports.length)} 辅助`,
-      rows: [
-        row('宝石', [A('skills.html#skills','技能宝石','g'), A('skills.html#supports','辅助宝石','g')]),
-        row('誓约', [A('skills.html#vows','誓约与先驱'), A('skills.html#curses','灾祸与判决')]),
-        row('职业', [['Warrior','战士'],['Mage','法师'],['Ranger','游侠'],['Samurai','武士'],['Paladin','圣骑士'],['Necromancer','死灵法师']]
-          .map(([k,zh]) => skillF('skills','cls',k,zh))),
-        row('属性', ['力量','敏捷','智力'].map(a => skillF('skills','attr',a,a))),
-        row('标签', ['攻击','法术','近战','投射物','区域','链锁','闪电'].map(t => skillF('skills','tag',t,t))),
-        row('辅助', ['力量','敏捷','智力'].map(a => skillF('supports','attr',a,a))),
-      ],
-    },
-    {
-      title: ['怪物图鉴','Bestiary'],
-      meta: `${num(B.count||382)} 怪物 · ${num(B.gcount||28)} 守护者`,
-      rows: [
-        row('怪物', [A('bestiary.html#mobs','全部'), mobF('type','普通怪物','普通怪物'), mobF('type','守护者','守护者')]),
-        row('角色', [['bruiser','猛攻'],['leaper','跃击'],['charger','冲锋'],['pulser','脉冲'],['caster','施法'],['swarm','虫群'],['shield','持盾'],['archer','弓手'],['summoner','召唤']]
-          .map(([k,zh]) => mobF('role',k,zh))),
-        row('守护者', [A('bestiary.html#bosses','守护者 28 位')]),
-        row('机制', [A('bestiary.html#mech','首领机制 19 种')]),
-        row('缩放', [A('about.html','怪物等级缩放 →')]),
-      ],
-    },
-    {
-      title: ['词缀索引','Item mods'],
-      meta: `${num(IT.affixes.length)} 词缀 · ${num(IT.mythic.length)} 神话词条`,
-      rows: [
-        row('词缀', [itemF('affixes','type','前缀','前缀'), itemF('affixes','type','后缀','后缀'), item('mythic','神话词条')]),
-        row('可出现在', ['主手','副手','头盔','胸甲','手套','靴子','腰带','项链','戒指','神像']
-          .map(s => itemF('affixes','on',s,s))),
-        row('掉落权重', [
-          '普通 ' + v(num(drop.Normal ?? 70)), '魔法 ' + v(num(drop.Magic ?? 25)),
-          '稀有 ' + v(num(drop.Rare ?? 4.5)), '传奇 ' + v(num(drop.Unique ?? 0.5)),
-        ]),
-        row('词缀阶级', [A('items.html#affixes','T1–T8 · 物品等级 1–84')]),
-      ],
-    },
-  ];
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-left"><div class="sec-kicker">Featured builds</div><h2 class="sec-title">各职业代表作<span class="en">One top build per class</span></h2></div>
+      <a class="sec-link" href="builds.html">构筑库 <svg class="i"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="build-grid" id="buildGrid">
+      <div class="build-card skeleton" style="height:118px"></div><div class="build-card skeleton" style="height:118px"></div>
+      <div class="build-card skeleton" style="height:118px"></div>
+    </div>
+  </section>
 
-  const plannerBoard = BO.PLANNER_ENABLED ? `<section class="board plan-board">
-      <div class="board-head"><h3>${esc(T(['模拟构筑','Build planner']))}</h3><span class="meta">装备 11 槽 · 114 天赋点 · 93 辅助宝石 · 实时 DPS</span></div>
-      <div class="board-body"><div class="dir-list">
-        ${row('构筑器', [A('planner.html','打开模拟构筑 →','g'),
-          '导入 / 导出 <code>BO1</code> 构筑代码',
-          '技能 DPS 与伤害拆解',
-          '天赋树 + 龙裔 + 装备词缀校验'])}
-        ${row('规则', ['同类 increase 加算、每条 more 独立乘算',
-          '攻击用武器伤害、法术用宝石基础伤害',
-          '默认不计敌人抗性，另给「有效 DPS」',
-          A('planner.html','计算规则说明')])}
-      </div></div>
-    </section>` : '';
-  document.getElementById('dirs').innerHTML = plannerBoard + BOARDS.map(b=>`
-    <section class="board">
-      <div class="board-head"><h3>${esc(T(b.title))}</h3><span class="meta">${esc(b.meta)}</span></div>
-      <div class="board-body"><div class="dir-list">${b.rows.join('')}</div></div>
-    </section>`).join('');
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-left"><div class="sec-kicker">Database</div><h2 class="sec-title">资料库<span class="en">Items, gems, monsters and the planner</span></h2></div>
+    </div>
+    <div class="db-grid" id="dbCards">
+      <a class="db-card" href="items.html"><svg class="i"><use href="#i-sword"/></svg><span class="db-n">—</span><h3>物品</h3><p>传奇、底材、词缀、符文、符文之语、药剂与神像。</p></a>
+      <a class="db-card" href="skills.html"><svg class="i"><use href="#i-spark"/></svg><span class="db-n">—</span><h3>技能</h3><p>技能宝石、辅助宝石、誓约与诅咒的完整数值。</p></a>
+      <a class="db-card" href="bestiary.html"><svg class="i"><use href="#i-skull"/></svg><span class="db-n">—</span><h3>图鉴</h3><p>382 种怪物、28 位守护者与裂隙首领机制。</p></a>
+      <a class="db-card" href="planner.html"><svg class="i"><use href="#i-crown"/></svg><span class="db-n">PLANNER</span><h3>模拟构筑</h3><p>从零构筑或导入存档/代码，编辑装备词缀、神像、天赋与龙裔，实时计算 DPS 与魔力消耗。</p></a>
+    </div>
+  </section>
 
-  /* ---------- 代表性传奇：每次刷新从全部传奇里随机抽 6 件 ---------- */
-  const featPool = IT.uniques.slice();
-  for (let i = featPool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [featPool[i], featPool[j]] = [featPool[j], featPool[i]];
-  }
-  const feat = featPool.slice(0, 6);
-  document.getElementById('feat').innerHTML = feat.map(u=>`
-    <article class="card u">
-      <div class="card-head">${BO.icon('u:' + u.id, BO.glyphFor(u), '#cd8f52')}<h3><a href="items.html#uniques?q=${encodeURIComponent(T(u.n))}">${esc(T(u.n))}</a></h3><span class="lvl">Lv ${u.lvl}</span></div>
-      <div class="sub"><b>${esc(T(u.base))}</b> · ${esc(T([u.clsZh,u.cls]))}</div>
-      <ul class="mods">${u.mods.slice(0,4).map(m=>`<li>${esc(T(m))}</li>`).join('')}</ul>
-      ${u.flav[1]?`<div class="flav"><em>风味</em>${esc(T(u.flav))}</div>`:''}
-    </article>`).join('');
-})();
-</script>
+  <section class="sec">
+    <div class="panel" id="dataNote">
+      <div class="panel-bd">
+        <div class="spread">
+          <div>
+            <div class="sec-kicker">Data</div>
+            <div class="panel-title">数据来源与同步</div>
+            <p class="small muted" id="dataNoteText" style="margin:6px 0 0;max-width:900px">天梯、构筑和环境统计来自 <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">Broken Oath public API</a>；本站按官方建议在服务端定时缓存后提供给读者，不会让每位访客回源请求。物品与技能数据由本机游戏文件生成。</p>
+          </div>
+          <a class="btn btn-sm" href="about.html#sources">数据说明</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="bo-foot"></div>
+
+<script src="assets/icons/manifest.js"></script>
+<script src="assets/data/names.js"></script>
+<script src="assets/data/api_seed.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/home.js"></script>
 </body>
 </html>

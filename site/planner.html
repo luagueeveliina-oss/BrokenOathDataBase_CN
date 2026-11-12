@@ -2,128 +2,153 @@
 <html lang="zh-CN" data-lang="zh">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>模拟构筑 · 破誓资料库</title>
-<meta name="description" content="《破誓》构筑模拟器：按游戏数据计算词条、天赋、辅助宝石与技能的伤害，导入/导出游戏构筑代码，实时显示 DPS。">
-<link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/planner.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<title>构筑模拟 · Broken Oath Data Base</title>
+<meta name="description" content="《破誓》构筑模拟器：按 Broken Oath Builder 的伤害模型计算 DPS，编辑完整天赋树、龙裔树、装备词缀、神像与技能。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/app.css">
+<link rel="stylesheet" href="assets/planner_ref.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body class="page-planner">
+<a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
-<div class="wrap">
-  <section class="hero plan-hero">
-    <div class="hero-kicker">BUILD PLANNER</div>
-    <h1>模拟构筑</h1>
-    <p>按游戏数据实时结算装备词缀、局部伤害、天赋、龙裔、辅助宝石、誓约、诅咒与异常状态。导入游戏 <code>BO1.</code> 代码或本站 <code>BO2.</code> 完整代码时会先显示导入报告，再给出该构筑的技能 DPS；非法词缀、孔位、辅助与点数会被标出。</p>
-  </section>
 
-  <div class="plan-top">
-    <div class="plan-id">
-      <input id="pl-title" class="plan-input plan-title" maxlength="40" placeholder="构筑名称" aria-label="构筑名称">
-      <select id="pl-class" class="sel" aria-label="职业"></select>
-      <label class="plan-lv">等级 <input id="pl-level" type="number" min="1" max="100" step="1" aria-label="角色等级"></label>
-      <span class="plan-pts" id="pl-points"></span>
-    </div>
-    <div class="plan-dps">
-      <div class="plan-dps-main"><b id="pl-dps">0</b><span>最高技能 DPS</span></div>
-      <div class="plan-dps-sub"><b id="pl-dpseff">0</b><span>计入抗性后的有效 DPS</span></div>
-      <div class="plan-dps-sub"><b id="pl-model">0</b><span>游戏模型 DPS（对齐同一裂隙等级）</span></div>
-    </div>
-    <div class="plan-code">
-      <button class="bo-btn plan-btn" id="pl-import-open">导入构筑代码</button>
-      <button class="bo-btn plan-btn" id="pl-export">导出代码</button>
-      <button class="bo-btn plan-btn" id="pl-demo">示例构筑</button>
-      <button class="bo-btn plan-btn" id="pl-reset">清空</button>
-    </div>
+<main id="main" class="wrap rp-wrap">
+  <div class="rp-shell">
+    <aside class="rp-side">
+      <div class="rp-side-brand"><span class="rp-mark">建</span><div><b>构筑模拟</b><span>Build Planner</span></div></div>
+      <div class="rp-character">
+        <input id="rpName" class="rp-name" maxlength="40" aria-label="构筑名称" placeholder="构筑名称">
+        <div class="rp-line">
+          <label><span>职业</span><select id="rpClass" class="sel"></select></label>
+          <label><span>等级</span><input id="rpLevel" class="rp-input" type="number" min="1" max="100" value="100"></label>
+        </div>
+        <div class="rp-points" id="rpPoints">—</div>
+      </div>
+      <nav class="rp-nav" id="rpNav">
+        <button type="button" class="on" data-pane="overview"><span>总览</span><em>Overview</em></button>
+        <button type="button" data-pane="tree"><span>天赋树</span><em>Passive tree</em></button>
+        <button type="button" data-pane="dragon"><span>龙裔</span><em>Dragonling</em></button>
+        <button type="button" data-pane="gear"><span>装备</span><em>Gear</em></button>
+        <button type="button" data-pane="skills"><span>技能</span><em>Skills</em></button>
+        <button type="button" data-pane="damage"><span>伤害</span><em>Damage</em></button>
+      </nav>
+      <div class="rp-actions">
+        <button type="button" class="rp-btn main" id="rpImport">导入构筑</button>
+        <button type="button" class="rp-btn" id="rpExport">导出</button>
+        <button type="button" class="rp-btn" id="rpSave">保存</button>
+      </div>
+      <div class="rp-data" id="rpData">游戏数据载入中…</div>
+    </aside>
+
+    <section class="rp-main">
+      <div class="rp-status">
+        <div class="rp-cell who"><span>构筑</span><b id="stName">新构筑</b><small id="stWho">战士 · 100</small></div>
+        <div class="rp-cell"><span>Boss DPS · 模型</span><b id="stDps">—</b><small>对当前敌人</small></div>
+        <div class="rp-cell"><span>面板 DPS</span><b id="stPanel">—</b><small>无敌人</small></div>
+        <div class="rp-cell"><span>生命 / 魔力</span><b id="stLife">—</b><small id="stEs">—</small></div>
+        <div class="rp-cell"><span>力量 / 敏捷 / 智力</span><b id="stAttr">—</b><small>—</small></div>
+      </div>
+
+      <div class="rp-panes">
+        <section class="rp-pane on" id="pane-overview">
+          <div class="rp-intro">
+            <div><div class="rp-kicker">BUILD OVERVIEW</div><h1>构筑总览</h1><p>按 Broken Oath Builder 的模型计算：面板、敌人、命中、暴击、异常、誓言保留与每秒魔力。</p></div>
+            <div class="rp-intro-actions"><button class="rp-btn main" data-go="tree">去点天赋</button><button class="rp-btn" data-go="skills">选技能</button></div>
+          </div>
+          <div id="ovOfficial" class="rp-official" hidden></div>
+          <div class="rp-cols">
+            <div class="rp-card"><div class="rp-card-head"><h2>装备与神像</h2><button class="rp-link" data-go="gear">编辑装备 →</button></div><div id="ovGear" class="rp-doll"></div><div id="ovIdols" class="rp-idol-row"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>技能</h2><button class="rp-link" data-go="skills">管理技能 →</button></div><div id="ovSkills"></div></div>
+          </div>
+          <div class="rp-cols">
+            <div class="rp-card"><div class="rp-card-head"><h2>关键天赋</h2><span id="ovTreeN" class="rp-note"></span></div><div id="ovTree"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>龙裔</h2><span id="ovDragonN" class="rp-note"></span></div><div id="ovDragon"></div></div>
+          </div>
+          <div class="rp-card"><div class="rp-card-head"><h2>构筑提示</h2><span class="rp-note" id="ovWarnN"></span></div><div id="ovWarn" class="rp-warn"></div></div>
+        </section>
+
+        <section class="rp-pane" id="pane-tree">
+          <div class="rp-toolbar">
+            <div class="rp-tabs"><button class="on" data-tree-tab="tree">天赋树</button><button data-tree-tab="dragon">龙裔</button></div>
+            <div class="rp-tools">
+              <input id="rpTreeSearch" class="rp-input" type="search" placeholder="搜索节点…" aria-label="搜索天赋节点">
+              <button class="rp-btn small" id="rpTreeBest">最佳下一点</button>
+              <button class="rp-btn small" id="rpTreeFit">适配</button>
+              <button class="rp-btn small" id="rpTreeAll">全览</button>
+              <button class="rp-btn small" id="rpTreeClear">清空</button>
+              <button class="rp-btn small" id="rpTreeUndo">撤销</button>
+            </div>
+          </div>
+          <div class="rp-tree-body">
+            <div class="rp-stage" id="rpTreeStage"><svg id="rpTreeSvg" role="img" aria-label="天赋树"></svg><div class="rp-stage-hint" id="rpTreeStatus">点击节点加点；滚轮缩放，拖动平移。</div></div>
+            <aside class="rp-detail" id="rpTreeDetail"><div class="rp-empty">悬停或点击节点查看详情。</div></aside>
+          </div>
+        </section>
+
+        <section class="rp-pane" id="pane-dragon">
+          <div class="rp-toolbar">
+            <div class="rp-tabs"><button data-tree-tab="tree">天赋树</button><button class="on" data-tree-tab="dragon">龙裔</button></div>
+            <div class="rp-aspects" id="rpAspects"></div>
+            <div class="rp-tools"><label class="rp-mini">额外点 <input id="rpDragonExtra" class="rp-input" type="number" min="0" max="40" value="0"></label><button class="rp-btn small" id="rpDragonClear">清空</button></div>
+          </div>
+          <div class="rp-tree-body">
+            <div class="rp-stage dragon" id="rpDragonStage"><svg id="rpDragonSvg" role="img" aria-label="龙裔树"></svg><div class="rp-stage-hint" id="rpDragonStatus"></div></div>
+            <aside class="rp-detail" id="rpDragonDetail"><div class="rp-empty">悬停或点击龙裔节点查看详情。</div></aside>
+          </div>
+        </section>
+
+        <section class="rp-pane" id="pane-gear">
+          <div class="rp-intro small"><div><div class="rp-kicker">GEAR</div><h1>装备与神像</h1><p>底材固定词缀自动生效；稀有/魔法装备可逐条选择词缀品阶与 roll；传奇有 roll 滑块。</p></div></div>
+          <div class="rp-cols gear">
+            <div class="rp-card"><div class="rp-card-head"><h2>装备</h2><span class="rp-note">点击槽位编辑</span></div><div id="rpDoll" class="rp-doll"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>神像</h2><button class="rp-link" id="rpAddIdol">+ 添加神像</button></div><div id="rpIdols" class="rp-idol-grid"></div><div class="rp-hint">5×5 格子，按底材尺寸占用（1×1、1×2、2×1、4×1……）；放得下即可，不限制数量。</div></div>
+          </div>
+        </section>
+
+        <section class="rp-pane" id="pane-skills">
+          <div class="rp-intro small"><div><div class="rp-kicker">SKILLS</div><h1>技能与辅助</h1><p>主技能决定总览与伤害页；辅助只显示该技能真正能用的。</p></div></div>
+          <div class="rp-card"><div class="rp-card-head"><h2>技能栏</h2><button class="rp-link" id="rpAddSkill">+ 添加技能</button></div><div id="rpSkills"></div></div>
+        </section>
+
+        <section class="rp-pane" id="pane-damage">
+          <div class="rp-damage-head">
+            <div><div class="rp-kicker">DAMAGE</div><h1 id="rpDmgTitle">伤害</h1><p id="rpDmgSub">选择主技能后显示逐项计算。</p></div>
+            <div class="rp-dmg-main"><span>Boss DPS</span><b id="rpDmgDps">—</b><small id="rpDmgPanel">面板 —</small></div>
+          </div>
+          <p class="rp-dmg-note">天梯的 <code>guardian_dps_median</code> 是游戏在守护者战斗中记录的中位数；本页 Boss DPS 是按当前构筑数据计算的模型结果，包含面板、异常与敌人减伤，通常高于实战中位。两者不要直接当成同一个数字。</p>
+          <p class="rp-dmg-note" id="rpDmgOfficial"></p>
+          <div class="rp-damage-grid">
+            <div class="rp-card"><div class="rp-card-head"><h2>敌人</h2><span class="rp-note">影响抗性、护甲与异常</span></div><div class="rp-form">
+              <label><span>等级</span><input id="rpEnemyLevel" class="rp-input" type="number" min="1" max="100" value="100"></label>
+              <label><span>稀有度</span><select id="rpEnemyRarity" class="sel"><option value="normal">普通</option><option value="magic">魔法</option><option value="rare" selected>稀有</option><option value="boss">首领 / 守护者</option></select></label>
+              <label><span>守护者元素</span><select id="rpGuardianElement" class="sel"><option value="">无</option><option value="Fire">火</option><option value="Cold">冰</option><option value="Lightning">闪电</option><option value="Poison">毒</option></select></label>
+            </div><div class="rp-stat-list" id="rpEnemyStats"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>命中与速度</h2></div><div class="rp-stat-list" id="rpHitStats"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>伤害构成</h2></div><div class="rp-stat-list" id="rpTypeStats"></div></div>
+            <div class="rp-card"><div class="rp-card-head"><h2>魔力</h2></div><div class="rp-stat-list" id="rpManaStats"></div></div>
+          </div>
+          <div class="rp-card"><div class="rp-card-head"><h2>计算说明</h2><span class="rp-note">来自游戏数据与公式</span></div><div id="rpNotes" class="rp-notes"></div></div>
+        </section>
+      </div>
+    </section>
   </div>
+</main>
 
-  <div class="plan-grid">
-    <!-- 装备 -->
-    <section class="plan-col plan-col-gear">
-      <div class="plan-head"><h2>装备</h2><span id="pl-gear-hint" class="plan-note"></span></div>
-      <div id="pl-gear" class="gear-list"></div>
-    </section>
-
-    <!-- 技能 -->
-    <section class="plan-col plan-col-skills">
-      <div class="plan-head">
-        <h2>技能与辅助</h2>
-        <span id="pl-bar-hint" class="plan-note"></span>
-        <button class="bo-btn plan-mini" id="pl-add-skill">+ 添加技能</button>
-      </div>
-      <div id="pl-skills" class="skill-list"></div>
-      <div class="plan-head" style="margin-top:14px"><h2>誓约 / 先驱</h2><span class="plan-note">点击开关，生效后提供词条与保留</span></div>
-      <div id="pl-vows" class="vow-list"></div>
-      <div class="plan-head" style="margin-top:14px"><h2>诅咒 / 判决</h2><span class="plan-note">作用于目标，不改变面板数字</span></div>
-      <div id="pl-curses" class="vow-list"></div>
-    </section>
-
-    <!-- 属性 / 防御 -->
-    <section class="plan-col plan-col-stats">
-      <div class="plan-head"><h2>属性与防御</h2></div>
-      <div id="pl-stats" class="stat-panel"></div>
-      <div class="plan-head" style="margin-top:14px"><h2>计算设置</h2></div>
-      <div id="pl-cfg" class="cfg-panel"></div>
-      <div class="plan-head" style="margin-top:14px"><h2>提示与冲突</h2><span id="pl-warn-n" class="plan-note"></span></div>
-      <div id="pl-warn" class="warn-panel"></div>
-    </section>
-  </div>
-
-  <!-- 天赋 -->
-  <section class="plan-tree-sec">
-    <div class="plan-head">
-      <h2>天赋树 / 龙裔</h2>
-      <div class="plan-tabs" role="tablist">
-        <button class="tab" data-tab="tree" aria-selected="true">天赋树</button>
-        <button class="tab" data-tab="dragon" aria-selected="false">龙裔</button>
-        <button class="tab" data-tab="list" aria-selected="false">节点列表</button>
-      </div>
-      <span class="plan-pts" id="pl-tree-pts"></span>
-    </div>
-    <div id="pl-tree" class="tree-wrap">
-      <div class="tree-ui">
-        <input id="pl-tree-q" class="plan-input" style="width:190px" placeholder="搜索天赋节点…" aria-label="搜索天赋">
-        <button class="bo-btn plan-mini" id="pl-tree-rec">推荐加点</button>
-        <button class="bo-btn plan-mini" id="pl-tree-clear">清空</button>
-        <button class="bo-btn plan-mini" id="pl-tree-fit">重置视图</button>
-        <button class="bo-btn plan-mini" id="pl-tree-all">全览</button>
-      </div>
-      <svg id="pl-svg" aria-label="天赋树"></svg>
-      <div class="legend" id="pl-legend">
-        <span><i style="background:#e7b478"></i>已点</span>
-        <span><i style="background:#6f6f76"></i>可点</span>
-        <span><i style="background:#3a3a40"></i>未连通</span>
-        <span><i style="background:#8fb0e8"></i>基石</span>
-        <span><i style="background:#b4b4ff"></i>显著</span>
-      </div>
-      <div class="tree-panel" id="pl-tip"></div>
-      <div class="tree-alt" id="pl-alt"></div>
-    </div>
-  </section>
-
-  <section class="plan-doc">
-    <h2>计算规则</h2>
-    <div id="pl-doc"></div>
-  </section>
-</div>
 <div id="bo-foot"></div>
+<div id="rpModalRoot"></div>
+<div id="rpToast" class="toast" role="status"></div>
 
-<!-- 弹窗 -->
-<div class="plan-toast" id="pl-toast"></div>
-<div class="plan-modal" id="pl-modal" role="dialog" aria-modal="true" aria-hidden="true">
-  <div class="plan-modal-box">
-    <header><h3 id="pl-modal-title">标题</h3><button class="bo-btn plan-mini" id="pl-modal-x">关闭</button></header>
-    <div class="plan-modal-body" id="pl-modal-body"></div>
-    <footer id="pl-modal-foot"></footer>
-  </div>
-</div>
-
-<script src="assets/site.js"></script>
 <script src="assets/icons/manifest.js"></script>
-<script src="assets/data/planner_core.js"></script>
-<script src="assets/data/planner_items.js"></script>
-<script src="assets/data/planner_tree.js"></script>
-<script src="assets/planner.js"></script>
-<script src="assets/planner_ui.js"></script>
+<script src="assets/data/names.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/data/builder_gamedata.js"></script>
+<script src="assets/data/builder_names_zh.js"></script>
+<script src="assets/data/builder_mods_zh.js"></script>
+<script src="assets/data/tree_icons.js"></script>
+<script src="assets/builder_sim.js"></script>
+<script src="assets/planner_ref.js"></script>
 </body>
 </html>

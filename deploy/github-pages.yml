@@ -1,12 +1,13 @@
-# GitHub Pages 发布工作流
-# 放到仓库的 .github/workflows/pages.yml
-# 只发布 site/ 子目录，不需要把站点文件搬到仓库根目录。
+# GitHub Pages 发布工作流：只发布 site/，发布前同步官方公开 API 快照。
 name: Deploy Broken Oath DB
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # 每小时检查四次；GitHub 可能延迟计划任务，页面始终显示真实快照时间。
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: read
@@ -23,6 +24,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+
+      # API 文档要求站点自行缓存、不要每位访客回源。发布前拉取快照；
+      # 如果 API 暂时不可达，继续发布上一次已提交的快照。
+      - name: Sync public API snapshots
+        continue-on-error: true
+        run: python3 tools/sync_api.py --depth 3
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>环境统计 · Broken Oath Data Base</title>
+<meta name="description" content="《破誓》官方环境统计：职业、龙相、主技能、辅助、基石、显著天赋与传奇物品的使用占比。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+<header id="bo-top"></header>
+
+<main id="main" class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">首页</a><span class="sep">/</span><a href="ladder.html">天梯</a><span class="sep">/</span><span>环境统计</span></div>
+    <div class="ph-kicker">Meta report</div>
+    <div class="ph-row">
+      <div>
+        <h1 class="ph-title">环境统计 <span class="thin">Meta</span></h1>
+        <p class="ph-sub">职业、龙相、主技能、辅助与传奇物品的占比。职业/技能/裂隙分布统计最近 7 天活跃的英雄；基石、显著天赋与传奇统计已公开的前 50 份构筑。</p>
+      </div>
+      <div class="ph-actions"><span class="tag gold" id="metaSync">同步快照</span></div>
+    </div>
+  </header>
+
+  <section class="league-picker">
+    <div class="field" style="flex:1 1 320px">
+      <label for="leagueSel">联赛</label>
+      <select class="sel" id="leagueSel" style="width:100%"></select>
+    </div>
+    <div class="meta"><span id="metaWindow">—</span><a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener" class="tiny">Data: Broken Oath public API</a></div>
+  </section>
+
+  <div id="metaBody"><div class="loading"><span class="spinner"></span>正在载入环境统计…</div></div>
+</main>
+
+<div id="bo-foot"></div>
+
+<script src="assets/icons/manifest.js"></script>
+<script src="assets/data/names.js"></script>
+<script src="assets/data/api_seed.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/meta.js"></script>
+</body>
+</html>

@@ -2,126 +2,105 @@
 <html lang="zh-CN" data-lang="zh">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>关于与数据 · 破誓资料库</title>
-<meta name="description" content="数据来源、版本、数值机制与免责声明。">
-<link rel="stylesheet" href="assets/site.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>关于与数据来源 · Broken Oath Data Base</title>
+<meta name="description" content="Broken Oath Data Base 的数据来源、公开 API 使用方式、同步与缓存策略、隐私说明与免责声明。">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('bo_theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
-<body class="page-about">
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
 <header id="bo-top"></header>
-<div class="wrap">
-  <section class="hero" style="padding-bottom:10px">
-    <div class="hero-kicker">ABOUT · DATA</div>
-    <h1>关于本站</h1>
-    <p>本站是《破誓 / Broken Oath》Playtest 版本的非官方中文资料库。所有数据直接读取自本机安装目录中的游戏数据文件，只读、未做任何改动。</p>
+
+<main id="main" class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">首页</a><span class="sep">/</span><span>关于</span></div>
+    <div class="ph-kicker">About &amp; sources</div>
+    <div class="ph-row">
+      <div>
+        <h1 class="ph-title">关于本站 <span class="thin">About</span></h1>
+        <p class="ph-sub">一个非官方、非商业的《破誓 / Broken Oath》中文资料库。天梯与构筑来自公开 API，物品与技能来自本机游戏文件。</p>
+      </div>
+      <div class="ph-actions"><span class="tag gold">非官方粉丝作品</span></div>
+    </div>
+  </header>
+
+  <section class="panel" id="apiStatusPanel">
+    <div class="panel-hd"><span class="panel-title">当前数据状态</span><span class="panel-sub" id="statusTime">读取中…</span></div>
+    <div class="panel-bd"><div id="apiStatus" class="row" style="gap:8px"><div class="loading"><span class="spinner"></span>正在读取同步信息…</div></div></div>
   </section>
-  <div class="doc" id="doc"></div>
-</div>
+
+  <div class="prose" style="margin-top:26px">
+    <h2 id="sources">数据从哪里来</h2>
+    <p>本站有两类数据，来源和更新节奏不同：</p>
+    <ul>
+      <li><b>天梯、构筑、环境统计</b>：来自 <a href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">Broken Oath public API</a>。这是一个面向工具作者的公开只读 JSON API，不需要密钥、没有登录、CORS 开放。天梯每 15 分钟刷新，构筑与统计每小时刷新。</li>
+      <li><b>物品、技能、天赋、图鉴</b>：由本站从本机安装的 Playtest 游戏数据文件生成（当前本地数据 <b>0.56.8 / 被动树 v18</b>）。游戏更新后需要重新运行构建脚本。</li>
+      <li><b>模拟构筑器</b>：DPS / 面板 / 命中 / 异常 / 魔力 参考自 <a href="https://lilshrimper.github.io/broken-oath-builder/" target="_blank" rel="noopener">Broken Oath Builder</a> 实现。</li>
+    </ul>
+    <blockquote>本站不会抓取游戏服务器、登录接口或游戏内天梯；只使用公开 API 的文件。天梯与构筑的署名：<b>Data: Broken Oath public API</b>。</blockquote>
+
+    <h2 id="api">用到的 API 端点</h2>
+    <div class="tbl-wrap">
+      <table class="tbl api-table">
+        <thead><tr><th>文件</th><th>内容</th><th>刷新</th><th>本站用途</th></tr></thead>
+        <tbody>
+          <tr><td>version.json</td><td>补丁、游戏 build、联赛列表、刷新时间、游戏数据文件清单</td><td>15 分钟</td><td>顶部版本号、数据状态</td></tr>
+          <tr><td>leagues.json</td><td>每个公开联赛的名称、模式、起止时间</td><td>15 分钟</td><td>联赛选择器、首页联赛卡片</td></tr>
+          <tr><td>ladder/&lt;league&gt;.json</td><td>每职业前 200 名英雄</td><td>15 分钟</td><td>天梯页、首页 Top 10</td></tr>
+          <tr><td>builds/&lt;league&gt;/&lt;class&gt;.json</td><td>该职业前 50 份已发布构筑的摘要</td><td>60 分钟</td><td>构筑库、各职业代表作</td></tr>
+          <tr><td>builds/&lt;league&gt;/&lt;class&gt;/&lt;hero&gt;.json</td><td>一份完整构筑：装备、词缀、符文、技能、辅助、天赋、龙相、实测数据</td><td>60 分钟（变更时）</td><td>构筑详情页</td></tr>
+          <tr><td>meta/&lt;league&gt;.json</td><td>职业、技能、辅助、龙相、基石、传奇使用占比</td><td>60 分钟</td><td>环境统计页</td></tr>
+          <tr><td>game-data/index.json</td><td>当前补丁的游戏数据文件清单与归档路径</td><td>每个补丁</td><td>补丁/数据版本对照；全量内容仍以本地游戏文件构建</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="cache">同步与缓存</h2>
+    <p>API 文档明确要求「在自己这一侧缓存，把读者从你的副本上服务，不要每位访客都回源请求」。本站因此不在页面加载时自动访问 API：</p>
+    <ul>
+      <li><code>tools/sync_api.py</code> 在构建/部署阶段拉取快照，写入 <code>site/assets/api/</code>，并生成一份供 <code>file://</code> 直接打开用的同步种子。</li>
+      <li>页面优先读取本站快照；只有在快照缺失、或读者主动点击「检查更新」时，才会直接读取公开 API。</li>
+      <li>快照带有 <code>generated_at</code>、<code>ladder_updated_at</code>、<code>builds_updated_at</code> 与本站同步时间，页面会如实显示，不伪装成实时。</li>
+      <li>GitHub Actions 在发布前运行同步脚本，因此线上副本不会落后超过一个公开 API 刷新周期。</li>
+    </ul>
+
+    <h2 id="privacy">隐私与英雄身份</h2>
+    <ul>
+      <li>API 文件里没有任何玩家姓名、Steam id、账号 id、邮箱或 IP；英雄 id 是不可逆的加盐哈希。</li>
+      <li>本站只展示这个匿名 id 的前几位用于区分同一份构筑，<b>不会、也无法</b>把英雄对应到任何真实玩家。</li>
+      <li>作弊标记、封禁、退出遥测、主动要求隐藏的英雄不会出现在公开文件里。</li>
+      <li>本站没有统计脚本、没有广告、没有第三方追踪；主题与语言偏好只存在浏览器本地。</li>
+    </ul>
+
+    <h2 id="alpha">Alpha 与字段变化</h2>
+    <p>公开 API 仍是 alpha：字段可能增加或改变，数字、技能与流派会随补丁移动。本站读取时会检查 <code>schema</code> 与 <code>generated_at</code>，忽略不认识的字段；如果某份构筑已经离开前 50、被删除或玩家取消公开，构筑详情页会显示「没有找到」，而不是缓存一份过期数据。</p>
+
+    <h2 id="language">中文与版本</h2>
+    <p>本站优先使用游戏内官方中文；只有当官方中文不存在时（例如 0.56.8 新增、而本地游戏仍是 0.56.5 的内容），才保留英文原名。物品与技能页会标注本地数据版本，天梯与构筑页则显示公开 API 补丁号，两者可能不同。</p>
+
+    <h2 id="tech">技术</h2>
+    <ul>
+      <li>纯静态站点：HTML + CSS + 原生 JavaScript，无框架、无后端。</li>
+      <li>深链接：物品、技能、图鉴、天梯联赛、构筑详情都可以直接分享。</li>
+      <li>明暗主题；构筑模拟器在浏览器内完成全部计算。</li>
+      <li>图表使用 CSS 与内联 SVG 绘制，不加载图表库。</li>
+    </ul>
+
+    <h2 id="disclaimer">免责声明</h2>
+    <p>本站是非官方粉丝作品，与《破誓 / Broken Oath》开发团队无关联，也未获其背书。游戏名称、美术与数据归其各自所有者。本站仅整理公开数据用于非商业的资料展示；如权利人要求移除相关内容，请联系站点维护者。</p>
+    <p>公开 API 由社区维护者提供，不是游戏官方接口；本站同样不代表该 API。使用本站数据前请自行核对补丁与生成时间。</p>
+
+    <p class="mt24"><span class="credit">Data: Broken Oath public API</span> <a class="btn btn-sm" style="margin-left:8px" href="https://api.playbrokenoath.com/" target="_blank" rel="noopener">阅读 API 文档</a></p>
+  </div>
+</main>
+
 <div id="bo-foot"></div>
 
-<script src="assets/site.js"></script>
-<script src="assets/data/mechanics.js"></script>
-<script>
-(function(){
-  BO.mountHeader('about.html'); BO.mountFooter(); BO.setDocumentTitle('关于与数据','About');
-  const M = window.BO_MECH, T = BO.T, esc = BO.esc, num = BO.num;
-  const sc = M.scaling;
-
-  const tbl = (head, rows) => `<div class="tiers" style="border:1px solid var(--line);border-radius:10px;margin:10px 0">
-    <table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'mono':''}">${esc(String(c))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-
-  const rarity = Object.entries(sc.rarity||{}).map(([k,v])=>[
-    ['普通','魔法','稀有','守护者'][Number(k)]||k,
-    (v.Life??'')+'×', (v.Damage??'')+'×', (v.Xp??'')+'×',
-    (v.ItemChance!==undefined? Math.round(v.ItemChance*100)+'%':'—'), v.ItemRolls??'—'
-  ]);
-
-  const clsRows = (M.classes||[]).map(c=>[
-    T(c.n||[c.Id,c.Id]), c.Str, c.Dex, c.Int,
-    `${c.StrPerLevel}/${c.DexPerLevel}/${c.IntPerLevel}`,
-    (c.WeaponClasses||[]).join(', '), c.Gem1||'—'
-  ]);
-
-  const html = `
-  <h2>数据来源</h2>
-  <p>页面数据由以下游戏目录中的 JSON 数据文件生成（只读读取）：</p>
-  <ul>
-    <li><code>&lt;Steam&gt;\\steamapps\\common\\Broken Oath Playtest\\BrokenOath\\Data\\Items\\</code> — 底材、传奇、词缀、符文、符文之语、神话词条、魔方配方</li>
-    <li><code>…\\Data\\Gameplay\\</code> — 技能、辅助宝石、誓约与灾祸、锻造、药剂、怪物、缩放曲线、职业</li>
-    <li><code>…\\Data\\Rifts\\bosses.json</code> — 守护者与首领机制</li>
-  </ul>
-  <p>词条文本并非手工抄写：每条词缀都由 <code>stat_text.json</code> 的模板加真实数值渲染而成，因此数值与游戏内完全一致。中文译文按《流放之路》风格的术语表统一处理，「增加/降低」对应加算，「更多/更少」对应乘算。</p>
-
-  <h2>数值一览</h2>
-  <div class="stat-cards">
-    <div class="stat-card"><b>${num(1416)}</b><span>物品 / 技能 / 配方词条</span></div>
-    <div class="stat-card"><b>${num(sc.gem.MaxLevel||20)}</b><span>宝石等级上限</span></div>
-    <div class="stat-card"><b>${Math.round(((sc.gem.DamageGrowth||1.19)-1)*100)}%</b><span>法术每级伤害成长</span></div>
-    <div class="stat-card"><b>${num(M.cubeRules.GridW||3)}×${num(M.cubeRules.GridH||4)}</b><span>誓石魔方网格</span></div>
-    <div class="stat-card"><b>${num(sc.rift.MapMaxLevel||80)}</b><span>裂隙等级上限</span></div>
-    <div class="stat-card"><b>${num(Object.keys(sc.rarity||{}).length)}</b><span>怪物稀有度档位</span></div>
-  </div>
-
-  <h3>稀有度与掉落</h3>
-  ${tbl(['稀有度','生命','伤害','经验','掉落几率','掉落次数'], rarity)}
-  <p>普通掉落稀有度权重：${Object.entries(sc.dropWeights||{}).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}。守护者必出稀有，传奇几率 ${Math.round((sc.bossDrop?.UniqueChance||0)*100)}%，辅助宝石几率 ${Math.round((sc.bossDrop?.SupportGemChance||0)*100)}%。</p>
-
-  <h3>怪物等级缩放</h3>
-  <p>怪物的基础生命/伤害来自怪物数据，乘以全局曲线：倍率 = Base × (1 + K × ML^P)。</p>
-  ${tbl(['曲线','Base','K','P'],[
-    ['生命', sc.monsterLife.Base, sc.monsterLife.K, sc.monsterLife.P],
-    ['伤害', sc.monsterDamage.Base, sc.monsterDamage.K, sc.monsterDamage.P],
-    ['经验', sc.monsterXp.Base, sc.monsterXp.K, sc.monsterXp.P],
-  ])}
-  <p>每怪物等级额外 +${sc.resistPerLevel} 抗性（上限 ${sc.resistMax}%）、+${sc.armourPerLevel} 护甲。经验惩罚：安全等级差 ${sc.xpPenalty.SafeRange}，每级 −${Math.round((sc.xpPenalty.PerLevel||0)*100)}%，下限 ${Math.round((sc.xpPenalty.Floor||0)*100)}%。</p>
-
-  <h3>装备词缀的物品等级门槛</h3>
-  <p>${(sc.affixItemLevels||[]).map((v,i)=>`T${i+1}: ilvl ${v}+`).join(' · ')}</p>
-
-  <h3>职业基础属性</h3>
-  ${tbl(['职业','力量','敏捷','智力','每级成长（力/敏/智）','武器类别','首个宝石'], clsRows)}
-
-  <h3>符文与镶嵌规则</h3>
-  <dl class="kv">
-    <dt>开始出现孔位</dt><dd>怪物等级 ${M.runeRules.SocketFromML}，单件装备出现孔位几率 ${Math.round(M.runeRules.SocketChance*100)}%</dd>
-    <dt>珠宝孔</dt><dd>怪物等级 ${M.runeRules.JewelSocketFromML}，护甲 ${Math.round(M.runeRules.JewelSocketChance*100)}% / 武器 ${Math.round(M.runeRules.JewelSocketChanceWeapon*100)}%</dd>
-    <dt>孔位上限</dt><dd>${esc(JSON.stringify(M.runeRules.MaxSockets))}</dd>
-    <dt>符文阶级</dt><dd>自怪物等级 ${M.runeRules.TierFromML} 起按权重提升阶级</dd>
-    <dt>合成</dt><dd>${M.runeRules.FuseCount ? esc(JSON.stringify(M.runeRules.FuseCount)) : '见魔方配方'}</dd>
-  </dl>
-
-  <h3>誓石魔方</h3>
-  <dl class="kv">
-    <dt>网格</dt><dd>${M.cubeRules.GridW} × ${M.cubeRules.GridH}</dd>
-    <dt>普通/魔法孔位上限</dt><dd>${esc(JSON.stringify(M.cubeRules.SocketCap))}</dd>
-    <dt>誓痕孔位</dt><dd>${M.cubeRules.OathmarkSocketCap}</dd>
-    <dt>红色阶级物品等级</dt><dd>${esc((M.cubeRules.RedTierLevels||[]).join(' / '))}</dd>
-    <dt>重铸次数</dt><dd>${M.cubeRules.ReforgeTries}</dd>
-  </dl>
-
-  <h3>锻造炉</h3>
-  <p>金色基础 ${sc.economy && sc.economy.GoldBase ? sc.economy.GoldBase : M.forge.rules.GoldBase}，每级 +${M.forge.rules.GoldPerLevel}；余烬在锻造等级 ${M.forge.rules.UnlockEmber} 解锁。</p>
-
-  <h2>名词对照</h2>
-  <dl class="kv">
-    <dt>increased / reduced</dt><dd>增加 / 降低 —— 同类加算</dd>
-    <dt>more / less</dt><dd>更多 / 更少 —— 各自乘算</dd>
-    <dt>Rupture Level (RL)</dt><dd>裂隙等级，决定掉落物的强度区间</dd>
-    <dt>Monster Level (ML)</dt><dd>怪物等级，决定性缩放</dd>
-    <dt>Emberforged</dt><dd>烬铸：传奇物品的强化形态</dd>
-    <dt>Vow / Herald / Woe</dt><dd>誓约 / 先驱 / 灾祸</dd>
-  </dl>
-
-  <h2>构筑模拟器的计算口径</h2>
-  <p>「<a href="planner.html">模拟构筑</a>」页把上面这些数据聚合成一个可操作的构筑器，规则同样来自游戏内机制文本：同类 increased 加算、每条 more 独立乘算；攻击技能用武器伤害、法术技能用宝石等级伤害，技能宝石的伤害效率乘在基础与附加伤害上；伤害按元素分桶后分别结算转化、额外伤害与穿透；暴击伤害 = 命中 × 暴击倍率（攻击取武器基础暴击、法术取宝石基础暴击，上限 95%）。</p>
-  <p>异常状态（点燃 / 中毒 / 流血 / 感电）按 <code>scaling.json</code> 的 Ailments 常数结算。面板 DPS 与游戏一致，<b>不计敌人抗性</b>；另给出按裂隙等级怪物抗性的「有效 DPS」。作为参照，游戏在 <code>bosses.json</code> 里给每个裂隙等级准备了一条「模型 DPS」曲线（RL100 约 95,000），构筑器会把当前等级的同一条曲线显示在顶部，方便判断构筑处在什么位置。</p>
-
-  <h2>免责声明</h2>
-  <p>本站为非官方粉丝作品，与《破誓》开发团队无任何关联，亦未获其背书。游戏名称、美术与数据归其各自所有者。数据来自 Playtest 版本，数值会随版本变动。本站仅读取本机游戏文件，不修改、不重新分发游戏本体资源。</p>
-  <p style="color:var(--dim)">生成时间：${esc(new Date().toLocaleString('zh-CN'))}</p>`;
-  document.getElementById('doc').innerHTML = html;
-})();
-</script>
+<script src="assets/data/api_seed.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/pages/about.js"></script>
 </body>
 </html>

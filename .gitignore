@@ -4,8 +4,12 @@ __pycache__/
 
 # 本地 QA 产物
 shots/
+tools/_scratch/
 tools/dump_*.html
 tools/jscheck/
+
+# API 同步产物（部署前由 tools/sync_api.py 生成；种子文件会提交）
+site/assets/api/
 
 # 设计参考（PoEDB 离线副本等，仅本地使用，不随仓库发布）
 PoEDB/

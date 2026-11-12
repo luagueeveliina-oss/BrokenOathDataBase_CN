@@ -3,9 +3,20 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 
-# 数据文件体积较大，缓存 1 小时即可；改数据后想立刻生效就把这里改成 no-cache
+# 同步快照：5 分钟（与公开 API 的 Cache-Control 一致）
+/assets/api/*
+  Cache-Control: public, max-age=300
+
+# 天梯种子含快照数据，不能跟普通 data/* 一样缓存一天
+/assets/data/api_seed.js
+  Cache-Control: public, max-age=60, must-revalidate
+
+# 内容数据与图标：一天；更新数据后改文件名或清缓存
 /assets/data/*
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=86400
+
+/assets/icons/*
+  Cache-Control: public, max-age=86400
 
 /assets/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=3600
