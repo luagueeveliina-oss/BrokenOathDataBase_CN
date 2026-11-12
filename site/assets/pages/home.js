@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   var BO = window.BO;
+  var POE_TIPS = {};
 
   function el(id) { return document.getElementById(id); }
 
@@ -165,7 +166,8 @@
   }
 
   function poeLink(page, label) {
-    return '<a href="' + page + '?q=' + encodeURIComponent(label) + '">' + BO.esc(label) + '</a>';
+    var tip = POE_TIPS[label] || '';
+    return '<a href="' + page + '?q=' + encodeURIComponent(label) + '" data-tip="' + BO.attr(tip) + '" title="' + BO.attr(tip) + '">' + BO.esc(label) + '</a>';
   }
   function poeList(items, page, max) {
     var arr = (items || []).filter(Boolean).slice(0, max || 999);
@@ -181,6 +183,16 @@
     var runewords = Object.keys(N.runewords || {}).map(function (k) { return N.runewords[k]; });
     var monsters = Object.keys(N.monsters || {}).map(function (k) { return [k, N.monsters[k]]; });
     var nodes = Object.keys(N.nodes || {}).map(function (k) { return [k, N.nodes[k]]; });
+    POE_TIPS = {};
+    function tip(label, text) { if (label && text) POE_TIPS[label] = label + ' · ' + text; }
+    uniques.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[3] || '') + ' · 传奇'); });
+    bases.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · ilvl ' + (v[4] || '—')); });
+    skills.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 技能宝石'); });
+    supports.forEach(function (v) { tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 辅助宝石'); });
+    Object.keys(N.runes || {}).forEach(function (k) { var v = N.runes[k]; tip(v[0], (v[1] || '') + ' · 等级 ' + (v[2] || '—') + ' · 符文'); });
+    Object.keys(N.runewords || {}).forEach(function (k) { var v = N.runewords[k]; tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 符文之语'); });
+    Object.keys(N.monsters || {}).forEach(function (k) { var v = N.monsters[k]; tip(v[0], (v[1] || '') + ' · 图鉴'); });
+    Object.keys(N.nodes || {}).forEach(function (k) { var v = N.nodes[k]; tip(v[0], (v[1] || '') + ' · ' + (v[2] || '') + ' · 天赋'); });
 
     var gear = { weapon: [], armour: [], jewel: [], other: [] };
     uniques.forEach(function (v) {
@@ -239,7 +251,58 @@
       '<p><a href="planner.html#gear">装备</a> · <a href="planner.html#skills">技能</a> · <a href="planner.html#idols">神像</a> · <a href="planner.html#defence">防御</a> · <a href="planner.html#damage">伤害</a></p>'
     ]);
     var host = el('poeDirectory');
-    if (host) host.innerHTML = left + right;
+    if (host) { host.innerHTML = left + right; bindPoeTips(); }
+  }
+  function bindPoeTips() {
+    var host = el('poeDirectory'); if (!host) return;
+    var tip = document.getElementById('poeGlobalTip');
+    if (!tip) {
+      tip = document.createElement('div'); tip.id = 'poeGlobalTip'; tip.className = 'poe-tip'; document.body.appendChild(tip);
+    }
+    function show(a, e) {
+      tip.textContent = a.getAttribute('data-tip') || '';
+      tip.classList.add('on');
+      move(e);
+    }
+    function move(e) {
+      var x = (e.clientX || 0) + 14, y = (e.clientY || 0) + 14;
+      var w = tip.offsetWidth || 260, h = tip.offsetHeight || 60;
+      if (x + w > window.innerWidth - 8) x = (e.clientX || 0) - w - 14;
+      if (y + h > window.innerHeight - 8) y = (e.clientY || 0) - h - 14;
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    }
+    host.querySelectorAll('a[data-tip]').forEach(function (a) {
+      a.addEventListener('mouseenter', function (e) { if (a.getAttribute('data-tip')) show(a, e); });
+      a.addEventListener('mousemove', move);
+      a.addEventListener('mouseleave', function () { tip.classList.remove('on'); });
+    });
+  }
+  function renderPoEVersions(leagues, version) {
+    var host = el('poeVersions'); if (!host) return;
+    var N = window.BO_NAMES || {}, meta = N.meta || {}, counts = (meta.items && meta.items.counts) || {};
+    var rows = (leagues && leagues.leagues) || [];
+    var groups = [], by = {};
+    rows.forEach(function (l) {
+      var k = l.season || l.season_name || l.id;
+      if (!by[k]) { by[k] = { name: BO.seasonName(l), rows: [] }; groups.push(by[k]); }
+      by[k].rows.push(l);
+    });
+    if (!groups.length) groups = [{ name: 'Online Testing', rows: [] }];
+    var patch = (version && version.patch) || (window.BO_API_SEED && BO_API_SEED.version && BO_API_SEED.version.patch) || '0.56.8';
+    host.innerHTML = groups.map(function (g) {
+      var row = g.rows[0] || {}, status = row.id ? BO.leagueStatus(row) : 'live';
+      var dates = row.starts_at ? BO.fmtDate(row.starts_at) + ' → ' + BO.fmtDate(row.ends_at) : '—';
+      var line = function (label, page, n, extra) {
+        return '<p><b>' + label + '</b> ' + (n != null ? n + ' 项 · ' : '') + '<a href="' + page + '">查看全部</a>' + (extra ? ' · ' + extra : '') + '</p>';
+      };
+      return '<article class="poe-version"><div class="poe-version-head"><b>' + BO.esc(g.name) + ' · Patch ' + BO.esc(patch) + '</b><span>' + (row.trade ? 'SC/交易' : '赛季') + ' · ' + BO.esc(dates) + ' · ' + BO.esc(status === 'live' ? '进行中' : status === 'upcoming' ? '未开始' : '已结束') + '</span></div>' +
+        '<div class="poe-version-body">' +
+        line('物品', 'items.html', (counts.bases || 0) + (counts.uniques || 0) + (counts.affixes || 0) + (counts.runes || 0) + (counts.runewords || 0), (counts.bases || 0) + ' 底材 · ' + (counts.uniques || 0) + ' 传奇 · ' + (counts.affixes || 0) + ' 词缀 · ' + (counts.runes || 0) + ' 符文 · ' + (counts.runewords || 0) + ' 符文之语') +
+        line('技能', 'skills.html', (meta.skills || 0) + (meta.supports || 0), (meta.skills || 0) + ' 技能 · ' + (meta.supports || 0) + ' 辅助 · ' + (meta.nodes || 0) + ' 天赋 · ' + Object.keys(N.dragon || {}).length + ' 龙裔') +
+        line('图鉴', 'bestiary.html', (meta.monsters || 0) + (meta.guardians || 0), (meta.monsters || 0) + ' 怪物 · ' + (meta.guardians || 0) + ' 守护者 · 怪物词缀 · 机制') +
+        line('模拟', 'planner.html', null, '装备 · 词缀 · 神像 · 天赋 · 龙裔 · DPS · 防御') +
+        '</div></article>';
+    }).join('');
   }
   function renderDbCounts() {
     var meta = (window.BO_NAMES && window.BO_NAMES.meta) || {};
@@ -290,6 +353,7 @@
         donut(meta);
         skillBars(meta);
         renderBuilds(current, ladder);
+        renderPoEVersions(leagues, version);
         var note = el('dataNoteText');
         if (note && leagues) {
           var pub = meta ? ((meta.sample && meta.sample.heroes) || meta.heroes || 0) : 0;
